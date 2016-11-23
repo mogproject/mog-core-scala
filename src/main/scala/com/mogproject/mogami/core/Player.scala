@@ -20,7 +20,10 @@ object Player extends CsaFactory[Player] with SfenFactory[Player] {
 
   val constructor: Seq[Player] = Seq(BLACK, WHITE)
 
-  def apply(id: Int): Player = constructor(id)
+  def apply(id: Int): Player = {
+    assert(0 <= id && id < 2)
+    constructor(id)
+  }
 
   case object BLACK extends Player(0)
 

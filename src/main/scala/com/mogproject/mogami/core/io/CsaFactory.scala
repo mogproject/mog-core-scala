@@ -6,7 +6,8 @@ package com.mogproject.mogami.core.io
 trait CsaFactory[T <: CsaLike] {
   val csaTable: Seq[String]
 
-  private lazy val invertedTable: Map[String, T] = csaTable.zipWithIndex.map(x => x._1 -> apply(x._2)).toMap
+  private lazy val invertedTable: Map[String, T] =
+    csaTable.zipWithIndex.withFilter(_._1.nonEmpty).map { case (s, i) => s -> apply(i) }.toMap
 
   def apply(id: Int): T
 
