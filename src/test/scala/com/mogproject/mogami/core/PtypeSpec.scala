@@ -8,7 +8,12 @@ class PtypeSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCheck
 
   val allPtypes = Seq(
     KING, GOLD, PAWN, KNIGHT, SILVER, LANCE, BISHOP, ROOK, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK)
-  val csaPtypes = Seq("OU", "KI", "FU", "KE", "GI", "KY", "KA", "HI", "TO", "NK", "NG", "NY", "UM", "RY")
+  val csaPtypes = Seq(
+    "OU", "KI", "FU", "KE", "GI", "KY", "KA", "HI", "TO", "NK", "NG", "NY", "UM", "RY")
+  val englishNames = Seq(
+    "K", "G", "P", "N", "S", "L", "B", "R", "+P", "+N", "+S", "+L", "+B", "+R")
+  val japaneseNames = Seq(
+    "玉", "金", "歩", "桂", "銀", "香", "角", "飛", "と", "圭", "全", "杏", "馬", "竜")
   val promotedPtypes = Seq(
     KING, GOLD, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK)
   val demotedPtypes = Seq(
@@ -43,6 +48,14 @@ class PtypeSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCheck
     Ptype.parseCsaString("x" * 100) should be(None)
   }
 
+  "Ptype#toEnglishSimpleName" should "describe all piece types" in {
+    allPtypes.map(_.toEnglishSimpleName) should be(englishNames)
+  }
+
+  "Ptype#toJapaneseSimpleName" should "describe all piece types" in {
+    allPtypes.map(_.toJapaneseSimpleName) should be(japaneseNames)
+  }
+
   it should "recover piece types" in forAll(PtypeGen.ptypes) { pt =>
     Ptype.parseCsaString(pt.toCsaString) should be(Some(pt))
   }
@@ -54,7 +67,6 @@ class PtypeSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCheck
   "Ptype#demoted" should "return demoted piece types" in {
     allPtypes.map(_.demoted) should be(demotedPtypes)
   }
-
   it should "cancel promotion and demotion" in forAll(PtypeGen.ptypes) { pt =>
     pt.promoted.demoted should be(pt.demoted)
     pt.demoted.promoted should be(pt.promoted)

@@ -17,12 +17,26 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
   final def demoted: Ptype = Ptype(id | 8)
 
   final def promoted: Ptype = if (canPromote) Ptype(id - 8) else this
+
+  def toEnglishSimpleName: String = Ptype.englishSimpleNames(id)
+
+  def toJapaneseSimpleName: String = Ptype.japaneseSimpleNames(id)
 }
 
 object Ptype extends CsaFactory[Ptype] {
   override val csaTable: Seq[String] = Seq(
     "", "", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"
+  )
+
+  val englishSimpleNames: Seq[String] = Seq(
+    "", "", "+P", "+L", "+N", "+S", "+B", "+R",
+    "K", "G", "P", "L", "N", "S", "B", "R"
+  )
+
+  val japaneseSimpleNames: Seq[String] = Seq(
+    "", "", "と", "杏", "圭", "全", "馬", "竜",
+    "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
   val constructor: Seq[Ptype] = Seq(
