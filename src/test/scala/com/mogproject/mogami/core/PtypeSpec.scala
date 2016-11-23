@@ -1,10 +1,10 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import com.mogproject.mogami.core.Ptype._
 
-class PtypeSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
+class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
   val allPtypes = Seq(
     KING, GOLD, PAWN, KNIGHT, SILVER, LANCE, BISHOP, ROOK, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK)
@@ -21,67 +21,67 @@ class PtypeSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCheck
   val canPromote = Seq(false, false, true, true, true, true, true, true, false, false, false, false, false, false)
   val isPromoted = Seq(false, false, false, false, false, false, false, false, true, true, true, true, true, true)
 
-  "Ptype#equals" should "distinguish some piece types" in {
-    KING.equals(KING) should be(true)
-    KING.equals(GOLD) should be(false)
-    GOLD.equals(KING) should be(false)
-    GOLD.equals(GOLD) should be(true)
+  "Ptype#equals" must "distinguish some piece types" in {
+    KING.equals(KING) must be(true)
+    KING.equals(GOLD) must be(false)
+    GOLD.equals(KING) must be(false)
+    GOLD.equals(GOLD) must be(true)
   }
 
-  "Ptype#toString" should "describe all piece types" in {
-    allPtypes.map(_.toString) should be(Seq(
+  "Ptype#toString" must "describe all piece types" in {
+    allPtypes.map(_.toString) must be(Seq(
       "KING", "GOLD", "PAWN", "KNIGHT", "SILVER", "LANCE", "BISHOP", "ROOK",
       "PPAWN", "PKNIGHT", "PSILVER", "PLANCE", "PBISHOP", "PROOK"))
   }
 
-  "Ptype#toCsaString" should "describe all piece types" in {
-    allPtypes.map(_.toCsaString) should be(csaPtypes)
+  "Ptype#toCsaString" must "describe all piece types" in {
+    allPtypes.map(_.toCsaString) must be(csaPtypes)
   }
 
-  "Ptype#parseCsaString" should "make piece type" in {
-    csaPtypes.map(Ptype.parseCsaString) should be(allPtypes.map(Some(_)))
+  "Ptype#parseCsaString" must "make piece type" in {
+    csaPtypes.map(Ptype.parseCsaString) must be(allPtypes.map(Some(_)))
   }
-  it should "return None" in {
-    Ptype.parseCsaString("") should be(None)
-    Ptype.parseCsaString("* ") should be(None)
-    Ptype.parseCsaString("OU ") should be(None)
-    Ptype.parseCsaString("x" * 100) should be(None)
-  }
-
-  "Ptype#toEnglishSimpleName" should "describe all piece types" in {
-    allPtypes.map(_.toEnglishSimpleName) should be(englishNames)
+  it must "return None" in {
+    Ptype.parseCsaString("") must be(None)
+    Ptype.parseCsaString("* ") must be(None)
+    Ptype.parseCsaString("OU ") must be(None)
+    Ptype.parseCsaString("x" * 100) must be(None)
   }
 
-  "Ptype#toJapaneseSimpleName" should "describe all piece types" in {
-    allPtypes.map(_.toJapaneseSimpleName) should be(japaneseNames)
+  "Ptype#toEnglishSimpleName" must "describe all piece types" in {
+    allPtypes.map(_.toEnglishSimpleName) must be(englishNames)
   }
 
-  it should "recover piece types" in forAll(PtypeGen.ptypes) { pt =>
-    Ptype.parseCsaString(pt.toCsaString) should be(Some(pt))
+  "Ptype#toJapaneseSimpleName" must "describe all piece types" in {
+    allPtypes.map(_.toJapaneseSimpleName) must be(japaneseNames)
   }
 
-  "Ptype#promoted" should "return promoted piece types" in {
-    allPtypes.map(_.promoted) should be(promotedPtypes)
+  it must "recover piece types" in forAll(PtypeGen.ptypes) { pt =>
+    Ptype.parseCsaString(pt.toCsaString) must be(Some(pt))
   }
 
-  "Ptype#demoted" should "return demoted piece types" in {
-    allPtypes.map(_.demoted) should be(demotedPtypes)
-  }
-  it should "cancel promotion and demotion" in forAll(PtypeGen.ptypes) { pt =>
-    pt.promoted.demoted should be(pt.demoted)
-    pt.demoted.promoted should be(pt.promoted)
+  "Ptype#promoted" must "return promoted piece types" in {
+    allPtypes.map(_.promoted) must be(promotedPtypes)
   }
 
-  "Ptype#canPromote" should "return correctly" in {
-    allPtypes.map(_.canPromote) should be(canPromote)
+  "Ptype#demoted" must "return demoted piece types" in {
+    allPtypes.map(_.demoted) must be(demotedPtypes)
+  }
+  it must "cancel promotion and demotion" in forAll(PtypeGen.ptypes) { pt =>
+    pt.promoted.demoted must be(pt.demoted)
+    pt.demoted.promoted must be(pt.promoted)
   }
 
-  "Ptype#isBasic" should "return correctly" in {
-    allPtypes.map(_.isBasic) should be(isPromoted.map(!_))
+  "Ptype#canPromote" must "return correctly" in {
+    allPtypes.map(_.canPromote) must be(canPromote)
   }
 
-  "Ptype#isPromoted" should "return correctly" in {
-    allPtypes.map(_.isPromoted) should be(isPromoted)
+  "Ptype#isBasic" must "return correctly" in {
+    allPtypes.map(_.isBasic) must be(isPromoted.map(!_))
+  }
+
+  "Ptype#isPromoted" must "return correctly" in {
+    allPtypes.map(_.isPromoted) must be(isPromoted)
   }
 
 }

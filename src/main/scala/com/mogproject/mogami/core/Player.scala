@@ -8,6 +8,8 @@ import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike
 sealed abstract class Player(val id: Int) extends CsaLike with SfenLike {
   def unary_! : Player = Player(id ^ 1)
 
+  def doWhenWhite[A](a: => A)(f: A => A): A = if (id == 0) a else f(a)
+
   override def toCsaString: String = Player.csaTable(id)
 
   override def toSfenString: String = Player.sfenTable(id)
@@ -28,4 +30,5 @@ object Player extends CsaFactory[Player] with SfenFactory[Player] {
   case object BLACK extends Player(0)
 
   case object WHITE extends Player(1)
+
 }
