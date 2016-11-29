@@ -7,4 +7,6 @@ import org.scalacheck.Gen
   */
 object PtypeGen {
   val ptypes: Gen[Ptype] = Gen.oneOf(Ptype.constructor)
+
+  val ptypesInHand: Gen[Ptype] = Gen.oneOf(Ptype.inHand)
 }

@@ -44,6 +44,10 @@ object Ptype extends CsaFactory[Ptype] {
     KING, GOLD, PAWN, LANCE, KNIGHT, SILVER, BISHOP, ROOK
   )
 
+  val inHand: Seq[Ptype] = Seq(
+    PAWN, LANCE, KNIGHT, SILVER, GOLD, BISHOP, ROOK
+  )
+
   def apply(id: Int): Ptype = {
     assert(2 <= id && id < 16, s"Invalid id: ${id}")
     constructor(id - 2)
