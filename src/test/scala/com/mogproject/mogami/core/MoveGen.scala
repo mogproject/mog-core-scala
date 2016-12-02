@@ -8,14 +8,14 @@ import org.scalacheck.Gen
 object MoveGen {
   val movesCsaFormat: Gen[Move] = for {
     from <- SquareGen.squares
-    to <- SquareGen.squaresOnBoard
+    to <- SquareGen.squaresOnBoardExcept(Seq(from))
     pl <- PlayerGen.players
     pt <- if (from.isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
   } yield Move(from, to, Some(pl), Some(pt), None)
 
   val movesSfenFormat: Gen[Move] = for {
     from <- SquareGen.squares
-    to <- SquareGen.squaresOnBoard
+    to <- SquareGen.squaresOnBoardExcept(Seq(from))
     pt <- PtypeGen.ptypesInHand
     pr <- Gen.oneOf(false, true)
   } yield {

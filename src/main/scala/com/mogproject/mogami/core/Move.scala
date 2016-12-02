@@ -14,6 +14,7 @@ case class Move(from: Square,
                 promote: Option[Boolean]) extends CsaLike with SfenLike {
   require(!from.isHand || newPtype.isDefined, "piece type must be defined when dropping")
   require(!from.isHand || !promote.contains(true), "promote must be undefined or false when dropping")
+  require(from != to, "to must not be identical to from")
   require(!to.isHand, "to must not be in hand")
 
   def isCsaCompatible: Boolean = {
@@ -59,7 +60,7 @@ object Move {
       case patternOnBoard(from, to, promote) =>
         for {
           f <- Square.parseSfenString(from)
-          t <- Square.parseSfenString(to)
+          t <- Square.parseSfenString(to) if to != from
         } yield Move(f, t, None, None, Some(promote == "+"))
       case patternInHand(ptype, to) =>
         for {

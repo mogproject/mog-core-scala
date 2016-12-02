@@ -7,9 +7,11 @@ import org.scalacheck.Gen
   * Square generator for scalacheck
   */
 object SquareGen {
-  private val boards = for {f <- 1 to 9; r <- 1 to 9} yield Square(f, r)
+  private val boards: Seq[Square] = for {f <- 1 to 9; r <- 1 to 9} yield Square(f, r)
 
   val squares: Gen[Square] = Gen.oneOf(HAND +: boards)
 
   val squaresOnBoard: Gen[Square] = Gen.oneOf(boards)
+
+  def squaresOnBoardExcept(except: Seq[Square]): Gen[Square] = Gen.oneOf((boards.toSet -- except).toSeq)
 }
