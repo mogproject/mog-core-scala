@@ -60,8 +60,74 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     case _ => None
   }
 
-  def isValidMove(move: Move): Boolean = true  // TODO: implement
+  /**
+    * Get the square where the turn-to-move player's king.
+    *
+    * @return None if the king is not on board
+    */
+  def getKingSquare: Option[Square] = board.view.filter{case (s, p) => p == Piece(turn, KING)}.map(_._1).headOption
 
+  /**
+    * Check if the move is legal.
+    *
+    * @param move move to test
+    * @return true if the move is legal
+    */
+  def isValidMove(move: Move): Boolean = {
+    (for {
+      _ <- verifyPlayer(move)
+      _ <- if (move.from.isHand) verifyHandMove(move) else verifyBoardMove(move)
+      newBoard = (board - move.from).updated(move.to, Piece(turn, PPAWN)) // put a dummy piece
+      if verifyKing(newBoard, getKingSquare)
+    } yield {}).isDefined
+  }
+
+  private[this] def verifyPlayer(move: Move): Option[Unit] = if (move.player.contains(!turn)) None else Some({})
+
+  // sub methods for hand move
+  private[this] def verifyHandMove(move: Move): Option[Unit] = {
+    for {
+      p <- move.newPtype.map(Piece(turn, _))
+      if hand.get(p).exists(_ > 0)
+      if board.get(move.to).isEmpty
+      if move.to.isLegalZone(p)
+      if verifyNifu(move)
+    } yield {}
+  }
+
+  private[this] def verifyNifu(move: Move): Boolean =
+    !move.newPtype.contains(PAWN) || !(1 to 9).map(Square(move.to.file, _)).exists(s => board.get(s).contains(Piece(turn, PAWN)))
+
+  // sub methods for board move
+  private[this] def verifyBoardMove(move: Move): Option[Unit] = {
+    for {
+      oldPiece <- board.get(move.from)
+      if verifyNewPtype(oldPiece, move)
+      if State.canAttack(board, move.from, move.to)
+    } yield {}
+  }
+
+  private[this] def verifyNewPtype(oldPiece: Piece, move: Move): Boolean = move.newPtype match {
+    case Some(np) if oldPiece == Piece(turn, np) => !move.promote.contains(true)
+    case Some(np) if oldPiece == Piece(turn, np).demoted => !move.promote.contains(false)
+    case None => !move.promote.contains(true) || oldPiece.promoted != oldPiece
+  }
+
+  // test if king is safe
+  private[this] def verifyKing(newBoard: Map[Square, Piece], kingSquare: Option[Square]): Boolean = {
+    kingSquare.forall { k =>
+      newBoard.forall { case (s, p) =>
+        p.owner == turn || !State.canAttack(newBoard, s, k)
+      }
+    }
+  }
+
+  /**
+    * Make one move.
+    *
+    * @param move move to make
+    * @return new state
+    */
   def makeMove(move: Move): Option[State] = {
     val newPiece = getNewPiece(move)
 
@@ -98,6 +164,15 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
+
+  def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
+    (for {
+      p <- board.get(from)
+      (relation, distance) = from.getRelation(p.owner, to)
+      if p.ptype.canMoveTo(relation, distance)  // check capability
+      if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty  // check blocking pieces
+    } yield {}).isDefined
+  }
 
   val HIRATE = State(BLACK, Map(
     Square(1, 1) -> Piece(WHITE, LANCE),

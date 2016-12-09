@@ -11,8 +11,15 @@ lazy val root = (project in file("."))
       scalaTest % Test,
       scalaCheck % Test
     ),
-    initialCommands in console :=
+    scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
+    initialCommands in console in Test :=
       """
       import com.mogproject.mogami.core._
+      import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+      import com.mogproject.mogami.core.Ptype._
+      import com.mogproject.mogami.core.SquareConstant._
+      import com.mogproject.mogami.core.PieceConstant._
+      import com.mogproject.mogami.core.Square.HAND
+      import com.mogproject.mogami.core.State.PromotionFlag._
       """
   )

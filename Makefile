@@ -7,7 +7,7 @@ test:
 	${SBT} test
 
 console:
-	${SBT} console
+	${SBT} test:console
 
 clean:
 	${SBT} clean

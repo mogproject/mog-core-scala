@@ -12,10 +12,11 @@ case class Move(from: Square,
                 player: Option[Player],
                 newPtype: Option[Ptype],
                 promote: Option[Boolean]) extends CsaLike with SfenLike {
-  require(!from.isHand || newPtype.isDefined, "piece type must be defined when dropping")
+  require(!from.isHand || newPtype.exists(Ptype.inHand.contains), "ptype must be defined and in-hand type when dropping")
   require(!from.isHand || !promote.contains(true), "promote must be undefined or false when dropping")
   require(from != to, "to must not be identical to from")
   require(!to.isHand, "to must not be in hand")
+  require(newPtype.isDefined || promote.isDefined, "either ptype or promote must be defined")
 
   def isCsaCompatible: Boolean = {
     player.isDefined && newPtype.isDefined

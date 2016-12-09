@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.io.{CsaLike, CsaTableFactory}
+import com.mogproject.mogami.core.SquareRelation._
 
 /**
   * Piece type
@@ -21,10 +22,31 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
   def toEnglishSimpleName: String = Ptype.englishSimpleNames(id)
 
   def toJapaneseSimpleName: String = Ptype.japaneseSimpleNames(id)
+
+  val capability: Vector[Int] = Vector(
+    Vector(0, 0, 0, 0, 0, 0, -1),
+    Vector(0, 0, 0, 0, 0, 0, -1),
+    Vector(1, 1, 1, 0, 1, 0, -1), // PPAWN
+    Vector(1, 1, 1, 0, 1, 0, -1), // PLANCE
+    Vector(1, 1, 1, 0, 1, 0, -1), // PKNIGHT
+    Vector(1, 1, 1, 0, 1, 0, -1), // PSILVER
+    Vector(1, 8, 1, 8, 1, 0, -1), // PBISHOP
+    Vector(8, 1, 8, 1, 8, 0, -1), // PROOK
+    Vector(1, 1, 1, 1, 1, 0, -1), // KING
+    Vector(1, 1, 1, 0, 1, 0, -1), // GOLD
+    Vector(1, 0, 0, 0, 0, 0, -1), // PAWN
+    Vector(8, 0, 0, 0, 0, 0, -1), // LANCE
+    Vector(0, 0, 0, 0, 0, 1, -1), // KNIGHT
+    Vector(1, 1, 0, 1, 0, 0, -1), // SILVER
+    Vector(0, 8, 0, 8, 0, 0, -1), // BISHOP
+    Vector(8, 0, 8, 0, 8, 0, -1) // ROOK
+  )(id)
+
+  def canMoveTo(relation: SquareRelation, distance: Int): Boolean = distance <= capability(relation.id)
 }
 
 object Ptype extends CsaTableFactory[Ptype] {
-  override val csaTable: Seq[String] = Seq(
+  val csaTable: Seq[String] = Seq(
     "", "", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"
   )
