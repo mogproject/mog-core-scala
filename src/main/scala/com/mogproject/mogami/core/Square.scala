@@ -12,7 +12,7 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
   require(rank == 0 || (1 <= file && file <= 9))
   require(file == 0 || (1 <= rank && rank <= 9))
 
-  import com.mogproject.mogami.core.SquareRelation._
+  import com.mogproject.mogami.core.Direction._
 
   override def toCsaString = s"${file}${rank}"
 
@@ -55,16 +55,16 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
     }
   }
 
-  def getRelation(player: Player, to: Square): (SquareRelation, Int) = {
+  def getDisplacement(player: Player, to: Square): Displacement = {
     (math.abs(to.file - file), to.closeness(player) - closeness(player)) match {
-      case (0, 0) => (NoRelation, 0)
-      case (0, y) if y < 0 => (Forward, -y)
-      case (0, y) if y > 0 => (Backward, y)
-      case (x, 0) => (Side, x)
-      case (x, y) if x == y => (DiagonallyBackward, x)
-      case (x, y) if x == -y => (DiagonallyForward, x)
-      case (1, -2) => (KnightMove, 1)
-      case _ => (NoRelation, 0)
+      case (0, 0) => Displacement(NoRelation, 0)
+      case (0, y) if y < 0 => Displacement(Forward, -y)
+      case (0, y) if y > 0 => Displacement(Backward, y)
+      case (x, 0) => Displacement(Side, x)
+      case (x, y) if x == y => Displacement(DiagonallyBackward, x)
+      case (x, y) if x == -y => Displacement(DiagonallyForward, x)
+      case (1, -2) => Displacement(KnightMove, 1)
+      case _ => Displacement(NoRelation, 0)
     }
   }
 }

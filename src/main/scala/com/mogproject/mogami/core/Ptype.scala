@@ -1,7 +1,6 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.io.{CsaLike, CsaTableFactory}
-import com.mogproject.mogami.core.SquareRelation._
 
 /**
   * Piece type
@@ -42,7 +41,7 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
     Vector(8, 0, 8, 0, 8, 0, -1) // ROOK
   )(id)
 
-  def canMoveTo(relation: SquareRelation, distance: Int): Boolean = distance <= capability(relation.id)
+  def canMoveTo(displacement: Displacement): Boolean = displacement.distance <= capability(displacement.direction.id)
 }
 
 object Ptype extends CsaTableFactory[Ptype] {

@@ -168,8 +168,7 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
   def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
     (for {
       p <- board.get(from)
-      (relation, distance) = from.getRelation(p.owner, to)
-      if p.ptype.canMoveTo(relation, distance)  // check capability
+      if p.ptype.canMoveTo(from.getDisplacement(p.owner, to))  // check capability
       if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty  // check blocking pieces
     } yield {}).isDefined
   }
