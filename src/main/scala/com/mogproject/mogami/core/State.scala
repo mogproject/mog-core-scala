@@ -32,11 +32,50 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
 
   override def toSfenString = ???
 
-  def getPromotionFlag(from: Square, to: Square): Option[PromotionFlag] = ???
+  def getPromotionFlag(from: Square, to: Square): Option[PromotionFlag] = {
+    if (from.isHand) {
+      Some(CannotPromote)
+    } else {
+      for (p <- board.get(from) if p.owner == turn) yield {
+        (p.ptype.isPromoted, from.isPromotionZone(turn) || to.isPromotionZone(turn), to.isLegalZone(p)) match {
+          case (false, true, true) => CanPromote
+          case (false, true, false) => MustPromote
+          case _ => CannotPromote
+        }
+      }
+    }
+  }
 
-  def isValidMove(move: Move): Boolean = ???
+  /**
+    * Identify new piece from a move.
+    *
+    * @param move move instance
+    * @return piece wrapped by Option
+    */
+  private[this] def getNewPiece(move: Move): Option[Piece] = move match {
+    case Move(_, _, Some(player), Some(newPtype), _) => Some(Piece(player, newPtype))
+    case Move(Square.HAND, _, _, Some(newPtype), _) => Some(Piece(turn, newPtype))
+    case Move(from, _, _, _, Some(false)) => board.get(from)
+    case Move(from, _, _, _, Some(true)) => board.get(from).map(_.promoted)
+    case _ => None
+  }
 
-  def makeMove(move: Move): Option[State] = ???
+  def isValidMove(move: Move): Boolean = true  // TODO: implement
+
+  def makeMove(move: Move): Option[State] = {
+    val newPiece = getNewPiece(move)
+
+    val releaseHand: Map[Piece, Int] => Map[Piece, Int] = h =>
+      (for {p <- newPiece if move.from.isHand; n <- h.get(p)} yield h.updated(p, n - 1)).getOrElse(h)
+
+    val obtainHand: Map[Piece, Int] => Map[Piece, Int] = h =>
+      (for {p <- board.get(move.to); c = !p.demoted; n <- h.get(c)} yield h.updated(c, n + 1)).getOrElse(h)
+
+    if (isValidMove(move))
+      newPiece.map { p => State(!turn, (board - move.from).updated(move.to, p), (releaseHand andThen obtainHand) (hand)) }
+    else
+      None
+  }
 
   def getPieceCount: Map[Piece, Int] = MapUtil.mergeMaps(board.groupBy(_._2).mapValues(_.size), hand)(_ + _, 0)
 
