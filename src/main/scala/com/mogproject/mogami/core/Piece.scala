@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
+import com.mogproject.mogami.core.io._
 
 /**
   * Piece describing its owner and piece type
@@ -17,7 +17,7 @@ case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike {
   def demoted: Piece = Piece(owner, ptype.demoted)
 }
 
-object Piece extends CsaFactory[Piece] with SfenFactory[Piece] {
+object Piece extends CsaTableFactory[Piece] with SfenTableFactory[Piece] {
   override val csaTable: Seq[String] = for {
     p <- Player.constructor
     pt <- Ptype.constructor

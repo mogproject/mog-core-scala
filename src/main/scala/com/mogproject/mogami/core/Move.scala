@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaLike, SfenLike}
+import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
 
 import scala.util.matching.Regex
 
@@ -40,7 +40,7 @@ case class Move(from: Square,
   }
 }
 
-object Move {
+object Move extends CsaFactory[Move] with SfenFactory[Move] {
   def parseCsaString(s: String): Option[Move] = {
     for {
       s <- Some(s) if s.length == 7

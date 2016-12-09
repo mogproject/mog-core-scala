@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
+import com.mogproject.mogami.core.io._
 
 /**
   * Player
@@ -15,7 +15,7 @@ sealed abstract class Player(val id: Int) extends CsaLike with SfenLike {
   override def toSfenString: String = Player.sfenTable(id)
 }
 
-object Player extends CsaFactory[Player] with SfenFactory[Player] {
+object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
   override val csaTable: Seq[String] = Seq("+", "-")
 
   override val sfenTable: Seq[String] = Seq("b", "w")

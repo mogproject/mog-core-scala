@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike}
+import com.mogproject.mogami.core.io.{CsaLike, CsaTableFactory}
 
 /**
   * Piece type
@@ -23,7 +23,7 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
   def toJapaneseSimpleName: String = Ptype.japaneseSimpleNames(id)
 }
 
-object Ptype extends CsaFactory[Ptype] {
+object Ptype extends CsaTableFactory[Ptype] {
   override val csaTable: Seq[String] = Seq(
     "", "", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"

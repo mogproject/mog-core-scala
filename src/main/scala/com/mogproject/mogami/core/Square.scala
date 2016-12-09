@@ -1,9 +1,9 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Ptype.{PAWN, LANCE, KNIGHT}
+import com.mogproject.mogami.core.Ptype.{KNIGHT, LANCE, PAWN}
 
 import scala.util.matching.Regex
-import com.mogproject.mogami.core.io.{CsaLike, SfenLike}
+import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
 
 /**
   * Square -- each cell on the board (and in hand)
@@ -34,7 +34,7 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
   }) <= closeness(piece.owner)
 }
 
-object Square {
+object Square extends CsaFactory[Square] with SfenFactory[Square] {
   def parseCsaString(s: String): Option[Square] = {
     val p: Regex = """([1-9])([1-9])""".r
     s match {

@@ -2,7 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
-import com.mogproject.mogami.core.io.{CsaLike, CsaStateReader, SfenLike}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
 
 import scala.collection.mutable.ArrayBuffer
@@ -87,7 +87,7 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
 
 }
 
-object State extends CsaStateReader {
+object State extends CsaStateReader with SfenStateReader with CsaFactory[State] with SfenFactory[State] {
 
   object PromotionFlag extends Enumeration {
     type PromotionFlag = Value
