@@ -61,13 +61,6 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
   }
 
   /**
-    * Get the square where the turn-to-move player's king.
-    *
-    * @return None if the king is not on board
-    */
-  def getKingSquare: Option[Square] = board.view.filter{case (s, p) => p == Piece(turn, KING)}.map(_._1).headOption
-
-  /**
     * Check if the move is legal.
     *
     * @param move move to test
@@ -78,7 +71,7 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
       _ <- verifyPlayer(move)
       _ <- if (move.from.isHand) verifyHandMove(move) else verifyBoardMove(move)
       newBoard = (board - move.from).updated(move.to, Piece(turn, PPAWN)) // put a dummy piece
-      if verifyKing(newBoard, getKingSquare)
+      if verifyKing(newBoard)
     } yield {}).isDefined
   }
 
@@ -111,11 +104,12 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     case Some(np) if oldPiece == Piece(turn, np) => !move.promote.contains(true)
     case Some(np) if oldPiece == Piece(turn, np).demoted => !move.promote.contains(false)
     case None => !move.promote.contains(true) || oldPiece.promoted != oldPiece
+    case _ => false
   }
 
   // test if king is safe
-  private[this] def verifyKing(newBoard: Map[Square, Piece], kingSquare: Option[Square]): Boolean = {
-    kingSquare.forall { k =>
+  private[this] def verifyKing(newBoard: Map[Square, Piece]): Boolean = {
+    State.getKingSquare(turn, newBoard).forall { k =>
       newBoard.forall { case (s, p) =>
         p.owner == turn || !State.canAttack(newBoard, s, k)
       }
@@ -172,6 +166,14 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
       if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty  // check blocking pieces
     } yield {}).isDefined
   }
+
+  /**
+    * Get the square where the turn-to-move player's king.
+    *
+    * @return None if the king is not on board
+    */
+  def getKingSquare(player: Player, board: Map[Square, Piece]): Option[Square] =
+    board.view.filter{case (s, p) => p == Piece(player, KING)}.map(_._1).headOption
 
   val HIRATE = State(BLACK, Map(
     Square(1, 1) -> Piece(WHITE, LANCE),
