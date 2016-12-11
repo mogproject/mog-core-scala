@@ -21,7 +21,7 @@ object BooleanOps {
       /**
         * Executes the given binary function if this boolean value is `true`.
         */
-      final def when[A](f: A => A)(a: A): A = if (b) f(a) else a
+      final def when[A](f: A => A): A => A = if (b) f else identity
     }
 
   }

@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami.util.OptionOps.Implicits._
 import com.mogproject.mogami.core.State.{BoardType, HandType}
 
 /**
@@ -59,20 +60,6 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
   }
 
   /**
-    * Identify new piece from a move.
-    *
-    * @param move move instance
-    * @return piece wrapped by Option
-    */
-  private[this] def getNewPiece(move: Move): Option[Piece] = move match {
-    case Move(_, _, Some(player), Some(newPtype), _) => Some(Piece(player, newPtype))
-    case Move(Square.HAND, _, _, Some(newPtype), _) => Some(Piece(turn, newPtype))
-    case Move(from, _, _, _, Some(false)) => board.get(from)
-    case Move(from, _, _, _, Some(true)) => board.get(from).map(_.promoted)
-    case _ => None
-  }
-
-  /**
     * Check if the move is legal.
     *
     * @param move move to test
@@ -111,7 +98,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     *
     * @return true if mated
     */
-  def isMated: Boolean = ???  // todo
+  def isMated: Boolean = ??? // todo
 
   /**
     * Make one move.
@@ -119,14 +106,10 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     * @param move move to make
     * @return new state
     */
-  def makeMove(move: ExtendedMove): Option[State] = {
-    if (isValidMove(move)) {
-      val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, move.newPiece))
-      val obtainHand: HandType => HandType = h => move.capturedPiece.map(p => MapUtil.incrementMap(h, !p.demoted)).getOrElse(h)
-      Some(State(!turn, board - move.from + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand)))
-    } else {
-      None
-    }
+  def makeMove(move: ExtendedMove): Option[State] = isValidMove(move).option {
+    val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, move.newPiece))
+    val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, !p.demoted))
+    State(!turn, board - move.from + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand))
   }
 
   def getPieceCount: Map[Piece, Int] = MapUtil.mergeMaps(board.groupBy(_._2).mapValues(_.size), hand)(_ + _, 0)
