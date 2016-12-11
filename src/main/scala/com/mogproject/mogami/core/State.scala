@@ -111,7 +111,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     *
     * @return true if mated
     */
-  def isMated: Boolean = ???
+  def isMated: Boolean = ???  // todo
 
   /**
     * Make one move.
@@ -139,7 +139,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
 
 }
 
-object State extends CsaStateReader with SfenStateReader with CsaFactory[State] with SfenFactory[State] {
+object State extends CsaStateReader with SfenStateReader {
 
   type BoardType = Map[Square, Piece]
   type HandType = Map[Piece, Int]

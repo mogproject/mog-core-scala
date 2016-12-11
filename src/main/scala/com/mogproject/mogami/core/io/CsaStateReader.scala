@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 /**
   * Reads CSA-formatted state
   */
-trait CsaStateReader {
+trait CsaStateReader extends CsaFactory[State] {
 
   protected[io] def parseInitExpression(s: String): Option[State] = {
     @tailrec

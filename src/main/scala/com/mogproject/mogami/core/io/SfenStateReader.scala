@@ -8,7 +8,7 @@ import com.mogproject.mogami.util.BooleanOps.Implicits._
 /**
   * Reads Sfen-formatted state
   */
-trait SfenStateReader {
+trait SfenStateReader extends SfenFactory[State] {
 
   def parseSfenString(s: String): Option[State] = {
     for {

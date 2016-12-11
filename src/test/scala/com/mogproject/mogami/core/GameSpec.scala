@@ -108,11 +108,16 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 //      "-5162OU,T2\n" +
 //      "+3355UM,T3"
   )
+  val sfenForTest = Seq(
+    "9/9/9/9/9/9/9/9/9 b - 0",
+    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f",
+    "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f 3c3d 8h2b+ 3a2b B*3c 5a6b 3c5e+"
+  )
 
-  "toCsaString" should "describe some games" in {
+  "toCsaString" must "describe some games" in {
     dataForTest.map(_.toCsaString) zip csaForTest foreach { case (a, b) => a must be(b) }
   }
-  "parseCsaString" should "work with normal cases" in {
+  "parseCsaString" must "work in normal cases" in {
     csaForTest.map(Game.parseCsaString) zip dataForTest.map(Some(_)) foreach { case (a, b) => a must be(b) }
     Game.parseCsaString("+") must be(Some(Game(stateEmpty, Seq(), GameInfo())))
     Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo())))
@@ -151,7 +156,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       ),
       GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))))
   }
-  it should "return None when in error cases" in {
+  it must "return None when in error cases" in {
     Game.parseCsaString("") must be(None)
     Game.parseCsaString(" ") must be(None)
     Game.parseCsaString("x" * 1000) must be(None)
@@ -161,18 +166,18 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("V1\nP+00OU\n+") must be(None)
     Game.parseCsaString("PI\n+\nN+\n+7776FU") must be(None)
   }
-  it should "return None when game info is invalid" in {
+  it must "return None when game info is invalid" in {
     Game.parseCsaString("$XXX:XXX\nPI\n-\n-5152OU,T2345\n+5958OU") must be(None)
     Game.parseCsaString("N+xxx\nN=yyy\nPI\n-\n-5152OU,T2345\n+5958OU") must be(None)
   }
-  it should "return None when initial state is invalid" in {
+  it must "return None when initial state is invalid" in {
     Game.parseCsaString("N+xxx\nN-yyy\nPI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+7776FU") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\nPI\nPI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\nP\nP") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\nP+00FU\n-\n-5152OU,T2345\n+5958OU") must be(None)
   }
-  it should "return None when moves are invalid" in {
+  it must "return None when moves are invalid" in {
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+1234AB") must be(None)
 //    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT") must be(None)  // TODO: fix me
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n+7675FU") must be(None)
@@ -180,4 +185,20 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
   }
 
+  "toSfenString" must "describe some games" in {
+    dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
+  }
+  "parseSfenString" must "create games in normal cases" in {
+    sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g => Some(g.copy(gameInfo = GameInfo()))) foreach { case (a, b) => a must be(b) }
+  }
+  it must "return None in error cases" in {
+    Game.parseSfenString("") must be(None)
+    Game.parseSfenString(" ") must be(None)
+    Game.parseSfenString("x" * 1000) must be(None)
+    Game.parseSfenString("x\n" * 1000) must be(None)
+    Game.parseSfenString("$") must be(None)
+    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -") must be(None)
+    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
+    Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
+  }
 }

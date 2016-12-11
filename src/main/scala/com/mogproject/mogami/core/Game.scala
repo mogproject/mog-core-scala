@@ -4,6 +4,8 @@ import scala.annotation.tailrec
 import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
 import com.mogproject.mogami.util.BooleanOps.Implicits._
 
+import scala.util.Try
+
 /**
   * Game
   */
@@ -62,7 +64,17 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
     } yield game
   }
 
-  override def parseSfenString(s: String): Option[Game] = ???
+  override def parseSfenString(s: String): Option[Game] = {
+    val tokens = s.split(" ")
+
+    for {
+      st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
+      offset <- Try(tokens(3).toInt).toOption
+      gi = GameInfo()  // initialize without information
+      moves = tokens.drop(4).flatMap(ss => Move.parseSfenString(ss)) if moves.length == tokens.length - 4
+      game <- moves.foldLeft(Some(Game(st, Seq.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
+    } yield game
+  }
 
   object GameStatus extends Enumeration {
     type GameStatus = Value
