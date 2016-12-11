@@ -1,9 +1,11 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Ptype._
+import com.mogproject.mogami.core.Player.WHITE
 
 import scala.util.matching.Regex
+import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
+import com.mogproject.mogami.util.BooleanOps.Implicits._
 
 /**
   * Square -- each cell on the board (and in hand)
@@ -25,7 +27,7 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
   /**
     * Distance from the player's farthest rank.
     */
-  def closeness(player: Player): Int = if (isHand) 0 else player.doWhenWhite(rank)(10 - _)
+  def closeness(player: Player): Int = isHand.fold(0, (player == WHITE).when[Int](10 - _)(rank))
 
   def isPromotionZone(player: Player): Boolean = closeness(player) <= 3
 

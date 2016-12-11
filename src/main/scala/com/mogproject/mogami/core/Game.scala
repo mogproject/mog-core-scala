@@ -2,6 +2,7 @@ package com.mogproject.mogami.core
 
 import scala.annotation.tailrec
 import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
+import com.mogproject.mogami.util.BooleanOps.Implicits._
 
 /**
   * Game
@@ -21,15 +22,14 @@ case class Game(initialState: State = State.HIRATE,
 
   lazy val hashCodes: Seq[Int] = history.map(_.hashCode())
 
-  lazy val status: GameStatus = if (currentState.isMated) Mated else Playing
+  lazy val status: GameStatus = currentState.isMated.fold(Mated, Playing)
 
   /**
     * Get the latest state.
     */
   def currentState: State = history.last
 
-  def makeMove(move: ExtendedMove): Option[Game] =
-    Option(currentState.isValidMove(move)).collect { case true => this.copy(moves = moves :+ move) }
+  def makeMove(move: ExtendedMove): Option[Game] = currentState.isValidMove(move).option(this.copy(moves = moves :+ move))
 
   def makeMove(move: Move): Option[Game] = ExtendedMove.fromMove(move, currentState).flatMap(makeMove)
 
@@ -103,7 +103,7 @@ object GameInfo extends CsaFactory[GameInfo] {
       case _ => sofar // (_, None) => None; (Nil, _) => sofar
     }
 
-    f(if (s.isEmpty) List() else s.split('\n').toList, Some(GameInfo()))
+    f(s.isEmpty.fold(List(), s.split('\n').toList), Some(GameInfo()))
   }
 
   /** pairs of a symbol name and its csa-formatted string */

@@ -4,6 +4,7 @@ import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
+import com.mogproject.mogami.util.BooleanOps.Implicits._
 
 /**
   * State class
@@ -26,7 +27,7 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
   }
 
   override def toSfenString: String = {
-    def stringifyNumber(n: Int, threshold: Int = 0): String = if (n <= threshold) "" else n.toString
+    def stringifyNumber(n: Int, threshold: Int = 0): String = (n <= threshold).fold("", n.toString)
 
     val boardString = (1 to 9).map { rank =>
       val (ss, nn) = (9 to 1 by -1).map { file =>
@@ -40,7 +41,7 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
 
     val handString = hand.filter(_._2 != 0).toSeq.sorted.map { case (p, n) => stringifyNumber(n, 1) + p.toSfenString }.mkString
 
-    s"$boardString ${turn.toSfenString} ${if (handString.isEmpty) "-" else handString}"
+    s"$boardString ${turn.toSfenString} ${handString.isEmpty.fold("-", handString)}"
   }
 
   def getPromotionFlag(from: Square, to: Square): Option[PromotionFlag] = {
@@ -78,38 +79,23 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     * @return true if the move is legal
     */
   def isValidMove(move: ExtendedMove): Boolean = {
-    (for {
-      _ <- Some({})
-      if verifyPlayer(move)
-      _ <- if (move.isDrop) verifyHandMove(move) else verifyBoardMove(move)
-      newBoard = board - move.from + (move.to -> Piece(turn, PPAWN)) // put a dummy piece
-      if verifyKing(newBoard)
-    } yield {}).isDefined
+    verifyPlayer(move) &&
+      move.isDrop.fold(verifyHandMove(move), verifyBoardMove(move)) &&
+      verifyKing(board - move.from + (move.to -> Piece(turn, PPAWN)))
   }
 
   private[this] def verifyPlayer(move: ExtendedMove): Boolean = move.player == turn
 
   // sub methods for hand move
-  private[this] def verifyHandMove(move: ExtendedMove): Option[Unit] = {
-    for {
-      _ <- Some({})
-      if hand.get(move.newPiece).exists(_ > 0)
-      if board.get(move.to).isEmpty
-      if verifyNifu(move)
-    } yield {}
-  }
+  private[this] def verifyHandMove(move: ExtendedMove): Boolean =
+    hand.get(move.newPiece).exists(_ > 0) && board.get(move.to).isEmpty && verifyNifu(move)
 
   private[this] def verifyNifu(move: ExtendedMove): Boolean =
     move.newPtype != PAWN || !(1 to 9).map(Square(move.to.file, _)).exists(s => board.get(s).contains(Piece(turn, PAWN)))
 
   // sub methods for board move
-  private[this] def verifyBoardMove(move: ExtendedMove): Option[Unit] = {
-    for {
-      oldPiece <- board.get(move.from)
-      if board.get(move.to).map(_.ptype) == move.captured
-      if State.canAttack(board, move.from, move.to)
-    } yield {}
-  }
+  private[this] def verifyBoardMove(move: ExtendedMove): Boolean =
+    board.get(move.to).map(_.ptype) == move.captured && State.canAttack(board, move.from, move.to)
 
   // test if king is safe
   private[this] def verifyKing(newBoard: Map[Square, Piece]): Boolean = {
@@ -135,7 +121,7 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     */
   def makeMove(move: ExtendedMove): Option[State] = {
     if (isValidMove(move)) {
-      val releaseHand: HandType => HandType = h => if (move.isDrop) MapUtil.decrementMap(h, move.newPiece) else h
+      val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, move.newPiece))
       val obtainHand: HandType => HandType = h => move.capturedPiece.map(p => MapUtil.incrementMap(h, !p.demoted)).getOrElse(h)
       Some(State(!turn, board - move.from + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand)))
     } else {
@@ -168,6 +154,7 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
+  // TODO: use BitBoard
   def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
     (for {
       p <- board.get(from)
