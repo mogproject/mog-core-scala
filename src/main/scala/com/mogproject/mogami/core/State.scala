@@ -5,13 +5,13 @@ import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami.core.State.{BoardType, HandType}
 
 /**
   * State class
   */
-case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int]) extends CsaLike with SfenLike {
+case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike with SfenLike {
 
-  import com.mogproject.mogami.core.State.HandType
   import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
 
   override def toCsaString: String = {
@@ -149,7 +149,7 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
     val CannotPromote, CanPromote, MustPromote = Value
   }
 
-  val EMPTY_HANDS: Map[Piece, Int] = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Piece(t, pt) -> 0).toMap
+  val EMPTY_HANDS: HandType = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Piece(t, pt) -> 0).toMap
 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
@@ -168,7 +168,7 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
     *
     * @return None if the king is not on board
     */
-  def getKingSquare(player: Player, board: Map[Square, Piece]): Option[Square] =
+  def getKingSquare(player: Player, board: BoardType): Option[Square] =
     board.view.filter { case (s, p) => p == Piece(player, KING) }.map(_._1).headOption
 
   val HIRATE = State(BLACK, Map(
