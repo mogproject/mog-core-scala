@@ -14,7 +14,6 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
   val dataForTest = Seq(
     State.HIRATE,
     State(BLACK, Map(), State.EMPTY_HANDS),
-    State.HIRATE,
     State(WHITE, Map(
       P11 -> WL, P21 -> WN, P22 -> WS, P32 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P82 -> WR,
@@ -58,18 +57,6 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
       "P7 *  *  *  *  *  *  *  *  * \n" +
       "P8 *  *  *  *  *  *  *  *  * \n" +
       "P9 *  *  *  *  *  *  *  *  * \n" +
-      "P+\n" +
-      "P-\n" +
-      "+",
-    "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n" +
-      "P2 * -HI *  *  *  *  * -KA * \n" +
-      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n" +
-      "P4 *  *  *  *  *  *  *  *  * \n" +
-      "P5 *  *  *  *  *  *  *  *  * \n" +
-      "P6 *  *  *  *  *  *  *  *  * \n" +
-      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n" +
-      "P8 * +KA *  *  *  *  * +HI * \n" +
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
       "+",

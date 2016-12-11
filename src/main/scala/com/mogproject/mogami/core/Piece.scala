@@ -18,6 +18,9 @@ case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike {
 }
 
 object Piece extends CsaTableFactory[Piece] with SfenTableFactory[Piece] {
+
+  implicit def ordering[A <: Piece]: Ordering[A] = Ordering.by(p => (p.owner, p.ptype))
+
   override val csaTable: Seq[String] = for {
     p <- Player.constructor
     pt <- Ptype.constructor

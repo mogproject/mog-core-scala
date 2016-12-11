@@ -5,32 +5,43 @@ import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
 
-import scala.collection.mutable.ArrayBuffer
-
 /**
   * State class
   */
 case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int]) extends CsaLike with SfenLike {
 
+  import com.mogproject.mogami.core.State.HandType
   import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
 
-  override def toCsaString = {
-    val s = new StringBuilder
-    val buf = ArrayBuffer.fill(81)(" * ")
-    board.foreach { case (sq, piece) => buf((sq.rank - 1) * 9 + sq.file - 1) = piece.toCsaString }
-    s ++= (0 until 9).map { i =>
-      (0 until 9).map { j => buf(i * 9 + 8 - j) }.mkString(s"P${i + 1}", "", "\n")
-    }.mkString
-    s ++= List(BLACK, WHITE).map { t =>
-      "P" + t.toCsaString + Ptype.inHand.map { p =>
-        ("00" + p.toCsaString) * hand.getOrElse(Piece(t, p), 0)
-      }.mkString("", "", "\n")
-    }.mkString
-    s ++= turn.toCsaString
-    s.result()
+  override def toCsaString: String = {
+    val boardString = (1 to 9).map { rank =>
+      (9 to 1 by -1).map { file => board.get(Square(file, rank)).map(_.toCsaString).getOrElse(" * ") }.mkString(s"P$rank", "", "")
+    }.mkString("\n")
+
+    val handString = Player.constructor.map { p =>
+      s"P${p.toCsaString}" + Ptype.inHand.map { pt => s"00${pt.toCsaString}" * hand.getOrElse(Piece(p, pt), 0) }.mkString
+    }.mkString("\n")
+
+    Seq(boardString, handString, turn.toCsaString).mkString("\n")
   }
 
-  override def toSfenString = ???
+  override def toSfenString: String = {
+    def stringifyNumber(n: Int, threshold: Int = 0): String = if (n <= threshold) "" else n.toString
+
+    val boardString = (1 to 9).map { rank =>
+      val (ss, nn) = (9 to 1 by -1).map { file =>
+        board.get(Square(file, rank))
+      }.foldLeft(("", 0)) {
+        case ((s, n), Some(p)) => (s + stringifyNumber(n) + p.toSfenString, 0)
+        case ((s, n), None) => (s, n + 1)
+      }
+      ss + stringifyNumber(nn)
+    }.mkString("/")
+
+    val handString = hand.filter(_._2 != 0).toSeq.sorted.map { case (p, n) => stringifyNumber(n, 1) + p.toSfenString }.mkString
+
+    s"$boardString ${turn.toSfenString} ${if (handString.isEmpty) "-" else handString}"
+  }
 
   def getPromotionFlag(from: Square, to: Square): Option[PromotionFlag] = {
     if (from.isHand) {
@@ -66,45 +77,38 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     * @param move move to test
     * @return true if the move is legal
     */
-  def isValidMove(move: Move): Boolean = {
+  def isValidMove(move: ExtendedMove): Boolean = {
     (for {
-      _ <- verifyPlayer(move)
-      _ <- if (move.from.isHand) verifyHandMove(move) else verifyBoardMove(move)
-      newBoard = (board - move.from).updated(move.to, Piece(turn, PPAWN)) // put a dummy piece
+      _ <- Some({})
+      if verifyPlayer(move)
+      _ <- if (move.isDrop) verifyHandMove(move) else verifyBoardMove(move)
+      newBoard = board - move.from + (move.to -> Piece(turn, PPAWN)) // put a dummy piece
       if verifyKing(newBoard)
     } yield {}).isDefined
   }
 
-  private[this] def verifyPlayer(move: Move): Option[Unit] = if (move.player.contains(!turn)) None else Some({})
+  private[this] def verifyPlayer(move: ExtendedMove): Boolean = move.player == turn
 
   // sub methods for hand move
-  private[this] def verifyHandMove(move: Move): Option[Unit] = {
+  private[this] def verifyHandMove(move: ExtendedMove): Option[Unit] = {
     for {
-      p <- move.newPtype.map(Piece(turn, _))
-      if hand.get(p).exists(_ > 0)
+      _ <- Some({})
+      if hand.get(move.newPiece).exists(_ > 0)
       if board.get(move.to).isEmpty
-      if move.to.isLegalZone(p)
       if verifyNifu(move)
     } yield {}
   }
 
-  private[this] def verifyNifu(move: Move): Boolean =
-    !move.newPtype.contains(PAWN) || !(1 to 9).map(Square(move.to.file, _)).exists(s => board.get(s).contains(Piece(turn, PAWN)))
+  private[this] def verifyNifu(move: ExtendedMove): Boolean =
+    move.newPtype != PAWN || !(1 to 9).map(Square(move.to.file, _)).exists(s => board.get(s).contains(Piece(turn, PAWN)))
 
   // sub methods for board move
-  private[this] def verifyBoardMove(move: Move): Option[Unit] = {
+  private[this] def verifyBoardMove(move: ExtendedMove): Option[Unit] = {
     for {
       oldPiece <- board.get(move.from)
-      if verifyNewPtype(oldPiece, move)
+      if board.get(move.to).map(_.ptype) == move.captured
       if State.canAttack(board, move.from, move.to)
     } yield {}
-  }
-
-  private[this] def verifyNewPtype(oldPiece: Piece, move: Move): Boolean = move.newPtype match {
-    case Some(np) if oldPiece == Piece(turn, np) => !move.promote.contains(true)
-    case Some(np) if oldPiece == Piece(turn, np).demoted => !move.promote.contains(false)
-    case None => !move.promote.contains(true) || oldPiece.promoted != oldPiece
-    case _ => false
   }
 
   // test if king is safe
@@ -116,25 +120,27 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
     }
   }
 
+  /** *
+    * Check if the state is mated.
+    *
+    * @return true if mated
+    */
+  def isMated: Boolean = ???
+
   /**
     * Make one move.
     *
     * @param move move to make
     * @return new state
     */
-  def makeMove(move: Move): Option[State] = {
-    val newPiece = getNewPiece(move)
-
-    val releaseHand: Map[Piece, Int] => Map[Piece, Int] = h =>
-      (for {p <- newPiece if move.from.isHand; n <- h.get(p)} yield h.updated(p, n - 1)).getOrElse(h)
-
-    val obtainHand: Map[Piece, Int] => Map[Piece, Int] = h =>
-      (for {p <- board.get(move.to); c = !p.demoted; n <- h.get(c)} yield h.updated(c, n + 1)).getOrElse(h)
-
-    if (isValidMove(move))
-      newPiece.map { p => State(!turn, (board - move.from).updated(move.to, p), (releaseHand andThen obtainHand) (hand)) }
-    else
+  def makeMove(move: ExtendedMove): Option[State] = {
+    if (isValidMove(move)) {
+      val releaseHand: HandType => HandType = h => if (move.isDrop) MapUtil.decrementMap(h, move.newPiece) else h
+      val obtainHand: HandType => HandType = h => move.capturedPiece.map(p => MapUtil.incrementMap(h, !p.demoted)).getOrElse(h)
+      Some(State(!turn, board - move.from + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand)))
+    } else {
       None
+    }
   }
 
   def getPieceCount: Map[Piece, Int] = MapUtil.mergeMaps(board.groupBy(_._2).mapValues(_.size), hand)(_ + _, 0)
@@ -149,6 +155,9 @@ case class State(turn: Player, board: Map[Square, Piece], hand: Map[Piece, Int])
 
 object State extends CsaStateReader with SfenStateReader with CsaFactory[State] with SfenFactory[State] {
 
+  type BoardType = Map[Square, Piece]
+  type HandType = Map[Piece, Int]
+
   object PromotionFlag extends Enumeration {
     type PromotionFlag = Value
     val CannotPromote, CanPromote, MustPromote = Value
@@ -162,8 +171,8 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
   def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
     (for {
       p <- board.get(from)
-      if p.ptype.canMoveTo(from.getDisplacement(p.owner, to))  // check capability
-      if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty  // check blocking pieces
+      if p.ptype.canMoveTo(from.getDisplacement(p.owner, to)) // check capability
+      if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty // check blocking pieces
     } yield {}).isDefined
   }
 
@@ -173,7 +182,7 @@ object State extends CsaStateReader with SfenStateReader with CsaFactory[State] 
     * @return None if the king is not on board
     */
   def getKingSquare(player: Player, board: Map[Square, Piece]): Option[Square] =
-    board.view.filter{case (s, p) => p == Piece(player, KING)}.map(_._1).headOption
+    board.view.filter { case (s, p) => p == Piece(player, KING) }.map(_._1).headOption
 
   val HIRATE = State(BLACK, Map(
     Square(1, 1) -> Piece(WHITE, LANCE),

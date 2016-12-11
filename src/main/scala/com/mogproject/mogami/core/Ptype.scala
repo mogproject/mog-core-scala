@@ -6,6 +6,8 @@ import com.mogproject.mogami.core.io.{CsaLike, CsaTableFactory}
   * Piece type
   */
 sealed abstract class Ptype(val id: Int) extends CsaLike {
+  lazy val sortId: Int = Ptype.sortIdTable(id)
+
   override def toCsaString: String = Ptype.csaTable(id)
 
   final def isBasic: Boolean = 8 <= id
@@ -18,9 +20,9 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
 
   final def promoted: Ptype = if (canPromote) Ptype(id - 8) else this
 
-  def toEnglishSimpleName: String = Ptype.englishSimpleNames(id)
+  lazy val toEnglishSimpleName: String = Ptype.englishSimpleNames(id)
 
-  def toJapaneseSimpleName: String = Ptype.japaneseSimpleNames(id)
+  lazy val toJapaneseSimpleName: String = Ptype.japaneseSimpleNames(id)
 
   val capability: Vector[Int] = Vector(
     Vector(0, 0, 0, 0, 0, 0, -1),
@@ -45,6 +47,13 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
 }
 
 object Ptype extends CsaTableFactory[Ptype] {
+  implicit def ordering[A <: Ptype]: Ordering[A] = Ordering.by(_.sortId)
+
+  val sortIdTable: Seq[Int] = Seq(
+    -1, -1, 15, 14, 13, 12, 10, 9,
+    0, 3, 7, 6, 5, 4, 2, 1
+  )
+
   val csaTable: Seq[String] = Seq(
     "", "", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"

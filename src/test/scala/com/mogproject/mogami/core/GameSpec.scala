@@ -24,7 +24,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   val dataForTest = Seq(
     Game(stateEmpty, Seq(), GameInfo()),
     Game(stateHirate, Seq(
-      Move(P77, P76, Some(BLACK), Some(PAWN), None)
+      ExtendedMove(BLACK, P77, P76, PAWN, false, None, false)
     ), GameInfo(
       Map(
         'formatVersion -> "2.2",
@@ -38,13 +38,13 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'opening -> "YAGURA"
       ))),
     Game(stateHirate, Seq(
-      Move(P77, P76, Some(BLACK), Some(PAWN), None),
-      Move(P33, P34, Some(WHITE), Some(PAWN), None),
-      Move(P88, P22, Some(BLACK), Some(PBISHOP), None),
-      Move(P31, P22, Some(WHITE), Some(SILVER), None),
-      Move(HAND, P33, Some(BLACK), Some(BISHOP), None),
-      Move(P51, P62, Some(WHITE), Some(KING), None),
-      Move(P33, P55, Some(BLACK), Some(PBISHOP), None)
+      ExtendedMove(BLACK, P77, P76, PAWN, false, None, false),
+      ExtendedMove(WHITE, P33, P34, PAWN, false, None, false),
+      ExtendedMove(BLACK, P88, P22, PBISHOP, true, Some(BISHOP), false),
+      ExtendedMove(WHITE, P31, P22, SILVER, false, Some(PBISHOP), false),
+      ExtendedMove(BLACK, HAND, P33, BISHOP, false, None, false), // TODO: fixme
+      ExtendedMove(WHITE, P51, P62, KING, false, None, false),
+      ExtendedMove(BLACK, P33, P55, PBISHOP, true, None, false)
     ), GameInfo(
       Map('formatVersion -> "", 'blackName -> "B", 'whiteName -> "W", 'event -> "", 'site -> "",
         'startTime -> "", 'endTime -> "", 'timeLimit -> "", 'opening -> "")
@@ -118,7 +118,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo())))
 
     Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
-      Move(P51, P52, Some(WHITE), Some(KING), None), Move(P59, P58, Some(BLACK), Some(KING), None)), GameInfo())))
+      ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+      ExtendedMove(BLACK, P59, P58, KING, false, None, false)
+    ), GameInfo())))
     Game.parseCsaString("N-yyy\n" +
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n" +
       "P2 * -HI *  *  *  *  * -KA * \n" +
@@ -132,7 +134,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+\n" +
       "P-\n" +
       "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
-      Move(P51, P52, Some(WHITE), Some(KING), None), Move(P59, P58, Some(BLACK), Some(KING), None)), GameInfo(Map('whiteName -> "yyy")))))
+      ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+      ExtendedMove(BLACK, P59, P58, KING, false, None, false)
+    ), GameInfo(Map('whiteName -> "yyy")))))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") must be(Some(Game(stateEmpty, Seq(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") must be(Some(Game(State(
@@ -141,7 +145,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("V2.2\n-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo(Map('formatVersion -> "2.2")))))
     Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(
       stateHirateInv,
-      Seq(Move(P51, P52, Some(WHITE), Some(KING), None), Move(P59, P58, Some(BLACK), Some(KING), None)),
+      Seq(
+        ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+        ExtendedMove(BLACK, P59, P58, KING, false, None, false)
+      ),
       GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))))
   }
   it should "return None when in error cases" in {

@@ -6,39 +6,44 @@ import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike
 /**
   * Game
   */
-case class Game(initialState: State = State.HIRATE, moves: Seq[Move], gameInfo: GameInfo, movesOffset: Int = 0) extends CsaLike with SfenLike {
+case class Game(initialState: State = State.HIRATE,
+                moves: Seq[ExtendedMove] = Seq.empty,
+                gameInfo: GameInfo = GameInfo(),
+                movesOffset: Int = 0
+               ) extends CsaLike with SfenLike {
+
+  require(history.length == moves.length + 1, "all moves must be valid")
 
   import com.mogproject.mogami.core.Game.GameStatus._
 
   /** history of states */
-  lazy val history: Seq[Option[State]] = moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m)))
+  lazy val history: Seq[State] = moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten
 
-  lazy val hashCodes: Seq[Int] = for (s <- history) yield s.map(_.hashCode()).getOrElse(0)
+  lazy val hashCodes: Seq[Int] = history.map(_.hashCode())
 
-  lazy val status: GameStatus = if (isValid) if (isMated) Mated else Playing else InvalidState
+  lazy val status: GameStatus = if (currentState.isMated) Mated else Playing
 
   /**
     * Get the latest state.
     */
-  def currentState: Option[State] = history.last
+  def currentState: State = history.last
 
-  def makeMove(m: Move): Game = this.copy(moves = moves :+ m)
+  def makeMove(move: ExtendedMove): Option[Game] =
+    Option(currentState.isValidMove(move)).collect { case true => this.copy(moves = moves :+ move) }
+
+  def makeMove(move: Move): Option[Game] = ExtendedMove.fromMove(move, currentState).flatMap(makeMove)
 
   override def toCsaString: String =
     (gameInfo :: initialState :: moves.toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
 
-  override def toSfenString: String = ???
-
-  def isValid: Boolean = currentState.isDefined
-
-  def isMated: Boolean = ???
+  override def toSfenString: String = (initialState.toSfenString :: movesOffset.toString :: moves.map(_.toSfenString).toList).mkString(" ")
 
   /**
     * Check if the latest move is the repetition.
     *
     * @return true if the latest move is the repetition
     */
-  def isRepetition: Boolean = currentState.exists(s => hashCodes.count(_ == s.hashCode()) >= 4)
+  def isRepetition: Boolean = hashCodes.count(_ == currentState.hashCode()) >= 4
 }
 
 object Game extends CsaFactory[Game] with SfenFactory[Game] {
@@ -52,19 +57,16 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
       // todo: parse time format (e.g. +7776FU,T12)
-      moves = c.map(s => Move.parseCsaString(s.take(7))) if moves.forall(_.isDefined)
-      g = Game(st, moves.flatten, gi)
-      if g.isValid // check if all the moves are legal
-    } yield {
-      g
-    }
+      moves = c.flatMap(s => Move.parseCsaString(s.take(7))) if moves.length == c.length
+      game <- moves.foldLeft(Some(Game(st, Seq.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
+    } yield game
   }
 
   override def parseSfenString(s: String): Option[Game] = ???
 
   object GameStatus extends Enumeration {
     type GameStatus = Value
-    val Playing, Mated, InvalidState = Value
+    val Playing, Mated = Value
   }
 
 }

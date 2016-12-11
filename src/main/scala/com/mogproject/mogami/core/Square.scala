@@ -71,6 +71,8 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
 
 object Square extends CsaFactory[Square] with SfenFactory[Square] {
 
+  implicit def ordering[A <: Square]: Ordering[A] = Ordering.by(s => (s.file, s.rank))
+
   def parseCsaString(s: String): Option[Square] = {
     val p: Regex = """([1-9])([1-9])""".r
     s match {

@@ -2,6 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
 
+import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -71,4 +72,65 @@ object Move extends CsaFactory[Move] with SfenFactory[Move] {
       case _ => None
     }
   }
+}
+
+
+/**
+  * Move with complete information
+  */
+case class ExtendedMove(player: Player,
+                        from: Square,
+                        to: Square,
+                        newPtype: Ptype,
+                        promote: Boolean,
+                        captured: Option[Ptype],
+                        isCheck: Boolean
+                       ) extends CsaLike with SfenLike  {
+  require(!isDrop || !promote, "promote must be false when dropping")
+  require(!isDrop || captured.isEmpty, "captured must be None when dropping")
+  require(from.isPromotionZone(player) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
+  require(from != to, "to must not be identical to from")
+  require(!to.isHand, "to must not be in hand")
+  require(isDrop || oldPtype.canMoveTo(from.getDisplacement(player, to)), "move must be within the capability")
+  require(to.isLegalZone(newPiece), "to must be legal for the new piece")
+
+  def oldPtype: Ptype = if (promote) newPtype.demoted else newPtype
+
+  def oldPiece: Piece = Piece(player, oldPtype)
+
+  def newPiece: Piece = Piece(player, newPtype)
+
+  def isDrop: Boolean = from.isHand
+
+  def hasCapture: Boolean = captured.isDefined
+
+  def capturedPiece: Option[Piece] = captured.map(Piece(!player, _))
+
+  private[this] def toMove: Move = Move(from, to, Some(player), Some(newPtype), Some(promote))
+
+  override def toCsaString: String = toMove.toCsaString
+
+  override def toSfenString: String = toMove.toSfenString
+
+}
+
+object ExtendedMove {
+
+  /**
+    * Complete move information with a state instance
+    *
+    * @param move move instance
+    * @return completed information
+    */
+  def fromMove(move: Move, state: State): Option[ExtendedMove] = {
+    // todo: implement isCheck
+    for {
+      oldPiece <- if (move.from.isHand) Some(Piece(state.turn, move.newPtype.get)) else state.board.get(move.from)
+      oldPtype = oldPiece.ptype
+      newPtype = move.newPtype.getOrElse(if (move.promote.get) oldPtype.promoted else oldPtype)
+      promote = move.promote.getOrElse(oldPtype != newPtype)
+      mv <- Try(ExtendedMove(state.turn, move.from, move.to, newPtype, promote, state.board.get(move.to).map(_.ptype), false)).toOption
+    } yield mv
+  }
+
 }

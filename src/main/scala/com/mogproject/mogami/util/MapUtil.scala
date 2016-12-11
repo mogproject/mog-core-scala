@@ -17,4 +17,8 @@ object MapUtil {
   def mergeMaps[K, V](a: Map[K, V], b: Map[K, V])(mergeFunc: (V, V) => V, default: V): Map[K, V] = {
     (a.keySet ++ b.keySet).map(k => k -> mergeFunc(a.getOrElse(k, default), b.getOrElse(k, default))).toMap
   }
+
+  def incrementMap[K](a: Map[K, Int], key: K): Map[K, Int] = a.updated(key, a.getOrElse(key, 0) + 1)
+
+  def decrementMap[K](a: Map[K, Int], key: K): Map[K, Int] = a.updated(key, a.getOrElse(key, 0) - 1)
 }
