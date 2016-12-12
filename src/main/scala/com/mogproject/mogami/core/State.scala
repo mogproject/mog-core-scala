@@ -93,6 +93,8 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     }
   }
 
+  def legalMoves: Seq[ExtendedMove] = ???
+
   /** *
     * Check if the state is mated.
     *
