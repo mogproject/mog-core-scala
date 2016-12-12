@@ -10,9 +10,11 @@ import com.mogproject.mogami.util.BooleanOps.Implicits._
 /**
   * Square -- each cell on the board (and in hand)
   */
-case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
-  require(rank == 0 || (1 <= file && file <= 9))
-  require(file == 0 || (1 <= rank && rank <= 9))
+case class Square(index: Int) extends CsaLike with SfenLike {
+  require(-1 <= index && index <= 80)
+
+  val rank: Int = (index + 9) / 9  // 0 if in hand
+  val file: Int = index % 9 + 1  // 0 if in hand
 
   import com.mogproject.mogami.core.Direction._
 
@@ -22,7 +24,7 @@ case class Square(file: Int, rank: Int) extends CsaLike with SfenLike {
 
   override def toSfenString = if (isHand) "*" else s"${file}${rankToChar}"
 
-  def isHand: Boolean = file == 0 && rank == 0
+  def isHand: Boolean = index < 0
 
   /**
     * Distance from the player's farthest rank.
@@ -75,6 +77,11 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
 
   implicit def ordering[A <: Square]: Ordering[A] = Ordering.by(s => (s.file, s.rank))
 
+  def apply(file: Int, rank: Int): Square = {
+    require(1 <= file && file <= 9 && 1 <= rank && rank <= 9)
+    apply((rank - 1) * 9 + file - 1)
+  }
+
   def parseCsaString(s: String): Option[Square] = {
     val p: Regex = """([1-9])([1-9])""".r
     s match {
@@ -93,6 +100,8 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
     }
   }
 
-  object HAND extends Square(0, 0)
+  object HAND extends Square(-1)
+
+  val BOARD: Seq[Square] = (0 until 81).map(Square.apply)
 
 }
