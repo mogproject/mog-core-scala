@@ -35,6 +35,97 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2))
   )
 
+  val csaForTest = Seq(
+    "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n" +
+      "P2 * -HI *  *  *  *  * -KA * \n" +
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n" +
+      "P4 *  *  *  *  *  *  *  *  * \n" +
+      "P5 *  *  *  *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  *  * \n" +
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n" +
+      "P8 * +KA *  *  *  *  * +HI * \n" +
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
+      "P+\n" +
+      "P-\n" +
+      "+",
+    "P1 *  *  *  *  *  *  *  *  * \n" +
+      "P2 *  *  *  *  *  *  *  *  * \n" +
+      "P3 *  *  *  *  *  *  *  *  * \n" +
+      "P4 *  *  *  *  *  *  *  *  * \n" +
+      "P5 *  *  *  *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  *  * \n" +
+      "P7 *  *  *  *  *  *  *  *  * \n" +
+      "P8 *  *  *  *  *  *  *  *  * \n" +
+      "P9 *  *  *  *  *  *  *  *  * \n" +
+      "P+\n" +
+      "P-\n" +
+      "+",
+    "P1-KY-KE-GI-KI-OU *  * -KE-KY\n" +
+      "P2 * -HI *  *  *  * -KI-GI * \n" +
+      "P3-FU-FU-FU+UM-FU-FU * -FU * \n" +
+      "P4 *  *  *  *  *  * -FU * -FU\n" +
+      "P5 *  * +FU *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  * +FU\n" +
+      "P7+FU+FU *  * +FU+FU+FU+FU * \n" +
+      "P8 *  * +GI * +KI *  *  *  * \n" +
+      "P9+KY+KE *  * +OU+KI+GI+KE+KY\n" +
+      "P+00KA00FU\n" +
+      "P-00HI00FU\n" +
+      "-",
+    "P1-NY-NK-NG-KI-OU-KI-NG-NK-NY\n" +
+      "P2 * -RY *  *  *  *  * -UM * \n" +
+      "P3-TO-TO-TO-TO-TO-TO-TO-TO-TO\n" +
+      "P4 *  *  *  *  *  *  *  *  * \n" +
+      "P5 *  *  *  *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  *  * \n" +
+      "P7+TO+TO+TO+TO+TO+TO+TO+TO+TO\n" +
+      "P8 * +UM *  *  *  *  * +RY * \n" +
+      "P9+NY+NK+NG+KI+OU+KI+NG+NK+NY\n" +
+      "P+\n" +
+      "P-\n" +
+      "+",
+    "P1 *  *  *  * -OU *  *  *  * \n" +
+      "P2 *  *  *  *  *  *  *  *  * \n" +
+      "P3 *  *  *  *  *  *  *  *  * \n" +
+      "P4 *  *  *  *  *  *  *  *  * \n" +
+      "P5 *  *  *  *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  *  * \n" +
+      "P7 *  *  *  *  *  *  *  *  * \n" +
+      "P8 *  *  *  *  *  *  *  *  * \n" +
+      "P9 *  *  *  *  *  *  *  *  * \n" +
+      "P+00HI00HI00KA00KA00KI00KI00KI00KI00GI00GI00GI00GI00KE00KE00KE00KE" +
+      "00KY00KY00KY00KY00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU" +
+      "00FU00FU00FU00FU00FU00FU\n" +
+      "P-\n" +
+      "+",
+    "P1 *  *  *  *  *  *  *  *  * \n" +
+      "P2 *  *  *  *  *  *  *  *  * \n" +
+      "P3 *  *  *  *  *  *  *  *  * \n" +
+      "P4 *  *  *  *  *  *  *  *  * \n" +
+      "P5 *  *  *  *  *  *  *  *  * \n" +
+      "P6 *  *  *  *  *  *  *  *  * \n" +
+      "P7 *  *  *  *  *  *  *  *  * \n" +
+      "P8 *  *  *  *  *  *  *  *  * \n" +
+      "P9 *  *  *  * +OU *  *  *  * \n" +
+      "P+\n" +
+      "P-00HI00HI00KA00KA00KI00KI00KI00KI00GI00GI00GI00GI00KE00KE00KE00KE" +
+      "00KY00KY00KY00KY00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU" +
+      "00FU00FU00FU00FU00FU00FU\n" +
+      "-"
+  )
+
+  "State#toCsaString" must "describe the state" in {
+    dataForTest(0).toCsaString must be(csaForTest(0))
+    dataForTest(1).toCsaString must be(csaForTest(1))
+    dataForTest(2).toCsaString must be(csaForTest(2))
+    dataForTest(3).toCsaString must be(csaForTest(3))
+    dataForTest(4).toCsaString must be(csaForTest(4))
+    dataForTest(5).toCsaString must be(csaForTest(5))
+  }
+  it must "restore states" in forAll(StateGen.statesWithFullPieces){ st =>
+    State.parseCsaString(st.toCsaString) must be(Some(st))
+  }
+
   "State#toSfenString" must "describe the state" in {
     dataForTest(0).toSfenString must be("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b -")
     dataForTest(1).toSfenString must be("9/9/9/9/9/9/9/9/9 b -")
@@ -42,6 +133,9 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     dataForTest(3).toSfenString must be("+l+n+sgkg+s+n+l/1+r5+b1/+p+p+p+p+p+p+p+p+p/9/9/9/+P+P+P+P+P+P+P+P+P/1+B5+R1/+L+N+SGKG+S+N+L b -")
     dataForTest(4).toSfenString must be("4k4/9/9/9/9/9/9/9/9 b 2R2B4G4S4N4L18P")
     dataForTest(5).toSfenString must be("9/9/9/9/9/9/9/9/4K4 w 2r2b4g4s4n4l18p")
+  }
+  it must "restore states" in forAll(StateGen.statesWithFullPieces){ st =>
+    State.parseSfenString(st.toSfenString) must be(Some(st))
   }
 
   "makeMove" must "make next state" in {

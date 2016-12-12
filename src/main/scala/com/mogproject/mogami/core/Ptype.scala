@@ -75,7 +75,7 @@ object Ptype extends CsaTableFactory[Ptype] {
   )
 
   val inHand: Seq[Ptype] = Seq(
-    PAWN, LANCE, KNIGHT, SILVER, GOLD, BISHOP, ROOK
+    ROOK, BISHOP, GOLD, SILVER, KNIGHT, LANCE, PAWN
   )
 
   def apply(id: Int): Ptype = {
