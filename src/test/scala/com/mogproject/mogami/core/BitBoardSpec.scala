@@ -343,8 +343,8 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
   }
 
   "BitBoard#mirrorHorizontal" must "mirror all bits horizontally" in {
-    BitBoard.empty.mirrorHorizontal mustBe BitBoard.empty
-    BitBoard.full.mirrorHorizontal mustBe BitBoard.full
+    BitBoard.empty.flipHorizontal mustBe BitBoard.empty
+    BitBoard.full.flipHorizontal mustBe BitBoard.full
     BitBoard(
       """
         |*********
@@ -356,7 +356,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |*******-*
         |-------*-
         |*********
-      """.stripMargin).mirrorHorizontal mustBe BitBoard(
+      """.stripMargin).flipHorizontal mustBe BitBoard(
       """
         |*********
         |-*-----*-
@@ -371,8 +371,8 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
   }
 
   "BitBoard#spreadAllFile" must "set all file-direction bits" in {
-    BitBoard.empty.spreadAllFile mustBe BitBoard.empty
-    BitBoard.full.spreadAllFile mustBe BitBoard.full
+    BitBoard.empty.spreadFiles mustBe BitBoard.empty
+    BitBoard.full.spreadFiles mustBe BitBoard.full
     BitBoard(
       """
         |--------*
@@ -384,7 +384,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |---------
         |---------
         |---------
-      """.stripMargin).spreadAllFile mustBe BitBoard(
+      """.stripMargin).spreadFiles mustBe BitBoard(
       """
         |--------*
         |--------*
@@ -407,7 +407,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |---------
         |---------
         |*--------
-      """.stripMargin).spreadAllFile mustBe BitBoard(
+      """.stripMargin).spreadFiles mustBe BitBoard(
       """
         |*--------
         |*--------
@@ -430,7 +430,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |-*------*
         |---------
         |---------
-      """.stripMargin).spreadAllFile mustBe BitBoard(
+      """.stripMargin).spreadFiles mustBe BitBoard(
       """
         |****--*-*
         |****--*-*
@@ -453,7 +453,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |--*------
         |-*-------
         |*--------
-      """.stripMargin).spreadAllFile mustBe BitBoard.full
+      """.stripMargin).spreadFiles mustBe BitBoard.full
     BitBoard(
       """
         |---------
@@ -465,7 +465,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |---------
         |---------
         |---------
-      """.stripMargin).spreadAllFile mustBe BitBoard.full
+      """.stripMargin).spreadFiles mustBe BitBoard.full
   }
   "BitBoard#seq" must "make bitboard sequence from long-width string sequence" in {
     BitBoard.seq(
@@ -590,34 +590,6 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
         |*********
         |*********
       """.stripMargin))
-  }
-  "BitBoard#attackingThird" must "work with black" in {
-    BitBoard.attackingThird(BLACK) mustBe BitBoard(
-      """
-        |*********
-        |*********
-        |*********
-        |---------
-        |---------
-        |---------
-        |---------
-        |---------
-        |---------
-      """.stripMargin)
-  }
-  it must "work with white" in {
-    BitBoard.attackingThird(WHITE) mustBe BitBoard(
-      """
-        |---------
-        |---------
-        |---------
-        |---------
-        |---------
-        |---------
-        |*********
-        |*********
-        |*********
-      """.stripMargin)
   }
   "BitBoard#toSet" must "return empty set when bitboard is empty" in {
     BitBoard.empty.toSet mustBe Set.empty[Square]
