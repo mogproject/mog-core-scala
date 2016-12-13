@@ -3,7 +3,7 @@ package com.mogproject.mogami.core.attack
 import com.mogproject.mogami.core.Player.BLACK
 
 import scala.annotation.tailrec
-import com.mogproject.mogami.core.Ptype.{BISHOP, KING, LANCE, PBISHOP, PROOK, ROOK}
+import com.mogproject.mogami.core.Ptype.{BISHOP, KING, LANCE, ROOK}
 import com.mogproject.mogami.core.{BitBoard, Piece, Square}
 import com.mogproject.mogami.util.BooleanOps.Implicits._
 
@@ -12,7 +12,7 @@ import com.mogproject.mogami.util.BooleanOps.Implicits._
   */
 trait RangedAttack extends DirectAttack {
   def getRangedAttack(piece: Piece, square: Square, occ: BitBoard): BitBoard = {
-    require(Seq(LANCE, BISHOP, PBISHOP, ROOK, PROOK).contains(piece.ptype), s"Invalid piece: ${piece}")
+    require(piece.isRanged, s"Invalid piece: ${piece}")
 
     @tailrec
     def f(sofar: BitBoard, offsets: Seq[(Int, Int)]): BitBoard = offsets match {

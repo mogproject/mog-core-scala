@@ -16,6 +16,8 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
 
   final def canPromote: Boolean = 10 <= id
 
+  final def isRanged: Boolean = id == 11 || (id & 7) >= 6
+
   final def demoted: Ptype = Ptype(id | 8)
 
   final def promoted: Ptype = if (canPromote) Ptype(id - 8) else this
