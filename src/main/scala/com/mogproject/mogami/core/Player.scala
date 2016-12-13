@@ -8,6 +8,10 @@ import com.mogproject.mogami.core.io._
 sealed abstract class Player(val id: Int) extends CsaLike with SfenLike{
   def unary_! : Player = Player(id ^ 1)
 
+  def isBlack: Boolean = id == 0
+
+  def isWhite: Boolean = id == 1
+
   override def toCsaString: String = Player.csaTable(id)
 
   override def toSfenString: String = Player.sfenTable(id)

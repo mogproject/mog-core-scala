@@ -1,28 +1,19 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.util.BitOperation
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+import com.mogproject.mogami.util.BooleanOps.Implicits._
 
 
-case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
+class BitBoard(val lo: Long, val hi: Long) {
   require(0L <= lo && lo <= BitBoard.MASK54)
   require(0L <= hi && hi <= BitBoard.MASK27)
 
-  def get(pos: Int): Boolean = getProcess(pos)((a, b) => (a & b) != 0L)
+  override def equals(other: Any): Boolean = other match {
+    case that: BitBoard => this.lo == that.lo && this.hi == that.hi
+    case _ => false
+  }
 
-  def get(pos: Square): Boolean = get(pos.index)
-
-  def set(pos: Int): BitBoard = setProcess(pos)(_ | _)
-
-  def set(pos: Square): BitBoard = set(pos.index)
-
-  def reset(pos: Int): BitBoard = setProcess(pos)((a, b) => a & (BitBoard.MASK54 ^ b))
-
-  def reset(pos: Square): BitBoard = reset(pos.index)
-
-  def isEmpty: Boolean = (lo | hi) == 0L
-
-  def count: Int = BitOperation.pop(lo) + BitOperation.pop(hi)
+  override def hashCode(): Int = 41 * lo.hashCode() + hi.hashCode()
 
   def unary_~ : BitBoard = this ^ BitBoard.full
 
@@ -32,36 +23,51 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
 
   def ^(that: BitBoard): BitBoard = operate(_ ^ _)(that)
 
-  override def toString: String = {
-    (0 until 9).map { i =>
-      (0 until 9).map { j =>
-        if (get(i * 9 + 8 - j)) "*" else "-"
-      }.mkString
-    }.mkString("\n")
-  }
+  override def toString: String =
+    (0 until 9).map { i => (8 to 0 by -1).map { j => get(i * 9 + j).fold("*", "-") }.mkString }.mkString("\n")
 
-  def toSet: Set[Square] = {
-    // TODO: need optimization using JNA
-    Square.BOARD.filter(get).toSet
-  }
+  def toOctalString: String =
+    (0 until 9).map { i => (2 to 0 by -1).map { j => ((i < 6).fold(lo, hi) >> (i % 6 * 9 + j * 3)) & 7 }.mkString }.mkString(".")
+
+  def get(index: Int): Boolean = getProcess(index)((a, b) => (a & b) != 0L)
+
+  def get(sq: Square): Boolean = get(sq.index)
+
+  def set(index: Int): BitBoard = setProcess(index)(_ | _)
+
+  def set(sq: Square): BitBoard = set(sq.index)
+
+  def reset(index: Int): BitBoard = setProcess(index)((a, b) => a & (BitBoard.MASK54 ^ b))
+
+  def reset(sq: Square): BitBoard = reset(sq.index)
+
+  def isEmpty: Boolean = (lo | hi) == 0L
+
+  def isDefined: Boolean = !isEmpty
+
+  def count: Int = BitOperation.pop(lo) + BitOperation.pop(hi)
+
+  def toList: List[Square] = Square.BOARD.filter(get).toList
+
+  def toSet: Set[Square] = toList.toSet
 
   private[this] def operate(f: (Long, Long) => Long)(that: BitBoard) = BitBoard(f(lo, that.lo), f(hi, that.hi))
 
-  private[this] def setProcess(pos: Int)(f: (Long, Long) => Long) = {
-    require(0 <= pos && pos < 81)
-    if (pos < 54) {
-      BitBoard(f(lo, 1L << pos), hi)
+  private[this] def setProcess(index: Int)(f: (Long, Long) => Long) = {
+    require(0 <= index && index < 81)
+    if (index < 54) {
+      BitBoard(f(lo, 1L << index), hi)
     } else {
-      BitBoard(lo, f(hi, 1L << (pos - 54)))
+      BitBoard(lo, f(hi, 1L << (index - 54)))
     }
   }
 
-  private[this] def getProcess(pos: Int)(f: (Long, Long) => Boolean) = {
-    require(0 <= pos && pos < 81)
-    if (pos < 54) {
-      f(lo, 1L << pos)
+  private[this] def getProcess(index: Int)(f: (Long, Long) => Boolean) = {
+    require(0 <= index && index < 81)
+    if (index < 54) {
+      f(lo, 1L << index)
     } else {
-      f(hi, 1L << (pos - 54))
+      f(hi, 1L << (index - 54))
     }
   }
 
@@ -85,10 +91,9 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     case x if x < 0 => shiftLeft(-n)
     case x if x == 0 => this
     case x if 9 <= x => BitBoard.empty
-    case _ => {
+    case _ =>
       val mask = (0x1ffL >> n << n) * 0x201008040201L
       BitBoard((lo & mask) >> n, (hi & mask) >> n)
-    }
   }
 
   /**
@@ -111,10 +116,9 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     case x if x < 0 => shiftRight(-n)
     case x if x == 0 => this
     case x if 9 <= x => BitBoard.empty
-    case _ => {
+    case _ =>
       val mask = (((0x1ffL << n) & 0x1ffL) >> n) * 0x201008040201L
       BitBoard(((lo & mask) << n) & BitBoard.MASK54, ((hi & mask) << n) & BitBoard.MASK27)
-    }
   }
 
   /**
@@ -137,12 +141,11 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     case x if x < 0 => shiftDown(-n)
     case x if x == 0 => this
     case x if 9 <= x => BitBoard.empty
-    case _ => {
+    case _ =>
       val x = 9 * n
       val y = math.min(x, 63)
       val carry = if (n <= 6) (hi << (54 - x)) & BitBoard.MASK54 else hi >> (x - 54)
       BitBoard((lo >> y) | carry, hi >> y)
-    }
   }
 
   /**
@@ -165,12 +168,11 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     case x if x < 0 => shiftUp(-x)
     case x if x == 0 => this
     case x if 9 <= x => BitBoard.empty
-    case _ => {
+    case _ =>
       val x = 9 * n
       val y = math.min(x, 63)
       val carry = if (n <= 6) lo >>> (54 - x) else lo << (x - 54)
       BitBoard((lo << y) & BitBoard.MASK54, (carry | (hi << y)) & BitBoard.MASK27)
-    }
   }
 
   /**
@@ -210,7 +212,7 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     * -------*-       -*-------
     * *********       *********
     */
-  def mirrorHorizontal: BitBoard = {
+  def flipHorizontal: BitBoard = {
     val x = ((lo & 0x2954aa552a954aL) >>> 1) + ((lo & 0x14aa552a954aa5L) << 1)
     val y = ((x & 0x3198cc6633198cL) >>> 2) + ((x & 0xc6633198cc663L) << 2)
     val z = ((y & 0x3c1e0f0783c1e0L) >>> 5) + (lo & 0x2010080402010L) + ((y & 0x1e0f0783c1e0fL) << 5)
@@ -219,6 +221,13 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     val c = ((b & 0x783c1e0L) >>> 5) + (hi & 0x402010L) + ((b & 0x3c1e0fL) << 5)
     BitBoard(z, c)
   }
+
+  /**
+    * Filp the bitboard vertically when the player is white.
+    *
+    * @param player Player instance
+    */
+  def flipByPlayer(player: Player): BitBoard = player.isWhite.when { bb: BitBoard => bb.flipVertical }(this)
 
   /**
     * Spread each bit to all file-direction.
@@ -234,13 +243,13 @@ case class BitBoard(lo: Long = 0L, hi: Long = 0L) {
     * ---------      ****-*--*
     * ---------      ****-*--*
     */
-  def spreadAllFile: BitBoard = {
+  def spreadFiles: BitBoard = {
     var x = lo | hi
     x |= x >> 27
     x |= x * 0x00040200L
     x = (x >> 18) & 0x000001ffL
     x *= 0x0000201008040201L
-    BitBoard(x & BitBoard.MASK54, x & BitBoard.MASK27)
+    BitBoard(x, x)
   }
 
 }
@@ -262,18 +271,20 @@ object BitBoard {
       |*-------*
       |*********
     """.stripMargin)
-  val INNER = ~EDGE
+  val INNER: BitBoard = ~EDGE
 
-  def ident(pos: Int): BitBoard = {
-    require(0 <= pos && pos < 81)
-    if (pos < 54) {
-      BitBoard(1L << pos, 0L)
+  def ident(index: Int): BitBoard = {
+    require(0 <= index && index < 81)
+    if (index < 54) {
+      BitBoard(1L << index, 0L)
     } else {
-      BitBoard(0L, 1L << (pos - 54))
+      BitBoard(0L, 1L << (index - 54))
     }
   }
 
-  def ident(p: Square): BitBoard = ident(p.index)
+  def ident(sq: Square): BitBoard = ident(sq.index)
+
+  def promotion(player: Player): BitBoard = BitBoard(0x7ffffffL, 0L).flipByPlayer(player)
 
   /**
     * Make bitboard sequence from long-width string lines
@@ -318,36 +329,70 @@ object BitBoard {
     s.split('\n').withFilter(!_.isEmpty).map(_.split("[ ]+")).transpose map (a => BitBoard(a.mkString))
   }
 
-  private[this] val attackingThirdImpl: Map[Player, BitBoard] = (Seq(BLACK, WHITE) zip seq(
-    """
-      |********* ---------
-      |********* ---------
-      |********* ---------
-      |--------- ---------
-      |--------- ---------
-      |--------- ---------
-      |--------- *********
-      |--------- *********
-      |--------- *********
-    """.stripMargin)).toMap
-
   /**
-    * Get the attacking third positions
+    * constructor
     *
-    * @param t turn to calculate
-    * @return
+    * @param hi rank1-6
+    * @param lo rank7-9
+    * @return bitboard
     */
-  def attackingThird(t: Player): BitBoard = attackingThirdImpl(t)
+  def apply(hi: Long = 0L, lo: Long = 0L): BitBoard = new BitBoard(hi & BitBoard.MASK54, lo & BitBoard.MASK27)
 
+  /** *
+    * String-based constructor
+    *
+    * @param s string
+    *          1) binary format: use `-` for 0-bit and `*` for 1-bit
+    *          (e.g. "*********\n*********\n*********\n---------\n---------\n---------\n---------\n---------\n---------")
+    *          2) octal format: octal integers (e.g. "777.777.777.000.000.000.000.000.000")
+    * @return bitboard
+    */
   def apply(s: String): BitBoard = {
-    val xs = s.toList.flatMap { case '-' => List(0L); case '*' => List(1L); case _ => Nil }
+    val isBinaryFormat = s.exists(c => c == '-' || c == '*')
 
-    def f(xs: List[Long]): Long = xs.zipWithIndex.foldLeft(0L) {
-      case (x, (y, i)) => x | (y << (i / 9 * 9 + 8 - i % 9))
+    if (isBinaryFormat) {
+      val xs = s.toList.flatMap { case '-' => List(0L); case '*' => List(1L); case _ => Nil }
+
+      def f(xs: List[Long]): Long = xs.zipWithIndex.foldLeft(0L) {
+        case (x, (y, i)) => x | (y << (i / 9 * 9 + 8 - i % 9))
+      }
+
+      BitBoard(f(xs.take(54)), f(xs.drop(54)))
+    } else {
+      val xs = s.toList.flatMap { case n if '0' <= n && n <= '7' => List((n - '0').toLong); case _ => Nil }
+
+      def f(xs: List[Long]): Long = xs.zipWithIndex.foldLeft(0L) {
+        case (x, (y, i)) => x | (y << ((i + (1 - i % 3) * 2) * 3))
+      }
+
+      BitBoard(f(xs.take(18)), f(xs.drop(18)))
     }
-
-    BitBoard(f(xs.take(54)), f(xs.drop(54)))
   }
 
+  /**
+    * Rank constants
+    */
+  final val rank1 = BitBoard("777.000.000.000.000.000.000.000.000")
+  final val rank2 = BitBoard("000.777.000.000.000.000.000.000.000")
+  final val rank3 = BitBoard("000.000.777.000.000.000.000.000.000")
+  final val rank4 = BitBoard("000.000.000.777.000.000.000.000.000")
+  final val rank5 = BitBoard("000.000.000.000.777.000.000.000.000")
+  final val rank6 = BitBoard("000.000.000.000.000.777.000.000.000")
+  final val rank7 = BitBoard("000.000.000.000.000.000.777.000.000")
+  final val rank8 = BitBoard("000.000.000.000.000.000.000.777.000")
+  final val rank9 = BitBoard("000.000.000.000.000.000.000.000.777")
+
+  /**
+    * File constants
+    */
+  final val file1 = BitBoard("001.001.001.001.001.001.001.001.001")
+  final val file2 = BitBoard("002.002.002.002.002.002.002.002.002")
+  final val file3 = BitBoard("004.004.004.004.004.004.004.004.004")
+  final val file4 = BitBoard("010.010.010.010.010.010.010.010.010")
+  final val file5 = BitBoard("020.020.020.020.020.020.020.020.020")
+  final val file6 = BitBoard("040.040.040.040.040.040.040.040.040")
+  final val file7 = BitBoard("100.100.100.100.100.100.100.100.100")
+  final val file8 = BitBoard("200.200.200.200.200.200.200.200.200")
+  final val file9 = BitBoard("400.400.400.400.400.400.400.400.400")
 
 }
