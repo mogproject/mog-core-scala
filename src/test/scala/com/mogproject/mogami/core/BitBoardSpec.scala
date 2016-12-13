@@ -3,7 +3,6 @@ package com.mogproject.mogami.core
 import org.scalacheck.Gen
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.SquareConstant._
 
 

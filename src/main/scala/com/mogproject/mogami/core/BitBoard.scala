@@ -342,8 +342,8 @@ object BitBoard {
     * String-based constructor
     *
     * @param s string
-    *          1) binary format: `-` for off and `*` for on
-    *          (e.g. "*********\n*********\n*********\n---------\n---------\n---------\n---------\n---------\n---------"
+    *          1) binary format: use `-` for 0-bit and `*` for 1-bit
+    *          (e.g. "*********\n*********\n*********\n---------\n---------\n---------\n---------\n---------\n---------")
     *          2) octal format: octal integers (e.g. "777.777.777.000.000.000.000.000.000")
     * @return bitboard
     */
