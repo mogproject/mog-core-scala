@@ -54,7 +54,7 @@ class BitBoard(val lo: Long, val hi: Long) {
   private[this] def operate(f: (Long, Long) => Long)(that: BitBoard) = BitBoard(f(lo, that.lo), f(hi, that.hi))
 
   private[this] def setProcess(index: Int)(f: (Long, Long) => Long) = {
-    require(0 <= index && index < 81)
+    require(0 <= index && index < 81, s"Invalid index: ${index}")
     if (index < 54) {
       BitBoard(f(lo, 1L << index), hi)
     } else {

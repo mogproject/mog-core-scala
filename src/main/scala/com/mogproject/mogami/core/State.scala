@@ -79,6 +79,10 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
 
   def getSquares(piece: Piece): Set[Square] = occupancy(piece).toSet
 
+  def getKing(player: Player): Option[Square] = occupancy(Piece(player, KING)).toList.headOption
+
+  def getRangedPieces(player: Player): Seq[(Square, Piece)] = board.filter { case (s, p) => p.owner == player && p.isRanged }.toSeq
+
   /**
     * Attack bitboards
     */
@@ -128,7 +132,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     }
   }
 
-  def legalMoves: Seq[ExtendedMove] = ???
+  def legalMoves: Seq[ExtendedMove] = ???  // todo
 
   /** *
     * Check if the state is mated.
@@ -179,7 +183,7 @@ object State extends CsaStateReader with SfenStateReader {
     (for {
       p <- board.get(from)
       if p.ptype.canMoveTo(from.getDisplacement(p.owner, to)) // check capability
-      if from.getInnerSquares(to).toSet.intersect(board.keySet).isEmpty // check blocking pieces
+      if from.getBetweenBB(to).toSet.intersect(board.keySet).isEmpty // check blocking pieces
     } yield {}).isDefined
   }
 

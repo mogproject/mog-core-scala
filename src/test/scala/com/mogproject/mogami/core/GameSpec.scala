@@ -42,7 +42,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       ExtendedMove(WHITE, P33, P34, PAWN, false, None, false),
       ExtendedMove(BLACK, P88, P22, PBISHOP, true, Some(BISHOP), false),
       ExtendedMove(WHITE, P31, P22, SILVER, false, Some(PBISHOP), false),
-      ExtendedMove(BLACK, HAND, P33, BISHOP, false, None, false), // TODO: fixme
+      ExtendedMove(BLACK, HAND, P33, BISHOP, false, None, true),
       ExtendedMove(WHITE, P51, P62, KING, false, None, false),
       ExtendedMove(BLACK, P33, P55, PBISHOP, true, None, false)
     ), GameInfo(

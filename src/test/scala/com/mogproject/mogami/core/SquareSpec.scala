@@ -83,14 +83,14 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Square(4, 8).isLegalZone(Piece(WHITE, KNIGHT)) must be(false)
   }
 
-  "Square#innerSquares" must "return inner squares" in {
-    P11.getInnerSquares(P99) must be(Seq(P22, P33, P44, P55, P66, P77, P88))
-    P99.getInnerSquares(P11) must be(Seq(P88, P77, P66, P55, P44, P33, P22))
-    P55.getInnerSquares(P77) must be(Seq(P66))
-    P55.getInnerSquares(P78) must be(Seq.empty)
-    P55.getInnerSquares(P95) must be(Seq(P65, P75, P85))
-    P99.getInnerSquares(P99) must be(Seq.empty)
-    P99.getInnerSquares(P88) must be(Seq.empty)
+  "Square#getBetweenBB" must "return inner bitboards" in {
+    P11.getBetweenBB(P99).toSet must be(Set(P22, P33, P44, P55, P66, P77, P88))
+    P99.getBetweenBB(P11).toSet must be(Set(P88, P77, P66, P55, P44, P33, P22))
+    P55.getBetweenBB(P77).toSet must be(Set(P66))
+    P55.getBetweenBB(P78).toSet must be(Set.empty)
+    P55.getBetweenBB(P95).toSet must be(Set(P65, P75, P85))
+    P99.getBetweenBB(P99).toSet must be(Set.empty)
+    P99.getBetweenBB(P88).toSet must be(Set.empty)
   }
 
   "Square#getRelation" must "return relationship between squares" in {

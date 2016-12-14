@@ -39,23 +39,20 @@ case class Square(index: Int) extends CsaLike with SfenLike {
     case _ => 1
   }) <= closeness(piece.owner)
 
-  def getInnerSquares(to: Square): Seq[Square] = {
+  def getBetweenBB(to: Square): BitBoard = {
     if (isHand || to.isHand) {
-      Seq.empty
+      BitBoard.empty
     } else {
       val f = to.file - file
       val r = to.rank - rank
       val distance = (math.abs(f), math.abs(r)) match {
-        case (0, 0) => None
-        case (0, y) => Some(y)
-        case (x, 0) => Some(x)
-        case (x, y) if x == y => Some(x)
-        case _ => None
+        case (0, y) => y  // including the case when y == 0
+        case (x, 0) => x
+        case (x, y) if x == y => x
+        case _ => 0
       }
 
-      (for {
-        d <- distance
-      } yield (1 until d).map(n => Square(file + f / d * n, rank + r / d * n))).getOrElse(Seq.empty)
+      (1 until distance).foldLeft(BitBoard.empty)((b, n) => b.set(Square(file + f / distance * n, rank + r / distance * n)))
     }
   }
 
