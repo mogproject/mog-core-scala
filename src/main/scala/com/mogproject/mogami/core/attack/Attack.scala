@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core.attack
 
-import com.mogproject.mogami.core.{BitBoard, Piece, Square}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami._
+import com.mogproject.mogami.util.Implicits._
 
 /**
   *

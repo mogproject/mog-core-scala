@@ -1,13 +1,9 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype._
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.MapUtil
-import com.mogproject.mogami.util.BooleanOps.Implicits._
-import com.mogproject.mogami.util.OptionOps.Implicits._
-import com.mogproject.mogami.core.State.{BoardType, HandType}
-import com.mogproject.mogami.core.attack.Attack
+import com.mogproject.mogami.util.Implicits._
 
 /**
   * State class

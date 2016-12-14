@@ -1,9 +1,8 @@
 package com.mogproject.mogami.core.io
 
 import scala.annotation.tailrec
-import com.mogproject.mogami.core.{Piece, Player, Square, State}
-import com.mogproject.mogami.core.State.{BoardType, HandType}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami._
+import com.mogproject.mogami.util.Implicits._
 
 /**
   * Reads Sfen-formatted state

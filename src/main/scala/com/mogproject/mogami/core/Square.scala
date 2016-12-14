@@ -3,9 +3,9 @@ package com.mogproject.mogami.core
 import com.mogproject.mogami.core.Player.WHITE
 
 import scala.util.matching.Regex
-import com.mogproject.mogami.core.Ptype._
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 /**
   * Square -- each cell on the board (and in hand)

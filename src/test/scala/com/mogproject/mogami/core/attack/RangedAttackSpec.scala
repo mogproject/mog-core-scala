@@ -1,10 +1,12 @@
 package com.mogproject.mogami.core.attack
 
-import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
+
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.core.SquareConstant._
+
 
 class RangedAttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks  {
   object TestRangedAttack extends RangedAttack

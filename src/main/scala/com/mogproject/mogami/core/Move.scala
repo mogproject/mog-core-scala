@@ -1,9 +1,8 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Ptype.PAWN
-import com.mogproject.mogami.core.attack.Attack
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
 import scala.util.matching.Regex

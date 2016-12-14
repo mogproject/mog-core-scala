@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.util.BitOperation
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami.util.Implicits._
 
 
 class BitBoard(val lo: Long, val hi: Long) {

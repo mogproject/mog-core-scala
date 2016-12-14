@@ -2,7 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+
+import com.mogproject.mogami._
 
 class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   "Player#equals" must "distinguish between black and white" in {

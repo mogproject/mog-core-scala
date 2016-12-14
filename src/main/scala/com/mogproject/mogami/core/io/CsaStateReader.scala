@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core.io
 
-import com.mogproject.mogami.core._
+import com.mogproject.mogami._
 import com.mogproject.mogami.util.MapUtil
 
 import scala.annotation.tailrec

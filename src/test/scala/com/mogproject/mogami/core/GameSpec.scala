@@ -2,11 +2,10 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype._
+
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core.Square.HAND
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val stateHirate = State(BLACK, Map(

@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaLike, CsaTableFactory}
+import com.mogproject.mogami.core.io._
 
 /**
   * Piece type

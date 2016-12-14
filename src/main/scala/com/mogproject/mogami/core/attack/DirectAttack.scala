@@ -1,7 +1,6 @@
 package com.mogproject.mogami.core.attack
 
-import com.mogproject.mogami.core.Ptype.{GOLD, KING, KNIGHT, PAWN, SILVER}
-import com.mogproject.mogami.core.{BitBoard, Piece, Ptype, Square}
+import com.mogproject.mogami._
 
 /**
   *

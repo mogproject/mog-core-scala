@@ -1,8 +1,7 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype._
 import org.scalacheck.Gen
+import com.mogproject.mogami._
 
 /**
   * Piece generator for scalacheck

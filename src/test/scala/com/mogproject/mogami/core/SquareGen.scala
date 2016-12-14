@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Square.HAND
+import com.mogproject.mogami._
 import org.scalacheck.Gen
 
 /**

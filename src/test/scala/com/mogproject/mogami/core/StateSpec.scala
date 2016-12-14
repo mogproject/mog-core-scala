@@ -2,11 +2,10 @@ package com.mogproject.mogami.core
 
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype._
+
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core.Square.HAND
 import com.mogproject.mogami.core.State.PromotionFlag._
 
 class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
