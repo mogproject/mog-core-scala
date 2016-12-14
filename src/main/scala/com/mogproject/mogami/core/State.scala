@@ -7,6 +7,7 @@ import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.BooleanOps.Implicits._
 import com.mogproject.mogami.util.OptionOps.Implicits._
 import com.mogproject.mogami.core.State.{BoardType, HandType}
+import com.mogproject.mogami.core.attack.Attack
 
 /**
   * State class
@@ -58,6 +59,40 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
       }
     }
   }
+
+  /**
+    * Occupancy bitboards
+    */
+  private[this] def aggregateSquares(boardMap: BoardType): BitBoard = boardMap.keys.view.map(BitBoard.ident).fold(BitBoard.empty)(_ | _)
+
+  private[this] lazy val occupancyAll: BitBoard = aggregateSquares(board)
+
+  private[this] lazy val occupancyByOwner: Map[Player, BitBoard] = board.groupBy(_._2.owner).mapValues(aggregateSquares)
+
+  private[this] lazy val occupancyByPiece: Map[Piece, BitBoard] = board.groupBy(_._2).mapValues(aggregateSquares)
+
+  def occupancy: BitBoard = occupancyAll
+
+  def occupancy(player: Player): BitBoard = occupancyByOwner.getOrElse(player, BitBoard.empty)
+
+  def occupancy(piece: Piece): BitBoard = occupancyByPiece.getOrElse(piece, BitBoard.empty)
+
+  def getSquares(piece: Piece): Set[Square] = occupancy(piece).toSet
+
+  /**
+    * Attack bitboards
+    */
+  lazy val attackBBOnBoard: Map[Square, BitBoard] = for ((sq, piece) <- board) yield {
+    sq -> Attack.get(piece, sq, occupancy, occupancy(piece.owner), occupancy(Piece(piece.owner, PAWN)))
+  }
+
+  def getAttackBB(player: Player): BitBoard =
+    attackBBOnBoard.filterKeys(sq => board.get(sq).exists(_.owner == player)).values.fold(BitBoard.empty)(_ | _)
+
+  /**
+    * Check if the player is checked.
+    */
+  def isChecked: Boolean = getSquares(Piece(turn, KING)).exists(getAttackBB(!turn).get)
 
   /**
     * Check if the move is legal.
