@@ -196,4 +196,41 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
       case _ =>
     }
   }
+
+  "Attack#getSeq" must "return sequence of attack bitboards" in {
+    Attack.getSeq(BP, P12, BitBoard("001.000.000.000.000.000.000.000.000")) mustBe Seq(
+      (BPP, BitBoard("001.000.000.000.000.000.000.000.000"))
+    )
+    Attack.getSeq(BP, P13, BitBoard("000.001.000.000.000.000.000.000.000")) mustBe Seq(
+      (BP, BitBoard("000.001.000.000.000.000.000.000.000")),
+      (BPP, BitBoard("000.001.000.000.000.000.000.000.000"))
+    )
+    Attack.getSeq(BP, P15, BitBoard("000.000.000.001.000.000.000.000.000")) mustBe Seq(
+      (BP, BitBoard("000.000.000.001.000.000.000.000.000"))
+    )
+    Attack.getSeq(WL, P57, BitBoard("000.000.000.000.000.000.000.020.020")) mustBe Seq(
+      (WL, BitBoard("000.000.000.000.000.000.000.020.000")),
+      (WPL, BitBoard("000.000.000.000.000.000.000.020.020"))
+    )
+    Attack.getSeq(BN, P44, BitBoard("000.012.000.000.000.000.000.000.000")) mustBe Seq(
+      (BPN, BitBoard("000.012.000.000.000.000.000.000.000"))
+    )
+    Attack.getSeq(BPN, P44, BitBoard("000.000.016.012.004.000.000.000.000")) mustBe Seq(
+      (BPN, BitBoard("000.000.016.012.004.000.000.000.000"))
+    )
+    Attack.getSeq(BG, P44, BitBoard("000.000.016.012.004.000.000.000.000")) mustBe Seq(
+      (BG, BitBoard("000.000.016.012.004.000.000.000.000"))
+    )
+    Attack.getSeq(WB, P56, BitBoard("000.401.202.104.050.000.050.104.401")) mustBe Seq(
+      (WB, BitBoard("000.401.202.104.050.000.050.104.401")),
+      (WPB, BitBoard("000.000.000.000.000.000.050.104.401"))
+    )
+    Attack.getSeq(WPB, P56, BitBoard("000.401.202.104.070.050.070.104.401")) mustBe Seq(
+      (WPB, BitBoard("000.401.202.104.070.050.070.104.401"))
+    )
+    Attack.getSeq(WB, P57, BitBoard("000.000.401.202.104.050.000.050.104")) mustBe Seq(
+      (WB, BitBoard("000.000.401.202.104.050.000.050.104")),
+      (WPB, BitBoard("000.000.401.202.104.050.000.050.104"))
+    )
+  }
 }

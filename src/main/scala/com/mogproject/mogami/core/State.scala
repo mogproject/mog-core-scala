@@ -77,22 +77,109 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
 
   def getKing(player: Player): Option[Square] = occupancy(Piece(player, KING)).toList.headOption
 
+  lazy val turnsKing: Option[Square] = getKing(turn)
+
   def getRangedPieces(player: Player): Seq[(Square, Piece)] = board.filter { case (s, p) => p.owner == player && p.isRanged }.toSeq
 
   /**
     * Attack bitboards
     */
-  lazy val attackBBOnBoard: Map[Square, BitBoard] = for ((sq, piece) <- board) yield {
-    sq -> Attack.get(piece, sq, occupancy, occupancy(piece.owner), occupancy(Piece(piece.owner, PAWN)))
+  lazy val attackBBOnBoard: Map[Player, Map[Square, BitBoard]] = {
+    val m = (for ((sq, piece) <- board) yield {
+      (piece.owner, sq) -> Attack.get(piece, sq, occupancy, occupancy(piece.owner), occupancy(Piece(piece.owner, PAWN)))
+    }).filter(_._2.nonEmpty).groupBy(_._1._1)
+
+    m.mapValues {
+      _.map { case ((p, s), b) => s -> b }
+    }
   }
 
-  def getAttackBB(player: Player): BitBoard =
-    attackBBOnBoard.filterKeys(sq => board.get(sq).exists(_.owner == player)).values.fold(BitBoard.empty)(_ | _)
+  lazy val attackBBInHand: Map[(Square, Piece), BitBoard] = for {
+    (piece, num) <- hand if piece.owner == turn && num > 0
+  } yield {
+    (HAND, piece) -> Attack.get(piece, HAND, occupancy, occupancy(turn), occupancy(Piece(turn, PAWN)))
+  }
+
+  def getAttackBB(player: Player): BitBoard = attackBBOnBoard(player).values.fold(BitBoard.empty)(_ | _)
+
+  /**
+    * Get the positions of pieces that are attacking the turn playrer's king
+    *
+    * @return set of squares
+    */
+  lazy val attackers: Set[Square] = turnsKing.map(k => attackBBOnBoard(!turn).filter(_._2.get(k)).keys.toSet).getOrElse(Set.empty)
+
+  /**
+    * Get the guard pieces, which protect the turn player's king from ranged attack.
+    *
+    * @return set of squares and guarding area bitboards
+    */
+  lazy val guards: Map[Square, BitBoard] = {
+    for {
+      (s, p) <- board if p.owner == !turn && p.isRanged
+      k <- getKing(turn)
+      bt = s.getBetweenBB(k) if Attack.getRangedAttack(p, s, BitBoard.empty).get(k)
+      g = bt & occupancy if g.count == 1
+    } yield {
+      g.toList.head -> bt
+    }
+  }
 
   /**
     * Check if the player is checked.
     */
-  def isChecked: Boolean = getSquares(Piece(turn, KING)).exists(getAttackBB(!turn).get)
+  lazy val isChecked: Boolean = turnsKing.exists(getAttackBB(!turn).get)
+
+  def getNonSuicidalMovesOnBoard: Map[Square, BitBoard] = (for ((sq, bb) <- attackBBOnBoard(turn)) yield {
+    if (board(sq).ptype == KING)
+      sq -> (bb & ~getAttackBB(!turn))
+    else if (guards.keySet.contains(sq))
+      sq -> (bb & guards(sq))
+    else
+      sq -> bb
+  }).filter(_._2.nonEmpty)
+
+  def generateLegalMovesOnBoard(m: Map[Square, BitBoard]): Map[(Square, Piece), BitBoard] = for {
+    (s, bb) <- m
+    (p, b) <- Attack.getSeq(board(s), s, bb)
+  } yield {
+    (s, p) -> b
+  }
+
+  def getEscapeMoves: Map[(Square, Piece), BitBoard] = {
+    require(turnsKing.isDefined)
+    val king = turnsKing.get
+
+    // king's move
+    val kingEscape = Map((king, Piece(turn, KING)) -> (attackBBOnBoard(turn)(king) & ~getAttackBB(!turn)))
+
+    val attacker = if (attackers.size == 1) attackers.headOption else None
+
+    // capture the attacker
+    val captureAttacker = for ((sq, bb) <- attackBBOnBoard(turn); atk <- attacker) yield sq -> (bb & BitBoard.ident(atk))
+
+    // drop a piece between king and the attacker
+    val dropBetween = for (((sq, p), bb) <- attackBBInHand; atk <- attacker) yield (sq, p) -> (bb & king.getBetweenBB(atk))
+
+    (kingEscape ++ generateLegalMovesOnBoard(captureAttacker) ++ dropBetween).filter(_._2.nonEmpty)
+  }
+
+  /**
+    * All legal moves in the bitboard description
+    *
+    * @return map of the square from which piece moves, new piece, and attack bitboard
+    */
+  lazy val legalMovesBB: Map[(Square, Piece), BitBoard] =
+    if (isChecked)
+      getEscapeMoves
+    else
+      generateLegalMovesOnBoard(getNonSuicidalMovesOnBoard) ++ attackBBInHand
+
+  def legalMoves: Seq[ExtendedMove] = (for {
+    ((from, p), bb) <- legalMovesBB
+    to <- bb.toList
+    mv <- ExtendedMove.fromMove(Move(from, to, None, Some(p.ptype), None), this) // todo: improve? State#generateExtendedMove ?
+  } yield mv).toSeq
 
   /**
     * Check if the move is legal.
@@ -128,14 +215,12 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     }
   }
 
-  def legalMoves: Seq[ExtendedMove] = ???  // todo
-
   /** *
     * Check if the state is mated.
     *
     * @return true if mated
     */
-  def isMated: Boolean = ??? // todo
+  def isMated: Boolean = legalMovesBB.isEmpty
 
   /**
     * Make one move.
@@ -174,7 +259,7 @@ object State extends CsaStateReader with SfenStateReader {
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
-  // TODO: use BitBoard
+  // TODO: use BitBoard or deprecated
   def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
     (for {
       p <- board.get(from)

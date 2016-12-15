@@ -26,13 +26,16 @@ case class Square(index: Int) extends CsaLike with SfenLike {
 
   def isHand: Boolean = index < 0
 
+  // todo: maybe deprecated
   /**
     * Distance from the player's farthest rank.
     */
   def closeness(player: Player): Int = isHand.fold(0, (player == WHITE).when[Int](10 - _)(rank))
 
+  // todo: Deprecated
   def isPromotionZone(player: Player): Boolean = closeness(player) <= 3
 
+  // todo: Deprecated
   def isLegalZone(piece: Piece): Boolean = (piece.ptype match {
     case PAWN | LANCE => 2
     case KNIGHT => 3
@@ -56,6 +59,7 @@ case class Square(index: Int) extends CsaLike with SfenLike {
     }
   }
 
+  // todo: Deprecated
   def getDisplacement(player: Player, to: Square): Displacement = {
     (math.abs(to.file - file), to.closeness(player) - closeness(player)) match {
       case (0, 0) => Displacement(NoRelation, 0)

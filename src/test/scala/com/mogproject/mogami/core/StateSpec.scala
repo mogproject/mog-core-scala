@@ -440,4 +440,173 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     s2.isChecked mustBe false
     s3.isChecked mustBe false
   }
+
+  "State#getAttacker" must "return attackers" in {
+    val s1: State = State.parseCsaString(Seq(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+      "P+",
+      "P-",
+      "+"
+    )).get
+    val s2: State = State.parseCsaString(Seq(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI * +KI+GI+KE+KY",
+      "P+",
+      "P-",
+      "+"
+    )).get
+    val s3: State = State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  * -OU * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8+KA *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+",
+      "P-",
+      "-"
+    )).get
+    val s4: State = State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  * -OU * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  * +UM *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8+KA *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  * +KY * ",
+      "P+00FU",
+      "P-",
+      "-"
+    )).get
+    val s5: State = State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  * -OU * ",
+      "P2 *  *  *  *  *  *  * -FU * ",
+      "P3 *  *  *  *  * -GI *  *  * ",
+      "P4 *  * -HI *  *  * +OU *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8+KA *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  * +KY * ",
+      "P+00FU",
+      "P-",
+      "+"
+    )).get
+
+    s1.attackers mustBe Set.empty
+    s2.attackers mustBe Set.empty
+    s3.attackers mustBe Set(P98)
+    s4.attackers mustBe Set(P43, P29)
+    s5.attackers mustBe Set(P43, P74)
+  }
+
+  "State#guards" must "return guard attributes" in {
+    val s1: State = State.parseCsaString(Seq(
+      "P1 *  *  *  * -KY *  *  *  * ",
+      "P2 *  *  *  * -KY *  *  *  * ",
+      "P3-KA *  *  * -KY *  *  * -UM",
+      "P4 * +FU *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  * -GI *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  * +OU * +TO-HI * ",
+      "P8 *  *  *  * +FU *  *  *  * ",
+      "P9 *  *  *  * -RY *  *  *  * ",
+      "P+",
+      "P-",
+      "+"
+    )).get
+    s1.guards mustBe Map(
+      P53 -> BitBoard(Seq(
+      "---------",
+      "---------",
+      "----*----",
+      "----*----",
+      "----*----",
+      "----*----",
+      "---------",
+      "---------",
+      "---------"
+    ).mkString),
+      P35 -> BitBoard(Seq(
+      "---------",
+      "---------",
+      "---------",
+      "-------*-",
+      "------*--",
+      "-----*---",
+      "---------",
+      "---------",
+      "---------"
+    ).mkString),
+      P84 -> BitBoard(Seq(
+      "---------",
+      "---------",
+      "---------",
+      "-*-------",
+      "--*------",
+      "---*-----",
+      "---------",
+      "---------",
+      "---------"
+    ).mkString),
+      P37 -> BitBoard(Seq(
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "-----**--",
+      "---------",
+      "---------"
+    ).mkString),
+      P58 -> BitBoard(Seq(
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "---------",
+      "----*----",
+      "---------"
+    ).mkString))
+  }
+
+  "State#legalMoves" must "return set with proper size" in {
+    State.HIRATE.legalMoves.size must be(30)
+    State.parseCsaString(
+      """P1+HI *  *  *  *  *  *  *  *.
+        |P2 *  * +OU * +GI * +GI+GI-OU
+        |P3 *  *  *  * +KA *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  *  *  *  *  *  *.
+        |P8 *  *  *  *  *  *  *  *  *.
+        |P9 * +KY * +KY * +KY *  *  *.
+        |P+00HI00KA00KI00GI00KE00KY00FU
+        |P-00KI00KI00KI00KE00KE00KE00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
+        |+""".stripMargin).get.legalMoves.size must be(593)
+  }
 }

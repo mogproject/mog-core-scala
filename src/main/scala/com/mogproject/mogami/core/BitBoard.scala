@@ -43,7 +43,7 @@ class BitBoard(val lo: Long, val hi: Long) {
 
   def isEmpty: Boolean = (lo | hi) == 0L
 
-  def isDefined: Boolean = !isEmpty
+  def nonEmpty: Boolean = !isEmpty
 
   def count: Int = BitOperation.pop(lo) + BitOperation.pop(hi)
 
@@ -284,7 +284,7 @@ object BitBoard {
 
   def ident(sq: Square): BitBoard = ident(sq.index)
 
-  def promotion(player: Player): BitBoard = BitBoard(0x7ffffffL, 0L).flipByPlayer(player)
+  def promotionZone(player: Player): BitBoard = BitBoard(0x7ffffffL, 0L).flipByPlayer(player)
 
   /**
     * Make bitboard sequence from long-width string lines
