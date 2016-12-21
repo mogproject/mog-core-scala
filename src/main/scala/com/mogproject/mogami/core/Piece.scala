@@ -15,6 +15,12 @@ case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike {
   def promoted: Piece = Piece(owner, ptype.promoted)
 
   def demoted: Piece = Piece(owner, ptype.demoted)
+
+  def isPromoted: Boolean = ptype.isPromoted
+
+  def isRanged: Boolean = ptype.isRanged
+
+  def canPromote: Boolean = ptype.canPromote
 }
 
 object Piece extends CsaTableFactory[Piece] with SfenTableFactory[Piece] {

@@ -3,9 +3,9 @@ package com.mogproject.mogami.core
 import com.mogproject.mogami.core.Player.WHITE
 
 import scala.util.matching.Regex
-import com.mogproject.mogami.core.Ptype._
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 /**
   * Square -- each cell on the board (and in hand)
@@ -26,39 +26,40 @@ case class Square(index: Int) extends CsaLike with SfenLike {
 
   def isHand: Boolean = index < 0
 
+  // todo: maybe deprecated
   /**
     * Distance from the player's farthest rank.
     */
   def closeness(player: Player): Int = isHand.fold(0, (player == WHITE).when[Int](10 - _)(rank))
 
+  // todo: Deprecated
   def isPromotionZone(player: Player): Boolean = closeness(player) <= 3
 
+  // todo: Deprecated
   def isLegalZone(piece: Piece): Boolean = (piece.ptype match {
     case PAWN | LANCE => 2
     case KNIGHT => 3
     case _ => 1
   }) <= closeness(piece.owner)
 
-  def getInnerSquares(to: Square): Seq[Square] = {
+  def getBetweenBB(to: Square): BitBoard = {
     if (isHand || to.isHand) {
-      Seq.empty
+      BitBoard.empty
     } else {
       val f = to.file - file
       val r = to.rank - rank
       val distance = (math.abs(f), math.abs(r)) match {
-        case (0, 0) => None
-        case (0, y) => Some(y)
-        case (x, 0) => Some(x)
-        case (x, y) if x == y => Some(x)
-        case _ => None
+        case (0, y) => y  // including the case when y == 0
+        case (x, 0) => x
+        case (x, y) if x == y => x
+        case _ => 0
       }
 
-      (for {
-        d <- distance
-      } yield (1 until d).map(n => Square(file + f / d * n, rank + r / d * n))).getOrElse(Seq.empty)
+      (1 until distance).foldLeft(BitBoard.empty)((b, n) => b.set(Square(file + f / distance * n, rank + r / distance * n)))
     }
   }
 
+  // todo: Deprecated
   def getDisplacement(player: Player, to: Square): Displacement = {
     (math.abs(to.file - file), to.closeness(player) - closeness(player)) match {
       case (0, 0) => Displacement(NoRelation, 0)

@@ -3,9 +3,8 @@ package com.mogproject.mogami.core
 import org.scalacheck.Gen
 
 import scala.annotation.tailrec
-import com.mogproject.mogami.core.Ptype._
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core.State.{BoardType, HandType}
 import com.mogproject.mogami.util.MapUtil
 
 

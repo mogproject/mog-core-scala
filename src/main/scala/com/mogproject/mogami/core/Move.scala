@@ -1,6 +1,8 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -85,7 +87,7 @@ case class ExtendedMove(player: Player,
                         promote: Boolean,
                         captured: Option[Ptype],
                         isCheck: Boolean
-                       ) extends CsaLike with SfenLike  {
+                       ) extends CsaLike with SfenLike {
   require(!isDrop || !promote, "promote must be false when dropping")
   require(!isDrop || captured.isEmpty, "captured must be None when dropping")
   require(from.isPromotionZone(player) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
@@ -123,14 +125,26 @@ object ExtendedMove {
     * @return completed information
     */
   def fromMove(move: Move, state: State): Option[ExtendedMove] = {
-    // todo: implement isCheck
     for {
       oldPiece <- if (move.from.isHand) Some(Piece(state.turn, move.newPtype.get)) else state.board.get(move.from)
       oldPtype = oldPiece.ptype
       newPtype = move.newPtype.getOrElse(if (move.promote.get) oldPtype.promoted else oldPtype)
       promote = move.promote.getOrElse(oldPtype != newPtype)
-      mv <- Try(ExtendedMove(state.turn, move.from, move.to, newPtype, promote, state.board.get(move.to).map(_.ptype), false)).toOption
+      isCheck = isCheckMove(Piece(state.turn, newPtype), move.from, move.to, state)
+      mv <- Try(ExtendedMove(state.turn, move.from, move.to, newPtype, promote, state.board.get(move.to).map(_.ptype), isCheck)).toOption
     } yield mv
   }
 
+  def isCheckMove(newPiece: Piece, from: Square, to: Square, state: State): Boolean = {
+    val pl = state.turn
+    val newOccAll = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy.set(to))
+    val newOccTurn = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy(pl).set(to))
+    val king = state.getKing(!pl)
+
+    king.exists { k =>
+      val pieces = (to, newPiece) +: state.getRangedPieces(pl)
+      // `to` must not be in hand, and therefore Nifu does not matter
+      pieces.exists { case (s, p) => Attack.get(p, s, newOccAll, newOccTurn, BitBoard.empty).get(k) }
+    }
+  }
 }

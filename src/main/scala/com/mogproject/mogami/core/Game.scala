@@ -1,8 +1,8 @@
 package com.mogproject.mogami.core
 
 import scala.annotation.tailrec
-import com.mogproject.mogami.core.io.{CsaFactory, CsaLike, SfenFactory, SfenLike}
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
 

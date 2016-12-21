@@ -1,9 +1,10 @@
 package com.mogproject.mogami.core.attack
 
-import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
+
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.PieceConstant._
 
 class DirectAttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 

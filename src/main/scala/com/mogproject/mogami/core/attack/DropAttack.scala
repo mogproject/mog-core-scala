@@ -1,7 +1,6 @@
 package com.mogproject.mogami.core.attack
 
-import com.mogproject.mogami.core.Ptype.{KNIGHT, LANCE, PAWN}
-import com.mogproject.mogami.core.{BitBoard, Piece}
+import com.mogproject.mogami._
 
 /**
   *

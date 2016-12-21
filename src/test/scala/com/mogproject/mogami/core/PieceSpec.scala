@@ -1,9 +1,9 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype.{PAWN, PPAWN}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
+
+import com.mogproject.mogami._
 
 class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val allPieces: Seq[Piece] = for {p <- Player.constructor; pt <- Ptype.constructor} yield Piece(p, pt)

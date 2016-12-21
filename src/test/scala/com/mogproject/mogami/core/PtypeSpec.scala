@@ -2,7 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import com.mogproject.mogami.core.Ptype._
+
+import com.mogproject.mogami._
 
 class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 

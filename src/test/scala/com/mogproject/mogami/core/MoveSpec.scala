@@ -1,8 +1,10 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
+import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.Ptype._
 
 class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val movesForTestCsa = Seq(
@@ -63,5 +65,21 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestSfen map (_.toSfenString) must be(sfenForTest)
   }
 
+  "ExtendedMove#fromMove" must "return extended move" in {
+    val s1: State = State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  * +FU *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9+KA *  *  *  *  *  *  *  * ",
+      "P+00FU",
+      "P-",
+      "+")).get
 
+      ExtendedMove.fromMove(Move.parseSfenString("7g7f").get, s1) mustBe Some(ExtendedMove(BLACK, P77, P76, PAWN, false, None, true))
+  }
 }

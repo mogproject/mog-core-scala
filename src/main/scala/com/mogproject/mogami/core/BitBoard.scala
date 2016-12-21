@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.util.BitOperation
-import com.mogproject.mogami.util.BooleanOps.Implicits._
+import com.mogproject.mogami.util.Implicits._
 
 
 class BitBoard(val lo: Long, val hi: Long) {
@@ -43,7 +43,7 @@ class BitBoard(val lo: Long, val hi: Long) {
 
   def isEmpty: Boolean = (lo | hi) == 0L
 
-  def isDefined: Boolean = !isEmpty
+  def nonEmpty: Boolean = !isEmpty
 
   def count: Int = BitOperation.pop(lo) + BitOperation.pop(hi)
 
@@ -54,7 +54,7 @@ class BitBoard(val lo: Long, val hi: Long) {
   private[this] def operate(f: (Long, Long) => Long)(that: BitBoard) = BitBoard(f(lo, that.lo), f(hi, that.hi))
 
   private[this] def setProcess(index: Int)(f: (Long, Long) => Long) = {
-    require(0 <= index && index < 81)
+    require(0 <= index && index < 81, s"Invalid index: ${index}")
     if (index < 54) {
       BitBoard(f(lo, 1L << index), hi)
     } else {
@@ -284,7 +284,7 @@ object BitBoard {
 
   def ident(sq: Square): BitBoard = ident(sq.index)
 
-  def promotion(player: Player): BitBoard = BitBoard(0x7ffffffL, 0L).flipByPlayer(player)
+  def promotionZone(player: Player): BitBoard = BitBoard(0x7ffffffL, 0L).flipByPlayer(player)
 
   /**
     * Make bitboard sequence from long-width string lines
