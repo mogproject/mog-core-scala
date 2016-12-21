@@ -21,5 +21,6 @@ lazy val root = (project in file("."))
       import com.mogproject.mogami.core.PieceConstant._
       import com.mogproject.mogami.core.Square.HAND
       import com.mogproject.mogami.core.State.PromotionFlag._
-      """
+      """,
+    parallelExecution in Test := false
   )
