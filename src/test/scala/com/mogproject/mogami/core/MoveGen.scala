@@ -11,7 +11,8 @@ object MoveGen {
     to <- SquareGen.squaresOnBoardExcept(Seq(from))
     pl <- PlayerGen.players
     pt <- if (from.isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
-  } yield Move(from, to, Some(pl), Some(pt), None)
+    t <- Gen.option(Gen.choose(0, 1000000000))
+  } yield Move(from, to, Some(pl), Some(pt), None, t)
 
   val movesSfenFormat: Gen[Move] = for {
     from <- SquareGen.squares

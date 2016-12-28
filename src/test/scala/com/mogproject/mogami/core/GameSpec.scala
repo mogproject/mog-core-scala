@@ -2,12 +2,12 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+
   val stateHirate = State(BLACK, Map(
     P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
     P22 -> WB, P82 -> WR,
@@ -37,13 +37,13 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'opening -> "YAGURA"
       ))),
     Game(stateHirate, Seq(
-      ExtendedMove(BLACK, P77, P76, PAWN, false, None, false),
-      ExtendedMove(WHITE, P33, P34, PAWN, false, None, false),
-      ExtendedMove(BLACK, P88, P22, PBISHOP, true, Some(BISHOP), false),
-      ExtendedMove(WHITE, P31, P22, SILVER, false, Some(PBISHOP), false),
-      ExtendedMove(BLACK, HAND, P33, BISHOP, false, None, true),
-      ExtendedMove(WHITE, P51, P62, KING, false, None, false),
-      ExtendedMove(BLACK, P33, P55, PBISHOP, true, None, false)
+      ExtendedMove(BLACK, P77, P76, PAWN, false, None, false, Some(50)),
+      ExtendedMove(WHITE, P33, P34, PAWN, false, None, false, Some(1)),
+      ExtendedMove(BLACK, P88, P22, PBISHOP, true, Some(BISHOP), false, Some(12)),
+      ExtendedMove(WHITE, P31, P22, SILVER, false, Some(PBISHOP), false, Some(100)),
+      ExtendedMove(BLACK, HAND, P33, BISHOP, false, None, true, Some(10)),
+      ExtendedMove(WHITE, P51, P62, KING, false, None, false, Some(2)),
+      ExtendedMove(BLACK, P33, P55, PBISHOP, true, None, false, Some(3))
     ), GameInfo(
       Map('formatVersion -> "", 'blackName -> "B", 'whiteName -> "W", 'event -> "", 'site -> "",
         'startTime -> "", 'endTime -> "", 'timeLimit -> "", 'opening -> "")
@@ -91,21 +91,13 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+\n" +
       "P-\n" +
       "+\n" +
-      "+7776FU\n" +
-      "-3334FU\n" +
-      "+8822UM\n" +
-      "-3122GI\n" +
-      "+0033KA\n" +
-      "-5162OU\n" +
-      "+3355UM"
-    // TODO: fix me
-//      "+7776FU,T50\n" +
-//      "-3334FU,T1\n" +
-//      "+8822UM,T12\n" +
-//      "-3122GI,T100\n" +
-//      "+0033KA,T10\n" +
-//      "-5162OU,T2\n" +
-//      "+3355UM,T3"
+      "+7776FU,T50\n" +
+      "-3334FU,T1\n" +
+      "+8822UM,T12\n" +
+      "-3122GI,T100\n" +
+      "+0033KA,T10\n" +
+      "-5162OU,T2\n" +
+      "+3355UM,T3"
   )
   val sfenForTest = Seq(
     "9/9/9/9/9/9/9/9/9 b - 0",
@@ -122,7 +114,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo())))
 
     Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
-      ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+      ExtendedMove(WHITE, P51, P52, KING, false, None, false, Some(2345)),
       ExtendedMove(BLACK, P59, P58, KING, false, None, false)
     ), GameInfo())))
     Game.parseCsaString("N-yyy\n" +
@@ -138,7 +130,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+\n" +
       "P-\n" +
       "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
-      ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+      ExtendedMove(WHITE, P51, P52, KING, false, None, false, Some(2345)),
       ExtendedMove(BLACK, P59, P58, KING, false, None, false)
     ), GameInfo(Map('whiteName -> "yyy")))))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") must be(Some(Game(stateEmpty, Seq(), GameInfo(
@@ -150,7 +142,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(
       stateHirateInv,
       Seq(
-        ExtendedMove(WHITE, P51, P52, KING, false, None, false),
+        ExtendedMove(WHITE, P51, P52, KING, false, None, false, Some(2345)),
         ExtendedMove(BLACK, P59, P58, KING, false, None, false)
       ),
       GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))))
@@ -178,17 +170,24 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   it must "return None when moves are invalid" in {
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+1234AB") must be(None)
-//    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT") must be(None)  // TODO: fix me
+    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n+7675FU") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
+  }
+  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
+    Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
 
   "toSfenString" must "describe some games" in {
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
   }
   "parseSfenString" must "create games in normal cases" in {
-    sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g => Some(g.copy(gameInfo = GameInfo()))) foreach { case (a, b) => a must be(b) }
+    sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
+      Some(g.copy(gameInfo = GameInfo(), moves = g.moves.map(_.copy(elapsedTime = None))))
+    ) foreach { case (a, b) =>
+      a must be(b)
+    }
   }
   it must "return None in error cases" in {
     Game.parseSfenString("") must be(None)
@@ -199,5 +198,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
+  }
+  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
+    val s = g.toSfenString
+    Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
   }
 }

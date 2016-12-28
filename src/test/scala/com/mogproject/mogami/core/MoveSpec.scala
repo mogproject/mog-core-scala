@@ -10,14 +10,16 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   val movesForTestCsa = Seq(
     Move(Square(7, 7), Square(7, 6), Some(BLACK), Some(Ptype.PAWN), None),
     Move(Square(9, 9), Square(1, 1), Some(WHITE), Some(Ptype.PBISHOP), None),
-    Move(Square.HAND, Square(8, 2), Some(BLACK), Some(Ptype.LANCE), None)
+    Move(Square.HAND, Square(8, 2), Some(BLACK), Some(Ptype.LANCE), None),
+    Move(P99, P11, Some(WHITE), Some(Ptype.PBISHOP), None, Some(0)),
+    Move(Square.HAND, P82, Some(BLACK), Some(Ptype.LANCE), None, Some(1499))
   )
   val movesForTestSfen = Seq(
     Move(Square(7, 7), Square(7, 6), None, None, Some(false)),
     Move(Square(9, 9), Square(1, 1), None, None, Some(true)),
     Move(Square.HAND, Square(8, 2), None, Some(Ptype.LANCE), Some(false))
   )
-  val csaForTest = Seq("+7776FU", "-9911UM", "+0082KY")
+  val csaForTest = Seq("+7776FU", "-9911UM", "+0082KY", "-9911UM,T0", "+0082KY,T1499")
   val sfenForTest = Seq("7g7f", "9i1a+", "L*8b")
 
   "Move#parseCsaString" must "succeed in normal cases" in {
@@ -35,6 +37,16 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Move.parseCsaString("+0000FU") must be(None)
     Move.parseCsaString("+7777FU") must be(None)
     Move.parseCsaString("+7700FU") must be(None)
+
+    Move.parseCsaString("+7776FU,") must be(None)
+    Move.parseCsaString("+7776FU,T") must be(None)
+    Move.parseCsaString("+7776FU,t1") must be(None)
+    Move.parseCsaString("+7776FU,Ta") must be(None)
+    Move.parseCsaString("+7776FU,T10000000000") must be(None)
+    Move.parseCsaString("+7776FU,T100000000000000000000") must be(None)
+    Move.parseCsaString("+7776FU,T-1") must be(None)
+    Move.parseCsaString("+7776FU,,") must be(None)
+    Move.parseCsaString("+7776FU,T01,") must be(None)
   }
   it must "restore moves" in forAll(MoveGen.movesCsaFormat) { m =>
     Move.parseCsaString(m.toCsaString) must be(Some(m))
@@ -80,6 +92,6 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+")).get
 
-      ExtendedMove.fromMove(Move.parseSfenString("7g7f").get, s1) mustBe Some(ExtendedMove(BLACK, P77, P76, PAWN, false, None, true))
+    ExtendedMove.fromMove(Move.parseSfenString("7g7f").get, s1) mustBe Some(ExtendedMove(BLACK, P77, P76, PAWN, false, None, true))
   }
 }

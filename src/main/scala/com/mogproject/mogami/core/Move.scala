@@ -14,24 +14,23 @@ case class Move(from: Square,
                 to: Square,
                 player: Option[Player],
                 newPtype: Option[Ptype],
-                promote: Option[Boolean]) extends CsaLike with SfenLike {
+                promote: Option[Boolean],
+                elapsedTime: Option[Int] = None
+               ) extends CsaLike with SfenLike {
   require(!from.isHand || newPtype.exists(Ptype.inHand.contains), "ptype must be defined and in-hand type when dropping")
   require(!from.isHand || !promote.contains(true), "promote must be undefined or false when dropping")
   require(from != to, "to must not be identical to from")
   require(!to.isHand, "to must not be in hand")
   require(newPtype.isDefined || promote.isDefined, "either ptype or promote must be defined")
+  require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
 
-  def isCsaCompatible: Boolean = {
-    player.isDefined && newPtype.isDefined
-  }
+  def isCsaCompatible: Boolean = player.isDefined && newPtype.isDefined
 
-  def isSfenCompatible: Boolean = {
-    promote.isDefined
-  }
+  def isSfenCompatible: Boolean = promote.isDefined
 
   override def toCsaString: String = {
     require(isCsaCompatible)
-    List(player.get, from, to, newPtype.get).map(_.toCsaString).mkString
+    List(player.get, from, to, newPtype.get).map(_.toCsaString).mkString + elapsedTime.map(x => s",T${x}").getOrElse("")
   }
 
   override def toSfenString: String = {
@@ -46,14 +45,23 @@ case class Move(from: Square,
 
 object Move extends CsaFactory[Move] with SfenFactory[Move] {
   def parseCsaString(s: String): Option[Move] = {
+    val r: Regex = """(.{7})(?:,T([0-9]+))?""".r
+
+    val result: Option[(String, Option[Int])] = s match {
+      case r(mv, null) => Some(mv, None)
+      case r(mv, tm) => Try(tm.toInt).map(x => (mv, Some(x))).toOption
+      case _ => None
+    }
+
     for {
-      s <- Some(s) if s.length == 7
-      pl <- Player.parseCsaString(s.substring(0, 1))
-      from <- Square.parseCsaString(s.substring(1, 3))
-      to <- Square.parseCsaString(s.substring(3, 5)) if to != Square.HAND && to != from
-      pt <- Ptype.parseCsaString(s.substring(5))
+      (mv, t) <- result
+      pl <- Player.parseCsaString(mv.substring(0, 1))
+      from <- Square.parseCsaString(mv.substring(1, 3))
+      to <- Square.parseCsaString(mv.substring(3, 5)) if to != Square.HAND && to != from
+      pt <- Ptype.parseCsaString(mv.substring(5))
+      if t.forall(_ >= 0)
     } yield {
-      Move(from, to, Some(pl), Some(pt), None)
+      Move(from, to, Some(pl), Some(pt), None, t)
     }
   }
 
@@ -86,7 +94,8 @@ case class ExtendedMove(player: Player,
                         newPtype: Ptype,
                         promote: Boolean,
                         captured: Option[Ptype],
-                        isCheck: Boolean
+                        isCheck: Boolean,
+                        elapsedTime: Option[Int] = None
                        ) extends CsaLike with SfenLike {
   require(!isDrop || !promote, "promote must be false when dropping")
   require(!isDrop || captured.isEmpty, "captured must be None when dropping")
@@ -95,6 +104,8 @@ case class ExtendedMove(player: Player,
   require(!to.isHand, "to must not be in hand")
   require(isDrop || oldPtype.canMoveTo(from.getDisplacement(player, to)), "move must be within the capability")
   require(to.isLegalZone(newPiece), "to must be legal for the new piece")
+  require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
+  require(!captured.contains(KING), "king cannot be captured")
 
   def oldPtype: Ptype = if (promote) newPtype.demoted else newPtype
 
@@ -110,7 +121,7 @@ case class ExtendedMove(player: Player,
 
   private[this] def toMove: Move = Move(from, to, Some(player), Some(newPtype), Some(promote))
 
-  override def toCsaString: String = toMove.toCsaString
+  override def toCsaString: String = toMove.toCsaString + elapsedTime.map(x => s",T${x}").getOrElse("")
 
   override def toSfenString: String = toMove.toSfenString
 
@@ -131,20 +142,20 @@ object ExtendedMove {
       newPtype = move.newPtype.getOrElse(if (move.promote.get) oldPtype.promoted else oldPtype)
       promote = move.promote.getOrElse(oldPtype != newPtype)
       isCheck = isCheckMove(Piece(state.turn, newPtype), move.from, move.to, state)
-      mv <- Try(ExtendedMove(state.turn, move.from, move.to, newPtype, promote, state.board.get(move.to).map(_.ptype), isCheck)).toOption
+      captured = state.board.get(move.to).map(_.ptype)
+      mv <- Try(ExtendedMove(state.turn, move.from, move.to, newPtype, promote, captured, isCheck, move.elapsedTime)).toOption
     } yield mv
   }
 
   def isCheckMove(newPiece: Piece, from: Square, to: Square, state: State): Boolean = {
     val pl = state.turn
     val newOccAll = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy.set(to))
-    val newOccTurn = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy(pl).set(to))
     val king = state.getKing(!pl)
 
     king.exists { k =>
       val pieces = (to, newPiece) +: state.getRangedPieces(pl)
       // `to` must not be in hand, and therefore Nifu does not matter
-      pieces.exists { case (s, p) => Attack.get(p, s, newOccAll, newOccTurn, BitBoard.empty).get(k) }
+      pieces.exists { case (s, p) => Attack.get(p, s, newOccAll, BitBoard.empty).get(k) }
     }
   }
 }
