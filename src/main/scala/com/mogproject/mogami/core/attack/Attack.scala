@@ -21,7 +21,7 @@ object Attack extends DropAttack with RangedAttack {
     if (square.isHand)
       getDropAttack(piece, myPawnOcc) & ~allOcc
     else
-      piece.isRanged.fold(getRangedAttack(piece, square, allOcc), getDirectAttack(piece, square)) & ~myOcc
+      piece.isRanged.fold(getRangedAttack(piece, square, allOcc), getDirectAttack(piece, square))
 
   /**
     * Get the sequence of pieces and their attack bitboards. Those of promoted pieces are separated.

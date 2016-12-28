@@ -298,14 +298,14 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "---------",
       "---------",
       "*********",
-      "---------",
-      "*-*****-*",
-      "---------"
+      "*-*---***",
+      "*********",
+      "*-******-"
     ).mkString)
     s1.getAttackBB(WHITE) mustBe BitBoard(Seq(
-      "---------",
-      "*-*****-*",
-      "---------",
+      "-******-*",
+      "*********",
+      "***---*-*",
       "****-****",
       "---------",
       "---------",
@@ -608,5 +608,86 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P+00HI00KA00KI00GI00KE00KY00FU
         |P-00KI00KI00KI00KE00KE00KE00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
         |+""".stripMargin).get.legalMoves.size must be(593)
+  }
+
+  "State#isMated" must "return true when the state is mated" in {
+    State.parseCsaString(
+      """P1 *  *  *  *  *  *  *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  *  *  *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  * -FU *  *  *  *.
+        |P8 *  *  *  * -KI *  *  *  *.
+        |P9 *  *  *  * +OU *  *  *  *.
+        |P+00HI00KA
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1 *  *  *  *  *  *  *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  *  *  *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  *  *  *  *  *  *.
+        |P8 *  * +FU+FU+FU+KI *  *  *.
+        |P9 * -HI *  * +OU+FU *  *  *.
+        |P+00FU00FU
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1 *  *  *  *  *  *  *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  *  *  *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  *  *  *  *  *  *.
+        |P8 *  * +FU+FU+FU+KI *  *  *.
+        |P9 * -HI *  * +OU *  *  *  *.
+        |P+00FU00FU
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1 *  *  *  *  *  *  *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  *  *  *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  * -KI *  *  *  *.
+        |P8 *  * -KI *  *  * -KI *  *.
+        |P9 *  *  *  * +OU *  *  *  *.
+        |P+
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1 *  *  *  *  *  *  *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  * +HI *  *  *  *.
+        |P4 *  *  *  * -KY *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  * -KA *  *  *  *  *  *.
+        |P8 *  * +FU *  *  * -KI *  *.
+        |P9 *  *  * +KE+OU *  *  *  *.
+        |P+00FU
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1 *  *  *  *  * -KY *  *  *.
+        |P2 *  *  *  *  *  *  *  *  *.
+        |P3 *  *  *  * -KY *  *  *  *.
+        |P4 *  *  *  *  *  *  *  *  *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  * -KA *  *  *  *  *  *.
+        |P7 *  *  *  *  *  *  *  *  *.
+        |P8 *  *  * +GI+OU *  *  *  *.
+        |P9 *  *  * +KI *  *  *  *  *.
+        |P+00FU
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
   }
 }

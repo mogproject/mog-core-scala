@@ -103,11 +103,17 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
   def getAttackBB(player: Player): BitBoard = attackBBOnBoard(player).values.fold(BitBoard.empty)(_ | _)
 
   /**
-    * Get the positions of pieces that are attacking the turn playrer's king
+    * Get the positions of pieces that are attacking the turn player's king
     *
     * @return set of squares
     */
   lazy val attackers: Set[Square] = turnsKing.map(k => attackBBOnBoard(!turn).filter(_._2.get(k)).keys.toSet).getOrElse(Set.empty)
+
+  /**
+    * Get the attackers' potential attack bitboard (assuming that there is no obstacles)
+    */
+  lazy val attackerPotentialBB: BitBoard =
+    attackers.map(sq => Attack.get(board(sq), sq, BitBoard.empty, BitBoard.empty, BitBoard.empty)).fold(BitBoard.empty)(_ | _)
 
   /**
     * Get the guard pieces, which protect the turn player's king from ranged attack.
@@ -143,20 +149,19 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     (s, bb) <- m
     (p, b) <- Attack.getSeq(board(s), s, bb)
   } yield {
-    (s, p) -> b
+    (s, p) -> (b & ~occupancy(turn))
   }
 
   def getEscapeMoves: Map[(Square, Piece), BitBoard] = {
     require(turnsKing.isDefined)
-    val king = turnsKing.get
 
     // king's move
-    val kingEscape = Map((king, Piece(turn, KING)) -> (attackBBOnBoard(turn)(king) & ~getAttackBB(!turn)))
+    val king = turnsKing.get
+    val kingEscape = Map((king, Piece(turn, KING)) -> (attackBBOnBoard(turn)(king) & ~(getAttackBB(!turn) | occupancy(turn) | attackerPotentialBB)))
 
+    // capture the attacker (except king's move)
     val attacker = if (attackers.size == 1) attackers.headOption else None
-
-    // capture the attacker
-    val captureAttacker = for ((sq, bb) <- attackBBOnBoard(turn); atk <- attacker) yield sq -> (bb & BitBoard.ident(atk))
+    val captureAttacker = for ((sq, bb) <- attackBBOnBoard(turn) if sq != king; atk <- attacker) yield sq -> (bb & BitBoard.ident(atk))
 
     // drop a piece between king and the attacker
     val dropBetween = for (((sq, p), bb) <- attackBBInHand; atk <- attacker) yield (sq, p) -> (bb & king.getBetweenBB(atk))
