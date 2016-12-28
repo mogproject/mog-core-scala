@@ -22,19 +22,6 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |********* --------- --------* --------- --------- --------- ----*--*- ---------
       """.stripMargin
     )
-    val myOcc = BitBoard.seq(
-      """
-        |********* ********* --------- --------- *-------- --------- -------*- *-------*
-        |-*-----*- --------- --------- --------- -*------- --------- --------- ----*----
-        |--------- --------- ********* --------- --*------ --------- --------- ---*-----
-        |--------- --------- --------- --------- ---**---- --------- --------- -----*---
-        |--------- --------- --------- --------- ----**--- ---*----- --**----- ---------
-        |------*-- --------- --------- --------- ----*-*-- *-*-**--- --------* --*---*--
-        |--------- --------- --------- --------- -------*- -*------- *-------- ---------
-        |-*-----*- --------- --------- ********* --------* --------- --------- ---------
-        |********* --------- --------- --------- --------- --------- ----*--*- ---------
-      """.stripMargin
-    )
     val pawnOcc = BitBoard.seq(
       """
         |--------- ********* --------- --------- *-------- --------- --------- *-------*
@@ -61,10 +48,10 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |--------- --------- --------- --------- ----*---- --**--*** -*---**-- -*-*-*-*-
       """.stripMargin)
 
-    val occs = Seq(allOcc, myOcc, pawnOcc).transpose
+    val occs = Seq(allOcc, pawnOcc).transpose
     occs.length must be(expected.length)
     occs zip expected foreach {
-      case (aa :: b :: c :: Nil, x) => (aa, Attack.get(BP, HAND, aa, b, c)) must be((aa, x))
+      case (aa :: b :: Nil, x) => (aa, Attack.get(BP, HAND, aa, b)) must be((aa, x))
       case _ =>
     }
   }
@@ -82,19 +69,6 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |--------- -----*--- ------*-- --------- -------*- -*------- *-------- ---***--- ********* *********
         |-*-----*- --------- -------*- ********* --------* --------- --------- ---***--- -*-----*- -*-----*-
         |********* --------- --------* --------- --------- --------- ----*--*- --------- ********* *********
-      """.stripMargin
-    )
-    val myOcc = BitBoard.seq(
-      """
-        |********* ********* --------- --------- *------*- --------- -------*- *-------* --------- *********
-        |-*-----*- --------- --------- --------- -*----*-- --------- *-*------ ----*---- --------- -*-----*-
-        |--------- --------- ********* --------- --*--*--- ------*-- -*------- -*-*----- --------- *********
-        |--------- --------- --------- --------- ---**---- --------- --------- -*---*--- --------- ---------
-        |--------- --------- --------- --------- ----**--- ---*----- --**----- --------- --------- ---------
-        |------*-- --------- --------- --------- ----*-*-- *-*-**--- --------* --*---*-- --------- ---------
-        |--------- --------- --------- --------- -------*- -*------- *-------- --------- ********* ---------
-        |-*-----*- --------- --------- *-******* --------* --------- --------- --------- -*-----*- ---------
-        |********* --------- --------- --------- --------- --------- ----*--*- --------- ********* ---------
       """.stripMargin
     )
     val pawnOcc = BitBoard.seq(
@@ -123,12 +97,11 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |--------- --------- ------*-* --------- --------- --------- --------- --------- --------- ---------
       """.stripMargin)
 
-    val params = Seq(poses, pieces, allOcc, myOcc, pawnOcc).transpose
+    val params = Seq(poses, pieces, allOcc, pawnOcc).transpose
     params.length must be(expected.length)
     params zip expected foreach {
-      case (pos :: piece :: aa :: b :: c :: Nil, x) =>
-        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard],
-          b.asInstanceOf[BitBoard], c.asInstanceOf[BitBoard])) must be((aa, x))
+      case (pos :: piece :: aa :: b :: Nil, x) =>
+        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
       case _ =>
     }
   }
@@ -146,19 +119,6 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |--------- -----*--- ------*-- --------- -------*- -*------- *-------- ---***--- ********* *********
         |-*-----*- --------- -------*- *-******* --------* --------- --------- ---***--- -*-----*- -*-----*-
         |********* --------- --------* --------- --------- --------- ----*--*- --------- ********* *********
-      """.stripMargin
-    )
-    val myOcc = BitBoard.seq(
-      """
-        |********* ********* --------- --------- *------*- --------- -------*- *-------* --------- *********
-        |-*-----*- --------- --------- --------- -*----*-- --------- *-*------ ----*---- --------- -*-----*-
-        |--------- --------- ********* --------- --*--*--- ------*-- -*------- -*-*----- --------- *********
-        |--------- --------- --------- --------- ---**---- --------* --------- -*---*--- --------- ---------
-        |--------- --------- --------- --------- ----**--- ---*----- --*------ --------- --------- ---------
-        |------*-- --------- --------- --------- ----*-*-- *-*-*---- --------* --*---*-- --------- ---------
-        |--------- --------- --------- --------- -------*- -*------- *-------- --------- ********* ---------
-        |-*-----*- --------- --------- *-******* --------* --------- --------- --------- -*-----*- ---------
-        |********* --------- --------- --------- --------- --------- ----*--*- --------- ********* ---------
       """.stripMargin
     )
     val pawnOcc = BitBoard.seq(
@@ -187,12 +147,11 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
         |--------- --------* -----*--- --------- --------- --------- --------- *-------- --------- ---------
       """.stripMargin)
 
-    val params = Seq(poses, pieces, allOcc, myOcc, pawnOcc).transpose
+    val params = Seq(poses, pieces, allOcc, pawnOcc).transpose
     params.length must be(expected.length)
     params zip expected foreach {
-      case (pos :: piece :: aa :: b :: c :: Nil, x) =>
-        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard],
-          b.asInstanceOf[BitBoard], c.asInstanceOf[BitBoard])) must be((aa, x))
+      case (pos :: piece :: aa :: b :: Nil, x) =>
+        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
       case _ =>
     }
   }

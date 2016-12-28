@@ -86,7 +86,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     */
   lazy val attackBBOnBoard: Map[Player, Map[Square, BitBoard]] = {
     val m = (for ((sq, piece) <- board) yield {
-      (piece.owner, sq) -> Attack.get(piece, sq, occupancy, occupancy(piece.owner), occupancy(Piece(piece.owner, PAWN)))
+      (piece.owner, sq) -> Attack.get(piece, sq, occupancy, occupancy(Piece(piece.owner, PAWN)))
     }).filter(_._2.nonEmpty).groupBy(_._1._1)
 
     m.mapValues {
@@ -97,7 +97,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
   lazy val attackBBInHand: Map[(Square, Piece), BitBoard] = for {
     (piece, num) <- hand if piece.owner == turn && num > 0
   } yield {
-    (HAND, piece) -> Attack.get(piece, HAND, occupancy, occupancy(turn), occupancy(Piece(turn, PAWN)))
+    (HAND, piece) -> Attack.get(piece, HAND, occupancy, occupancy(Piece(turn, PAWN)))
   }
 
   def getAttackBB(player: Player): BitBoard = attackBBOnBoard(player).values.fold(BitBoard.empty)(_ | _)
@@ -112,8 +112,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
   /**
     * Get the attackers' potential attack bitboard (assuming that there is no obstacles)
     */
-  lazy val attackerPotentialBB: BitBoard =
-    attackers.map(sq => Attack.get(board(sq), sq, BitBoard.empty, BitBoard.empty, BitBoard.empty)).fold(BitBoard.empty)(_ | _)
+  lazy val attackerPotentialBB: BitBoard = attackers.map(sq => Attack.get(board(sq), sq, BitBoard.empty, BitBoard.empty)).fold(BitBoard.empty)(_ | _)
 
   /**
     * Get the guard pieces, which protect the turn player's king from ranged attack.

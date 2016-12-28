@@ -149,13 +149,12 @@ object ExtendedMove {
   def isCheckMove(newPiece: Piece, from: Square, to: Square, state: State): Boolean = {
     val pl = state.turn
     val newOccAll = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy.set(to))
-    val newOccTurn = (!from.isHand).when[BitBoard](_.reset(from))(state.occupancy(pl).set(to))
     val king = state.getKing(!pl)
 
     king.exists { k =>
       val pieces = (to, newPiece) +: state.getRangedPieces(pl)
       // `to` must not be in hand, and therefore Nifu does not matter
-      pieces.exists { case (s, p) => Attack.get(p, s, newOccAll, newOccTurn, BitBoard.empty).get(k) }
+      pieces.exists { case (s, p) => Attack.get(p, s, newOccAll, BitBoard.empty).get(k) }
     }
   }
 }
