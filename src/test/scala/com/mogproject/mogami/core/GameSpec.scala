@@ -2,12 +2,12 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+
   val stateHirate = State(BLACK, Map(
     P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
     P22 -> WB, P82 -> WR,
@@ -175,6 +175,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
   }
+  it must "restore games" in forAll(GameGen.games, minSuccessful(200)) { g =>
+    Game.parseCsaString(g.toCsaString) must be(Some(g))
+  }
 
   "toSfenString" must "describe some games" in {
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
@@ -195,5 +198,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
+  }
+  it must "restore games" in forAll(GameGen.games, minSuccessful(200)) { g =>
+    val s = g.toSfenString
+    Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
   }
 }

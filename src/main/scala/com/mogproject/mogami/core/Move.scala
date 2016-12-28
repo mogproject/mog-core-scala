@@ -105,6 +105,7 @@ case class ExtendedMove(player: Player,
   require(isDrop || oldPtype.canMoveTo(from.getDisplacement(player, to)), "move must be within the capability")
   require(to.isLegalZone(newPiece), "to must be legal for the new piece")
   require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
+  require(!captured.contains(KING), "king cannot be captured")
 
   def oldPtype: Ptype = if (promote) newPtype.demoted else newPtype
 
