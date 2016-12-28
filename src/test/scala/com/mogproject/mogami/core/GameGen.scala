@@ -10,7 +10,7 @@ object GameGen {
   def games: Gen[Game] = for {
     gameInfo <- GameInfoGen.infos
     state <- StateGen.statesWithFullPieces
-    n <- Gen.choose(0, 200)
+    n <- Gen.choose(0, 100)
   } yield {
     val moves = movesStream(state).take(n)
     Game(state, moves, gameInfo)

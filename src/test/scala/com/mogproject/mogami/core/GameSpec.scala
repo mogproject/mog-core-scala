@@ -175,7 +175,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(200)) { g =>
+  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
 
@@ -199,7 +199,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(200)) { g =>
+  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
     val s = g.toSfenString
     Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
   }
