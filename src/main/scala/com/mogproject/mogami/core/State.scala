@@ -89,8 +89,8 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
       (piece.owner, sq) -> Attack.get(piece, sq, occupancy, occupancy(Piece(piece.owner, PAWN)))
     }).filter(_._2.nonEmpty).groupBy(_._1._1)
 
-    m.mapValues {
-      _.map { case ((p, s), b) => s -> b }
+    Map(BLACK -> Map.empty[Square, BitBoard], WHITE -> Map.empty[Square, BitBoard]) ++ m.mapValues {
+      _.map { case ((_, s), b) => s -> b }
     }
   }
 
@@ -158,14 +158,17 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     val king = turnsKing.get
     val kingEscape = Map((king, Piece(turn, KING)) -> (attackBBOnBoard(turn)(king) & ~(getAttackBB(!turn) | occupancy(turn) | attackerPotentialBB)))
 
-    // capture the attacker (except king's move)
+    // move a piece between king and the attacker or capture the attacker (except king's move)
     val attacker = if (attackers.size == 1) attackers.headOption else None
-    val captureAttacker = for ((sq, bb) <- attackBBOnBoard(turn) if sq != king; atk <- attacker) yield sq -> (bb & BitBoard.ident(atk))
+    val between = attacker.map(king.getBetweenBB)
+    val betweenAndAttacker = attacker.map(atk => between.get.set(atk))
+
+    val moveBetween = for ((sq, bb) <- getNonSuicidalMovesOnBoard if sq != king; bt <- betweenAndAttacker) yield sq -> (bb & bt)
 
     // drop a piece between king and the attacker
-    val dropBetween = for (((sq, p), bb) <- attackBBInHand; atk <- attacker) yield (sq, p) -> (bb & king.getBetweenBB(atk))
+    val dropBetween = for (((sq, p), bb) <- attackBBInHand; bt <- between) yield (sq, p) -> (bb & bt)
 
-    kingEscape ++ generateLegalMovesOnBoard(captureAttacker) ++ dropBetween
+    kingEscape ++ generateLegalMovesOnBoard(moveBetween) ++ dropBetween
   }
 
   /**
