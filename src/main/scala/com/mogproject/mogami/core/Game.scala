@@ -58,8 +58,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
-      // todo: parse time format (e.g. +7776FU,T12)
-      moves = c.flatMap(s => Move.parseCsaString(s.take(7))) if moves.length == c.length
+      moves = c.flatMap(s => Move.parseCsaString(s)) if moves.length == c.length
       game <- moves.foldLeft(Some(Game(st, Seq.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
