@@ -7,7 +7,7 @@ test:
 	${SBT} test
 
 console:
-	${SBT} test:console
+	${SBT} mogCoreJVM/test:console
 
 clean:
 	${SBT} clean

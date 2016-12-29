@@ -1,17 +1,26 @@
-import Dependencies._
-
 lazy val root = (project in file("."))
+  .aggregate(mogCoreJVM, mogCoreJS)
+  .settings(
+    publish := {},
+    publishLocal := {}
+  )
+
+lazy val mogCore = crossProject.in(file("."))
   .settings(
     inThisBuild(List(
       organization := "com.mogproject",
       scalaVersion := "2.12.0"
     )),
     name := "mog-core-scala",
+    version := "0.1-SNAPSHOT",
     libraryDependencies ++= Seq(
-      scalaTest % Test,
-      scalaCheck % Test
-    ),
+      "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
+      "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test
+    )
+  )
+  .jvmSettings(
     scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
+    parallelExecution in Test := false,
     initialCommands in console in Test :=
       """
       import com.mogproject.mogami.core._
@@ -21,6 +30,11 @@ lazy val root = (project in file("."))
       import com.mogproject.mogami.core.PieceConstant._
       import com.mogproject.mogami.core.Square.HAND
       import com.mogproject.mogami.core.State.PromotionFlag._
-      """,
-    parallelExecution in Test := false
+      """
   )
+  .jsSettings(
+    // Add JS-specific settings here
+  )
+
+lazy val mogCoreJVM = mogCore.jvm
+lazy val mogCoreJS = mogCore.js
