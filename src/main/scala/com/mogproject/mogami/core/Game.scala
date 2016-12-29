@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core
 
 import scala.annotation.tailrec
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.Implicits._
 
@@ -24,14 +25,32 @@ case class Game(initialState: State = State.HIRATE,
 
   lazy val hashCodes: Seq[Int] = history.map(_.hashCode())
 
-  lazy val status: GameStatus = currentState.isMated.fold(Mated, Playing)
+  lazy val status: GameStatus = {
+    if (currentState.isMated) {
+      if (lastMove.exists(m => m.isDrop && m.oldPtype == PAWN))
+        Illegal // uchifuzume
+      else
+        Mated
+    } else if (isPerpetualCheck) {
+      Illegal // perpetual check
+    } else if (isRepetition) {
+      Drawn // Sennichite
+    } else {
+      Playing
+    }
+  }
 
   /**
     * Get the latest state.
     */
   def currentState: State = history.last
 
-  def makeMove(move: ExtendedMove): Option[Game] = currentState.isValidMove(move).option(this.copy(moves = moves :+ move))
+  def lastMove: Option[ExtendedMove] = moves.lastOption
+
+  def turn: Player = currentState.turn
+
+  def makeMove(move: ExtendedMove): Option[Game] =
+    (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move))
 
   def makeMove(move: Move): Option[Game] = ExtendedMove.fromMove(move, currentState).flatMap(makeMove)
 
@@ -45,7 +64,10 @@ case class Game(initialState: State = State.HIRATE,
     *
     * @return true if the latest move is the repetition
     */
-  def isRepetition: Boolean = hashCodes.count(_ == currentState.hashCode()) >= 4
+  def isRepetition: Boolean = hashCodes.drop(1).count(_ == currentState.hashCode()) >= 4
+
+  def isPerpetualCheck: Boolean = currentState.isChecked &&
+    (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
 }
 
 object Game extends CsaFactory[Game] with SfenFactory[Game] {
@@ -69,7 +91,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
     for {
       st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
       offset <- Try(tokens(3).toInt).toOption
-      gi = GameInfo()  // initialize without information
+      gi = GameInfo() // initialize without information
       moves = tokens.drop(4).flatMap(ss => Move.parseSfenString(ss)) if moves.length == tokens.length - 4
       game <- moves.foldLeft(Some(Game(st, Seq.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
@@ -77,7 +99,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
 
   object GameStatus extends Enumeration {
     type GameStatus = Value
-    val Playing, Mated = Value
+    val Playing, Mated, Illegal, Drawn = Value
   }
 
 }
