@@ -10,6 +10,12 @@ import com.mogproject.mogami.util.Implicits._
   */
 case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike with SfenLike {
 
+  require(checkCapacity, "the number of pieces must be within the capacity")
+  require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
+  require(!board.keySet.contains(HAND), "all board pieces must have on-board squares")
+  require(board.forall{ case (s, p) => s.isLegalZone(p) }, "all board pieces must be placed in their legal zones")
+  require(!getKing(!turn).exists(getAttackBB(turn).get), "player must not be able to attack the opponent's king")
+
   import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
 
   override def toCsaString: String = {
@@ -244,7 +250,7 @@ object State extends CsaStateReader with SfenStateReader {
   val EMPTY_HANDS: HandType = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Piece(t, pt) -> 0).toMap
 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
-  val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
+  lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
   /**
     * Get the square where the turn-to-move player's king.
