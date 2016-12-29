@@ -113,6 +113,10 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "-"
   )
 
+  "State#constructor" must "throw errors when the requirements do not meet" in {
+    assertThrows[IllegalArgumentException](State(BLACK, Map(HAND -> BP), State.EMPTY_HANDS))
+  }
+
   "State#toCsaString" must "describe the state" in {
     dataForTest(0).toCsaString mustBe csaForTest(0)
     dataForTest(1).toCsaString mustBe csaForTest(1)
@@ -137,7 +141,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     State.parseSfenString(st.toSfenString) mustBe Some(st)
   }
 
-  "makeMove" must "make next state" in {
+  "State#makeMove" must "make next state" in {
     State.HIRATE.makeMove(ExtendedMove(BLACK, P77, P76, PAWN, false, None, false)) mustBe Some(State(WHITE, Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
@@ -209,7 +213,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   }
   // TODO: error cases
 
-  "getPromotionFlag" must "return flags" in {
+  "State#getPromotionFlag" must "return flags" in {
     State.HIRATE.getPromotionFlag(P77, P76) mustBe Some(CannotPromote)
 
     // pawn
@@ -331,7 +335,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "+"
     )).get
     val s2: State = State.parseCsaString(Seq(
-      "P1 *  *  *  * -OU *  *  *  * ",
+      "P1 *  *  *  * -KI *  *  *  * ",
       "P2 *  *  * +OU *  *  *  *  * ",
       "P3 *  *  *  *  *  *  *  *  * ",
       "P4 *  *  *  *  *  *  *  *  * ",
@@ -346,7 +350,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     )).get
     val s3: State = State.parseCsaString(Seq(
       "P1 *  *  *  * -OU *  *  *  * ",
-      "P2 *  *  * +OU *  *  *  *  * ",
+      "P2 *  *  * +KI *  *  *  *  * ",
       "P3 *  *  *  *  *  *  *  *  * ",
       "P4 *  *  *  *  *  *  *  *  * ",
       "P5 *  *  *  *  *  *  *  *  * ",
@@ -728,6 +732,19 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P+
         |P-00HI00KA00KI00GI00KE00KY00FU
         |-""".stripMargin).get.isMated mustBe true
+    State.parseCsaString(
+      """P1+NG+HI+KI+GI+HI+KA+NY+GI+KA
+        |P2+FU+FU+FU+FU+FU+FU+FU+FU+FU
+        |P3+OU+KE *  *  *  *  * +KE *.
+        |P4+KY+KE *  *  *  *  * +KE *.
+        |P5 *  *  *  *  *  *  *  *  *.
+        |P6 *  *  *  *  *  *  *  *  *.
+        |P7 *  *  *  *  *  *  *  *  *.
+        |P8 *  *  *  *  *  *  *  *  *.
+        |P9 *  *  *  *  *  *  *  *  *.
+        |P+00FU
+        |P-
+        |+""".stripMargin).get.isMated mustBe true
   }
   it must "return false when the state is not mated" in {
     State.parseCsaString(

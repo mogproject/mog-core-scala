@@ -8,7 +8,7 @@ import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 
 class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
-  "Attack#get" must "work with aerial attacks" in {
+  "Attack#get" must "work with drop attacks" in {
     val allOcc = BitBoard.seq(
       """
         |********* ********* *-------- --------- *-------- --------- -------*- *-------*

@@ -7,6 +7,8 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.util.MapUtil
 
+import scala.util.Try
+
 
 object StateGen {
 
@@ -19,9 +21,9 @@ object StateGen {
 
     val illegalRanks: Set[Int] = piece match {
       case BP | BL => Set(1)
-      case BK => Set(1, 2)
+      case BN => Set(1, 2)
       case WP | WL => Set(9)
-      case WK => Set(8, 9)
+      case WN => Set(8, 9)
       case _ => Set.empty
     }
 
@@ -51,15 +53,28 @@ object StateGen {
     case Nil => (boardSofar, handSofar)
   }
 
+  @tailrec
+  private[this] def g(turn: Player, pts: List[Ptype], depth: Int): State = {
+    if (depth >= 5) {
+      State.HIRATE
+    } else {
+      val (board, hands) = f(pts, Map.empty, State.EMPTY_HANDS)
+      val s = Try(State(turn, board, hands))  // test if the state is valid
+      if (s.isSuccess)
+        s.get
+      else
+        g(turn, pts, depth + 1)
+    }
+  }
+
   // State generator for scalacheck
   val statesWithFullPieces: Gen[State] = {
-    val pts = (State.capacity + (KING -> 2)).flatMap { case (p, i) => List.fill(i)(p) }.toList
+    val pts = State.capacity.flatMap { case (p, i) => List.fill(i)(p) }.toList
 
     for {
       t <- PlayerGen.players
     } yield {
-      val (board, hands) = f(pts, Map.empty, State.EMPTY_HANDS)
-      State(t, board, hands)
+      g(t, pts, 0)
     }
   }
 }

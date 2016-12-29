@@ -5,6 +5,7 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.core.Game.GameStatus._
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
@@ -105,10 +106,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f 3c3d 8h2b+ 3a2b B*3c 5a6b 3c5e+"
   )
 
-  "toCsaString" must "describe some games" in {
+  "Game#toCsaString" must "describe some games" in {
     dataForTest.map(_.toCsaString) zip csaForTest foreach { case (a, b) => a must be(b) }
   }
-  "parseCsaString" must "work in normal cases" in {
+  "Game#parseCsaString" must "work in normal cases" in {
     csaForTest.map(Game.parseCsaString) zip dataForTest.map(Some(_)) foreach { case (a, b) => a must be(b) }
     Game.parseCsaString("+") must be(Some(Game(stateEmpty, Seq(), GameInfo())))
     Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo())))
@@ -175,14 +176,14 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI") must be(None)
     Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
+  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
 
-  "toSfenString" must "describe some games" in {
+  "Game#toSfenString" must "describe some games" in {
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
   }
-  "parseSfenString" must "create games in normal cases" in {
+  "Game#parseSfenString" must "create games in normal cases" in {
     sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
       Some(g.copy(gameInfo = GameInfo(), moves = g.moves.map(_.copy(elapsedTime = None))))
     ) foreach { case (a, b) =>
@@ -199,8 +200,165 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(50)) { g =>
+  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val s = g.toSfenString
     Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
+  }
+
+  "Game#status" must "return Playing when playing" in {
+    Game().status mustBe Playing
+    Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").get.status mustBe Playing
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  * -FU * ",
+      "P3 *  *  *  *  *  *  * +RY * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+00FU",
+      "+",
+      "+0012FU"
+    ).mkString("\n")).get.status mustBe Playing
+  }
+  it must "return Mated when mated" in {
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  * +KI",
+      "P3 *  *  *  *  *  *  *  * +FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "-"
+    ).mkString("\n")).get.status mustBe Mated
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  * -GI-KI",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  * +OU",
+      "-",
+      "-2718NG"
+    ).mkString("\n")).get.status mustBe Mated
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  * +RY+FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "+",
+      "+1312FU"
+    ).mkString("\n")).get.status mustBe Mated
+  }
+  it must "return Illegal when perpetual check" in {
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  * +GI+FU",
+      "P4 *  *  *  *  *  *  * +FU * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "+",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2312GI"
+    ).mkString("\n")).get.status mustBe Illegal
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  * -GI-FU",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  * +OU",
+      "-",
+      "+2718GI",
+      "-1928OU",
+      "+1827GI",
+      "-2819OU",
+      "+2718GI",
+      "-1928OU",
+      "+1827GI",
+      "-2819OU",
+      "+2718GI",
+      "-1928OU",
+      "+1827GI",
+      "-2819OU",
+      "+2718GI"
+    ).mkString("\n")).get.status mustBe Illegal
+  }
+  it must "return Illegal when uchifuzume" in {
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  * +RY * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+00FU",
+      "+",
+      "+0012FU"
+    ).mkString("\n")).get.status mustBe Illegal
+  }
+  it must "return Drawn when repetition" in {
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  * +GI+FU",
+      "P4 *  *  *  *  *  *  * +FU * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "+",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2312GI",
+      "-1122OU",
+      "+1223GI",
+      "-2211OU",
+      "+2334GI",
+      "-1121OU",
+      "+3423GI",
+      "-2111OU"
+    ).mkString("\n")).get.status mustBe Drawn
   }
 }

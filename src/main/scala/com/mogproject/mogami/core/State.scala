@@ -10,6 +10,12 @@ import com.mogproject.mogami.util.Implicits._
   */
 case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike with SfenLike {
 
+  require(checkCapacity, "the number of pieces must be within the capacity")
+  require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
+  require(!board.keySet.contains(HAND), "all board pieces must have on-board squares")
+  require(board.forall{ case (s, p) => s.isLegalZone(p) }, "all board pieces must be placed in their legal zones")
+  require(!getKing(!turn).exists(getAttackBB(turn).get), "player must not be able to attack the opponent's king")
+
   import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
 
   override def toCsaString: String = {
@@ -196,33 +202,7 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
     * @param move move to test
     * @return true if the move is legal
     */
-  def isValidMove(move: ExtendedMove): Boolean = {
-    verifyPlayer(move) &&
-      move.isDrop.fold(verifyHandMove(move), verifyBoardMove(move)) &&
-      verifyKing(board - move.from + (move.to -> Piece(turn, PPAWN)))
-  }
-
-  private[this] def verifyPlayer(move: ExtendedMove): Boolean = move.player == turn
-
-  // sub methods for hand move
-  private[this] def verifyHandMove(move: ExtendedMove): Boolean =
-    hand.get(move.newPiece).exists(_ > 0) && board.get(move.to).isEmpty && verifyNifu(move)
-
-  private[this] def verifyNifu(move: ExtendedMove): Boolean =
-    move.newPtype != PAWN || !(1 to 9).map(Square(move.to.file, _)).exists(s => board.get(s).contains(Piece(turn, PAWN)))
-
-  // sub methods for board move
-  private[this] def verifyBoardMove(move: ExtendedMove): Boolean =
-    board.get(move.to).map(_.ptype) == move.captured && State.canAttack(board, move.from, move.to)
-
-  // test if king is safe
-  private[this] def verifyKing(newBoard: Map[Square, Piece]): Boolean = {
-    State.getKingSquare(turn, newBoard).forall { k =>
-      newBoard.forall { case (s, p) =>
-        p.owner == turn || !State.canAttack(newBoard, s, k)
-      }
-    }
-  }
+  def isValidMove(move: ExtendedMove): Boolean = legalMoves.contains(move.copy(elapsedTime = None))
 
   /** *
     * Check if the state is mated.
@@ -251,6 +231,10 @@ case class State(turn: Player, board: BoardType, hand: HandType) extends CsaLike
 
   def checkCapacity: Boolean = getPieceCount.filterKeys(_.ptype == KING).forall(_._2 <= 1) && getUnusedPtypeCount.values.forall(_ >= 0)
 
+  def canAttack(from: Square, to: Square): Boolean = {
+    require(from != HAND, "from must not be in hand")
+    attackBBOnBoard(turn).get(from).exists(_.get(to))
+  }
 }
 
 object State extends CsaStateReader with SfenStateReader {
@@ -266,16 +250,7 @@ object State extends CsaStateReader with SfenStateReader {
   val EMPTY_HANDS: HandType = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Piece(t, pt) -> 0).toMap
 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
-  val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
-
-  // TODO: use BitBoard or deprecated
-  def canAttack(board: Map[Square, Piece], from: Square, to: Square): Boolean = {
-    (for {
-      p <- board.get(from)
-      if p.ptype.canMoveTo(from.getDisplacement(p.owner, to)) // check capability
-      if from.getBetweenBB(to).toSet.intersect(board.keySet).isEmpty // check blocking pieces
-    } yield {}).isDefined
-  }
+  lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
   /**
     * Get the square where the turn-to-move player's king.
