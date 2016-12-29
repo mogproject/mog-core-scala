@@ -44,5 +44,9 @@ package object mogami {
 
   type BoardType = com.mogproject.mogami.core.State.BoardType
   type HandType = com.mogproject.mogami.core.State.HandType
+
+  type Game = com.mogproject.mogami.core.Game
+  val Game = com.mogproject.mogami.core.Game
+
 }
 
