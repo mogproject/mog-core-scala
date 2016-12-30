@@ -260,6 +260,7 @@ object State extends CsaStateReader with SfenStateReader {
   def getKingSquare(player: Player, board: BoardType): Option[Square] =
     board.view.filter { case (s, p) => p == Piece(player, KING) }.map(_._1).headOption
 
+  // constant states
   val HIRATE = State(BLACK, Map(
     Square(1, 1) -> Piece(WHITE, LANCE),
     Square(2, 1) -> Piece(WHITE, KNIGHT),
@@ -302,4 +303,28 @@ object State extends CsaStateReader with SfenStateReader {
     Square(8, 9) -> Piece(BLACK, KNIGHT),
     Square(9, 9) -> Piece(BLACK, LANCE)
   ), EMPTY_HANDS)
+
+  val MATING_BLACK = State(BLACK, Map(
+    Square(5, 1) -> Piece(WHITE, KING)
+  ), EMPTY_HANDS ++ Map(
+    Piece(BLACK, ROOK) -> 2,
+    Piece(BLACK, BISHOP) -> 2,
+    Piece(BLACK, GOLD) -> 4,
+    Piece(BLACK, SILVER) -> 4,
+    Piece(BLACK, KNIGHT) -> 4,
+    Piece(BLACK, LANCE) -> 4,
+    Piece(BLACK, PAWN) -> 18
+  ))
+
+  val MATING_WHITE = State(WHITE, Map(
+    Square(5, 9) -> Piece(BLACK, KING)
+  ), EMPTY_HANDS ++ Map(
+    Piece(WHITE, ROOK) -> 2,
+    Piece(WHITE, BISHOP) -> 2,
+    Piece(WHITE, GOLD) -> 4,
+    Piece(WHITE, SILVER) -> 4,
+    Piece(WHITE, KNIGHT) -> 4,
+    Piece(WHITE, LANCE) -> 4,
+    Piece(WHITE, PAWN) -> 18
+  ))
 }
