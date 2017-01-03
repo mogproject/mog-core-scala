@@ -14,9 +14,9 @@ jdk: oraclejdk8
 
 scala: 2.12.0
 
-script: "sbt clean coverage mogCoreJVM/test mogCoreJVM/coverageAggregate"
+script: "sbt clean coverage mogCoreJVM/test"
 
-after_success: "sbt coverageReport coveralls"
+after_success: "sbt coverageReport coverageAggregate coveralls"
 
 # Tricks to avoid unnecessary cache updates
 before_cache:

@@ -26,7 +26,7 @@ trait MoveBuilder {
     }
   }
 
-  def toMove(state: State): Option[ExtendedMove]
+  def toMove(state: State): Option[Move]
 }
 
 sealed trait MoveBuilderCsa extends MoveBuilder with CsaLike {
@@ -59,13 +59,13 @@ object MoveBuilderCsa extends CsaFactory[MoveBuilderCsa] {
 case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderCsa {
   override def toCsaString: String = List(player, from, to, newPtype).map(_.toCsaString).mkString + timeToCsaString(elapsedTime)
 
-  override def toMove(state: State): Option[ExtendedMove] =
+  override def toMove(state: State): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       promote = oldPiece.ptype != newPtype
       isCheck = isCheckMove(state, Some(from), to, newPtype)
       captured = state.board.get(to).map(_.ptype)
-      mv <- Try(ExtendedMove(player, Some(from), to, newPtype, promote, captured, isCheck, elapsedTime)).toOption
+      mv <- Try(Move(player, Some(from), to, newPtype, promote, captured, isCheck, elapsedTime)).toOption
       if player == state.turn
     } yield mv
 }
@@ -73,10 +73,10 @@ case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtyp
 case class MoveBuilderCsaHand(player: Player, to: Square, ptype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderCsa {
   override def toCsaString: String = s"${player.toCsaString}00${to.toCsaString}${ptype.toCsaString}${timeToCsaString(elapsedTime)}"
 
-  override def toMove(state: State): Option[ExtendedMove] = {
+  override def toMove(state: State): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     for {
-      mv <- Try(ExtendedMove(player, None, to, ptype, promote = false, captured = None, isCheck, elapsedTime)).toOption
+      mv <- Try(Move(player, None, to, ptype, promote = false, captured = None, isCheck, elapsedTime)).toOption
       if player == state.turn
     } yield mv
   }
@@ -112,23 +112,23 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] {
 case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) extends MoveBuilderSfen {
   override def toSfenString: String = s"${from.toSfenString}${to.toSfenString}${promote.fold("+", "")}"
 
-  override def toMove(state: State): Option[ExtendedMove] =
+  override def toMove(state: State): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       newPtype = promote.fold(oldPiece.ptype.promoted, oldPiece.ptype)
       isCheck = isCheckMove(state, Some(from), to, newPtype)
       captured = state.board.get(to).map(_.ptype)
-      mv <- Try(ExtendedMove(state.turn, Some(from), to, newPtype, promote, captured, isCheck, None)).toOption
+      mv <- Try(Move(state.turn, Some(from), to, newPtype, promote, captured, isCheck, None)).toOption
     } yield mv
 }
 
 case class MoveBuilderSfenHand(ptype: Ptype, to: Square) extends MoveBuilderSfen {
   override def toSfenString: String = s"${Piece(Player.BLACK, ptype).toSfenString}*${to.toSfenString}"
 
-  override def toMove(state: State): Option[ExtendedMove] = {
+  override def toMove(state: State): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     for {
-      mv <- Try(ExtendedMove(state.turn, None, to, ptype, promote = false, None, isCheck, None)).toOption
+      mv <- Try(Move(state.turn, None, to, ptype, promote = false, None, isCheck, None)).toOption
     } yield mv
   }
 }
@@ -136,14 +136,14 @@ case class MoveBuilderSfenHand(ptype: Ptype, to: Square) extends MoveBuilderSfen
 /**
   * Move with complete information
   */
-case class ExtendedMove(player: Player,
-                        from: Option[Square], // None if from hand
-                        to: Square,
-                        newPtype: Ptype,
-                        promote: Boolean,
-                        captured: Option[Ptype],
-                        isCheck: Boolean,
-                        elapsedTime: Option[Int] = None
+case class Move(player: Player,
+                from: Option[Square], // None if from hand
+                to: Square,
+                newPtype: Ptype,
+                promote: Boolean,
+                captured: Option[Ptype],
+                isCheck: Boolean,
+                elapsedTime: Option[Int] = None
                        ) extends CsaLike with SfenLike {
   require(!isDrop || !promote, "promote must be false when dropping")
   require(!isDrop || captured.isEmpty, "captured must be None when dropping")

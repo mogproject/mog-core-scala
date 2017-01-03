@@ -16,8 +16,8 @@ object GameGen {
     Game(state, moves, gameInfo)
   }
 
-  private[this] def movesStream(initState: State): Stream[ExtendedMove] = {
-    type Item = (Option[ExtendedMove], Option[State])
+  private[this] def movesStream(initState: State): Stream[Move] = {
+    type Item = (Option[Move], Option[State])
     val initItem: Item = (None, Some(initState))
     lazy val xs: Stream[Item] = initItem #:: xs.flatMap {
       case (_, Some(s)) =>
@@ -34,7 +34,7 @@ object GameGen {
 
   private[this] def randomTime: Option[Int] = Gen.option(Gen.choose(1, 10000)).sample.get
 
-  private[this] def randomMove(s: State): Option[ExtendedMove] = if (s.legalMoves.isEmpty) None else Gen.oneOf(s.legalMoves).sample
+  private[this] def randomMove(s: State): Option[Move] = if (s.legalMoves.isEmpty) None else Gen.oneOf(s.legalMoves).sample
 
 }
 

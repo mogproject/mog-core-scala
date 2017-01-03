@@ -146,7 +146,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   }
 
   "State#makeMove" must "make next state" in {
-    State.HIRATE.makeMove(ExtendedMove(BLACK, Some(P77), P76, PAWN, false, None, false)) mustBe Some(State(WHITE, Map(
+    State.HIRATE.makeMove(Move(BLACK, Some(P77), P76, PAWN, false, None, false)) mustBe Some(State(WHITE, Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
       P13 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
@@ -161,7 +161,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P13 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
       P28 -> BR, P88 -> BB,
       P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-    ), State.EMPTY_HANDS).makeMove(ExtendedMove(BLACK, Some(P13), P12, PPAWN, true, None, false)) mustBe Some(State(WHITE, Map(
+    ), State.EMPTY_HANDS).makeMove(Move(BLACK, Some(P13), P12, PPAWN, true, None, false)) mustBe Some(State(WHITE, Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
       P14 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
@@ -176,7 +176,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P13 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
       P28 -> BR, P88 -> BB,
       P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-    ), State.EMPTY_HANDS).makeMove(ExtendedMove(BLACK, Some(P13), P12, PAWN, false, Some(LANCE), false)) mustBe Some(State(WHITE, Map(
+    ), State.EMPTY_HANDS).makeMove(Move(BLACK, Some(P13), P12, PAWN, false, Some(LANCE), false)) mustBe Some(State(WHITE, Map(
       P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
       P14 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
@@ -191,7 +191,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P13 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
       P28 -> BR, P88 -> BB,
       P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-    ), State.EMPTY_HANDS.updated(Hand(BL), 1)).makeMove(ExtendedMove(BLACK, Some(P13), P12, PAWN, false, Some(PLANCE), false)) mustBe Some(State(WHITE, Map(
+    ), State.EMPTY_HANDS.updated(Hand(BL), 1)).makeMove(Move(BLACK, Some(P13), P12, PAWN, false, Some(PLANCE), false)) mustBe Some(State(WHITE, Map(
       P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
       P14 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
@@ -206,7 +206,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
       P28 -> BR, P88 -> BB,
       P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-    ), State.EMPTY_HANDS.updated(Hand(BP), 1)).makeMove(ExtendedMove(BLACK, None, P12, PAWN, false, None, false)) mustBe Some(State(WHITE, Map(
+    ), State.EMPTY_HANDS.updated(Hand(BP), 1)).makeMove(Move(BLACK, None, P12, PAWN, false, None, false)) mustBe Some(State(WHITE, Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
       P14 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,

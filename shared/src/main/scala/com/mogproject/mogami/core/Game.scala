@@ -11,7 +11,7 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Seq[ExtendedMove] = Seq.empty,
+                moves: Seq[Move] = Seq.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0
                ) extends CsaLike with SfenLike {
@@ -45,11 +45,11 @@ case class Game(initialState: State = State.HIRATE,
     */
   def currentState: State = history.last
 
-  def lastMove: Option[ExtendedMove] = moves.lastOption
+  def lastMove: Option[Move] = moves.lastOption
 
   def turn: Player = currentState.turn
 
-  def makeMove(move: ExtendedMove): Option[Game] =
+  def makeMove(move: Move): Option[Game] =
     (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move))
 
   def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)

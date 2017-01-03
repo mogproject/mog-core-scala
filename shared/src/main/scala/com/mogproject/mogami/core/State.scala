@@ -185,7 +185,7 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
   }
 
   // todo: consider converting to Set
-  def legalMoves: Seq[ExtendedMove] = (
+  def legalMoves: Seq[Move] = (
     for {
       (from, bb) <- legalMovesBB
       to <- bb.toList
@@ -199,7 +199,7 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     * @param move move to test
     * @return true if the move is legal
     */
-  def isValidMove(move: ExtendedMove): Boolean = legalMoves.contains(move.copy(elapsedTime = None))
+  def isValidMove(move: Move): Boolean = legalMoves.contains(move.copy(elapsedTime = None))
 
   /** *
     * Check if the state is mated.
@@ -214,7 +214,7 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     * @param move move to make
     * @return new state
     */
-  def makeMove(move: ExtendedMove): Option[State] = isValidMove(move).option {
+  def makeMove(move: Move): Option[State] = isValidMove(move).option {
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
     val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))

@@ -90,7 +90,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestSfen map (_.toSfenString) must be(sfenForTest)
   }
 
-  "BuilderSfen#toMove" must "return extended move" in {
+  "BuilderSfen#toMove" must "return move" in {
     val s1: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -105,6 +105,6 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+")).get
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(ExtendedMove(BLACK, Some(P77), P76, PAWN, false, None, true, None))
+    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, None, true, None))
   }
 }
