@@ -594,7 +594,7 @@ class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenProper
     BitBoard.empty.toSet mustBe Set.empty[Square]
   }
   it must "return full set when bitboard is full" in {
-    BitBoard.full.toSet mustBe Square.BOARD.toSet
+    BitBoard.full.toSet mustBe Square.all.toSet
   }
   it must "return set of positions" in {
     BitBoard(

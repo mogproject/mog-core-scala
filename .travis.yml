@@ -14,7 +14,7 @@ jdk: oraclejdk8
 
 scala: 2.12.0
 
-script: "travis_wait sbt clean coverage mogCoreJVM/test"
+script: "sbt clean coverage mogCoreJVM/test mogCoreJVM/coverageAggregate"
 
 after_success: "sbt coverageReport coveralls"
 

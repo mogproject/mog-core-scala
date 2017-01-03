@@ -8,12 +8,11 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.Direction._
 
 class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
-  private val allSquare = Square.HAND +: (for (f <- 1 to 9; r <- 1 to 9) yield Square(f, r))
-  private val csaSquare = "00" +: (for (f <- '1' to '9'; r <- '1' to '9') yield s"$f$r")
-  private val sfenSquare = "*" +: (for (f <- '1' to '9'; r <- 'a' to 'i') yield s"$f$r")
+  private val csaSquare = for (r <- '1' to '9'; f <- '1' to '9') yield s"$f$r"
+  private val sfenSquare = for (r <- 'a' to 'i'; f <- '1' to '9') yield s"$f$r"
 
   "Square#parseCsaString" must "return Some in normal cases" in {
-    csaSquare map { c => Square.parseCsaString(c) } mustBe allSquare.map(Some(_))
+    csaSquare map { c => Square.parseCsaString(c) } mustBe Square.all.map(Some(_))
   }
   it must "return None in error cases" in {
     Square.parseCsaString("") mustBe None
@@ -24,13 +23,13 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Square.parseCsaString("123") mustBe None
   }
   "Square#toCsaString" must "make CSA-formatted string" in {
-    allSquare map (_.toCsaString) mustBe csaSquare
+    Square.all map (_.toCsaString) mustBe csaSquare
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
     Square.parseCsaString(s.toCsaString) must be(Some(s))
   }
   "Square#parseSfenString" must "return Some in normal cases" in {
-    sfenSquare map { c => Square.parseSfenString(c) } mustBe allSquare.map(Some(_))
+    sfenSquare map { c => Square.parseSfenString(c) } mustBe Square.all.map(Some(_))
   }
   it must "return None in error cases" in {
     Square.parseCsaString("") mustBe None
@@ -41,7 +40,7 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Square.parseCsaString("123") mustBe None
   }
   "Square#toSfenString" must "make CSA-formatted string" in {
-    allSquare map (_.toSfenString) mustBe sfenSquare
+    Square.all map (_.toSfenString) mustBe sfenSquare
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
     Square.parseSfenString(s.toSfenString) must be(Some(s))

@@ -50,7 +50,7 @@ trait SfenStateReader extends SfenFactory[State] {
     def f(sofar: Option[HandType], rest: String): Option[HandType] = (sofar, rest) match {
       case (Some(_), "") => sofar
       case (Some(hand), patternPiece(n, p, r)) =>
-        f(Piece.parseSfenString(p).map(pp => hand.updated(pp, n.isEmpty.fold(1, n.toInt))), r)
+        f(Piece.parseSfenString(p).map(pp => hand.updated(Hand(pp), n.isEmpty.fold(1, n.toInt))), r)
       case _ => None
     }
 

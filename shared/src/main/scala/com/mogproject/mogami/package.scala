@@ -25,14 +25,15 @@ package object mogami {
   val PSILVER = com.mogproject.mogami.core.Ptype.PSILVER
   val PBISHOP = com.mogproject.mogami.core.Ptype.PBISHOP
   val PROOK = com.mogproject.mogami.core.Ptype.PROOK
-  
+
   type Piece = com.mogproject.mogami.core.Piece
   val Piece = com.mogproject.mogami.core.Piece
 
   type Square = com.mogproject.mogami.core.Square
   val Square = com.mogproject.mogami.core.Square
 
-  val HAND = com.mogproject.mogami.core.Square.HAND
+  type Hand = com.mogproject.mogami.core.Hand
+  val Hand = com.mogproject.mogami.core.Hand
 
   type BitBoard = com.mogproject.mogami.core.BitBoard
   val BitBoard = com.mogproject.mogami.core.BitBoard
@@ -44,6 +45,16 @@ package object mogami {
 
   type BoardType = com.mogproject.mogami.core.State.BoardType
   type HandType = com.mogproject.mogami.core.State.HandType
+  type MoveFrom = com.mogproject.mogami.core.State.MoveFrom
+
+  type MoveBuilderCsa = com.mogproject.mogami.core.MoveBuilderCsa
+  val MoveBuilderCsa = com.mogproject.mogami.core.MoveBuilderCsa
+
+  type MoveBuilderSfen = com.mogproject.mogami.core.MoveBuilderSfen
+  val MoveBuilderSfen = com.mogproject.mogami.core.MoveBuilderSfen
+
+  type ExtendedMove = com.mogproject.mogami.core.ExtendedMove
+  val ExtendedMove = com.mogproject.mogami.core.ExtendedMove
 
   type Game = com.mogproject.mogami.core.Game
   val Game = com.mogproject.mogami.core.Game

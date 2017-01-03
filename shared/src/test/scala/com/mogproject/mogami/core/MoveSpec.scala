@@ -4,69 +4,82 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.Ptype._
 
 class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val movesForTestCsa = Seq(
-    Move(Square(7, 7), Square(7, 6), Some(BLACK), Some(Ptype.PAWN), None),
-    Move(Square(9, 9), Square(1, 1), Some(WHITE), Some(Ptype.PBISHOP), None),
-    Move(Square.HAND, Square(8, 2), Some(BLACK), Some(Ptype.LANCE), None),
-    Move(P99, P11, Some(WHITE), Some(Ptype.PBISHOP), None, Some(0)),
-    Move(Square.HAND, P82, Some(BLACK), Some(Ptype.LANCE), None, Some(1499))
+    MoveBuilderCsaBoard(BLACK, P77, P76, PAWN, None),
+    MoveBuilderCsaBoard(WHITE, P99, P11, PBISHOP, None),
+    MoveBuilderCsaHand(BLACK, P82, LANCE, None),
+    MoveBuilderCsaBoard(WHITE, P99, P11, PBISHOP, Some(0)),
+    MoveBuilderCsaHand(BLACK, P82, Ptype.LANCE, Some(1499))
   )
   val movesForTestSfen = Seq(
-    Move(Square(7, 7), Square(7, 6), None, None, Some(false)),
-    Move(Square(9, 9), Square(1, 1), None, None, Some(true)),
-    Move(Square.HAND, Square(8, 2), None, Some(Ptype.LANCE), Some(false))
+    MoveBuilderSfenBoard(P77, P76, promote = false),
+    MoveBuilderSfenBoard(P99, P11, promote = true),
+    MoveBuilderSfenHand(Ptype.LANCE, P82)
   )
   val csaForTest = Seq("+7776FU", "-9911UM", "+0082KY", "-9911UM,T0", "+0082KY,T1499")
   val sfenForTest = Seq("7g7f", "9i1a+", "L*8b")
 
+  object TestMoveBuilder extends MoveBuilder {
+    override def isCheckMove(state: State, from: Option[Square], to: Square, newPtype: Ptype): Boolean = super.isCheckMove(state, from, to, newPtype)
+
+    override def toMove(state: State) = ???
+  }
+
+  "MoveBuilder#isCheckMove" must "return true is the move is check" in {
+    TestMoveBuilder.isCheckMove(State.HIRATE, Some(P77), P76, PAWN) mustBe false
+    TestMoveBuilder.isCheckMove(State.empty.updateHandPiece(BP, 1).get, None, P76, PAWN) mustBe false
+    TestMoveBuilder.isCheckMove(State.empty.updateBoardPiece(P51, WK).get.updateHandPiece(BP, 1).get, None, P52, PAWN) mustBe true
+  }
+
   "Move#parseCsaString" must "succeed in normal cases" in {
-    csaForTest map { c => Move.parseCsaString(c) } must be(movesForTestCsa map (Some(_)))
+    csaForTest map { c => MoveBuilderCsa.parseCsaString(c) } must be(movesForTestCsa map (Some(_)))
   }
   it must "return None in error cases" in {
-    Move.parseCsaString("") must be(None)
-    Move.parseCsaString(" ") must be(None)
-    Move.parseCsaString("x" * 1000) must be(None)
-    Move.parseCsaString("=7776FU") must be(None)
-    Move.parseCsaString("+0176FU") must be(None)
-    Move.parseCsaString("+7770FU") must be(None)
-    Move.parseCsaString("+7776FO") must be(None)
-    Move.parseCsaString("+7776FUU") must be(None)
-    Move.parseCsaString("+0000FU") must be(None)
-    Move.parseCsaString("+7777FU") must be(None)
-    Move.parseCsaString("+7700FU") must be(None)
+    MoveBuilderCsa.parseCsaString("") must be(None)
+    MoveBuilderCsa.parseCsaString(" ") must be(None)
+    MoveBuilderCsa.parseCsaString("x" * 1000) must be(None)
+    MoveBuilderCsa.parseCsaString("=7776FU") must be(None)
+    MoveBuilderCsa.parseCsaString("+0176FU") must be(None)
+    MoveBuilderCsa.parseCsaString("+7770FU") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FO") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FUU") must be(None)
+    MoveBuilderCsa.parseCsaString("+0000FU") must be(None)
+    MoveBuilderCsa.parseCsaString("+7777FU") must be(None)
+    MoveBuilderCsa.parseCsaString("+7700FU") must be(None)
 
-    Move.parseCsaString("+7776FU,") must be(None)
-    Move.parseCsaString("+7776FU,T") must be(None)
-    Move.parseCsaString("+7776FU,t1") must be(None)
-    Move.parseCsaString("+7776FU,Ta") must be(None)
-    Move.parseCsaString("+7776FU,T10000000000") must be(None)
-    Move.parseCsaString("+7776FU,T100000000000000000000") must be(None)
-    Move.parseCsaString("+7776FU,T-1") must be(None)
-    Move.parseCsaString("+7776FU,,") must be(None)
-    Move.parseCsaString("+7776FU,T01,") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,T") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,t1") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,Ta") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,T10000000000") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,T100000000000000000000") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,T-1") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,,") must be(None)
+    MoveBuilderCsa.parseCsaString("+7776FU,T01,") must be(None)
   }
   it must "restore moves" in forAll(MoveGen.movesCsaFormat) { m =>
-    Move.parseCsaString(m.toCsaString) must be(Some(m))
+    MoveBuilderCsa.parseCsaString(m.toCsaString) must be(Some(m))
   }
 
   "Move#parseSfenString" must "succeed in normal cases" in {
-    sfenForTest map { c => Move.parseSfenString(c) } must be(movesForTestSfen map (Some(_)))
+    sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } must be(movesForTestSfen map (Some(_)))
   }
   it must "return None in error cases" in {
-    Move.parseSfenString("") must be(None)
-    Move.parseSfenString(" ") must be(None)
-    Move.parseSfenString("x" * 1000) must be(None)
-    Move.parseSfenString("7g76") must be(None)
-    Move.parseSfenString("7g7F") must be(None)
-    Move.parseSfenString("L*8b+") must be(None)
-    Move.parseSfenString("9i1a-") must be(None)
-    Move.parseSfenString("K*1a") must be(None)
+    MoveBuilderSfen.parseSfenString("") must be(None)
+    MoveBuilderSfen.parseSfenString(" ") must be(None)
+    MoveBuilderSfen.parseSfenString("x" * 1000) must be(None)
+    MoveBuilderSfen.parseSfenString("7g76") must be(None)
+    MoveBuilderSfen.parseSfenString("7g7F") must be(None)
+    MoveBuilderSfen.parseSfenString("L*8b+") must be(None)
+    MoveBuilderSfen.parseSfenString("9i1a-") must be(None)
+    MoveBuilderSfen.parseSfenString("K*1a") must be(None)
   }
   it must "restore moves" in forAll(MoveGen.movesSfenFormat) { m =>
-    Move.parseSfenString(m.toSfenString) must be(Some(m))
+    MoveBuilderSfen.parseSfenString(m.toSfenString) must be(Some(m))
   }
 
   "Move#toCsaString" must "describes the move" in {
@@ -77,7 +90,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestSfen map (_.toSfenString) must be(sfenForTest)
   }
 
-  "ExtendedMove#fromMove" must "return extended move" in {
+  "BuilderSfen#toMove" must "return extended move" in {
     val s1: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -92,6 +105,6 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+")).get
 
-    ExtendedMove.fromMove(Move.parseSfenString("7g7f").get, s1) mustBe Some(ExtendedMove(BLACK, P77, P76, PAWN, false, None, true))
+    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(ExtendedMove(BLACK, Some(P77), P76, PAWN, false, None, true, None))
   }
 }

@@ -8,28 +8,26 @@ import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.Implicits._
 
 /**
-  * Square -- each cell on the board (and in hand)
+  * Square -- each cell on the board
   */
 case class Square(index: Int) extends CsaLike with SfenLike {
-  require(-1 <= index && index <= 80)
-
-  val rank: Int = (index + 9) / 9  // 0 if in hand
-  val file: Int = index % 9 + 1  // 0 if in hand
+  require(0 <= index && index < 81)
 
   import com.mogproject.mogami.core.Direction._
+
+  val rank: Int = (index + 9) / 9
+  val file: Int = index % 9 + 1
 
   override def toCsaString = s"${file}${rank}"
 
   private def rankToChar: Char = ('a' + rank - 1).toChar
 
-  override def toSfenString = if (isHand) "*" else s"${file}${rankToChar}"
-
-  def isHand: Boolean = index < 0
+  override def toSfenString = s"${file}${rankToChar}"
 
   /**
     * Distance from the player's farthest rank.
     */
-  def closeness(player: Player): Int = isHand.fold(0, (player == WHITE).when[Int](10 - _)(rank))
+  def closeness(player: Player): Int = (player == WHITE).when[Int](10 - _)(rank)
 
   def isPromotionZone(player: Player): Boolean = closeness(player) <= 3
 
@@ -40,20 +38,16 @@ case class Square(index: Int) extends CsaLike with SfenLike {
   }) <= closeness(piece.owner)
 
   def getBetweenBB(to: Square): BitBoard = {
-    if (isHand || to.isHand) {
-      BitBoard.empty
-    } else {
-      val f = to.file - file
-      val r = to.rank - rank
-      val distance = (math.abs(f), math.abs(r)) match {
-        case (0, y) => y  // including the case when y == 0
-        case (x, 0) => x
-        case (x, y) if x == y => x
-        case _ => 0
-      }
-
-      (1 until distance).foldLeft(BitBoard.empty)((b, n) => b.set(Square(file + f / distance * n, rank + r / distance * n)))
+    val f = to.file - file
+    val r = to.rank - rank
+    val distance = (math.abs(f), math.abs(r)) match {
+      case (0, y) => y // including the case when y == 0
+      case (x, 0) => x
+      case (x, y) if x == y => x
+      case _ => 0
     }
+
+    (1 until distance).foldLeft(BitBoard.empty)((b, n) => b.set(Square(file + f / distance * n, rank + r / distance * n)))
   }
 
   def getDisplacement(player: Player, to: Square): Displacement = {
@@ -72,7 +66,7 @@ case class Square(index: Int) extends CsaLike with SfenLike {
 
 object Square extends CsaFactory[Square] with SfenFactory[Square] {
 
-  implicit def ordering[A <: Square]: Ordering[A] = Ordering.by(s => (s.file, s.rank))
+  implicit def ordering[A <: Square]: Ordering[A] = Ordering.by(_.index)
 
   def apply(file: Int, rank: Int): Square = {
     require(1 <= file && file <= 9 && 1 <= rank && rank <= 9)
@@ -82,7 +76,6 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
   def parseCsaString(s: String): Option[Square] = {
     val p: Regex = """([1-9])([1-9])""".r
     s match {
-      case "00" => Some(HAND)
       case p(file, rank) => Some(Square(file.toInt, rank.toInt))
       case _ => None
     }
@@ -91,14 +84,11 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
   def parseSfenString(s: String): Option[Square] = {
     val p: Regex = """([1-9])([a-i])""".r
     s match {
-      case "*" => Some(HAND)
       case p(file, rank) => Some(Square(file.toInt, rank(0) - 'a' + 1))
       case _ => None
     }
   }
 
-  object HAND extends Square(-1)
-
-  val BOARD: Seq[Square] = (0 until 81).map(Square.apply)
+  val all: Seq[Square] = (0 until 81).map(Square.apply)
 
 }

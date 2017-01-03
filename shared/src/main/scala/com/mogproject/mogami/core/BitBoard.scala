@@ -47,7 +47,7 @@ class BitBoard(val lo: Long, val hi: Long) {
 
   def count: Int = BitOperation.pop(lo) + BitOperation.pop(hi)
 
-  def toList: List[Square] = Square.BOARD.filter(get).toList
+  def toList: List[Square] = Square.all.filter(get).toList
 
   def toSet: Set[Square] = toList.toSet
 

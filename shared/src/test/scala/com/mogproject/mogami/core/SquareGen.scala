@@ -1,19 +1,14 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami._
 import org.scalacheck.Gen
 
 /**
   * Square generator for scalacheck
   */
 object SquareGen {
-  val boards: Seq[Square] = for {f <- 1 to 9; r <- 1 to 9} yield Square(f, r)
+  val squares: Gen[Square] = Gen.oneOf(Square.all)
 
-  val squares: Gen[Square] = Gen.oneOf(HAND +: boards)
-
-  val squaresOnBoard: Gen[Square] = Gen.oneOf(boards)
-
-  def squaresOnBoardExcept(except: Seq[Square]): Gen[Square] = Gen.oneOf((boards.toSet -- except).toSeq)
+  def squaresOnBoardExcept(except: Seq[Square]): Gen[Square] = Gen.oneOf((Square.all.toSet -- except).toSeq)
 
 }
 
