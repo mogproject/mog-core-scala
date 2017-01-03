@@ -148,7 +148,6 @@ case class Move(player: Player,
   require(!isDrop || !promote, "promote must be false when dropping")
   require(!isDrop || captured.isEmpty, "captured must be None when dropping")
   require(from.exists(_.isPromotionZone(player)) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
-  require(!from.contains(to), "to must not be identical to from")
   require(from.map(_.getDisplacement(player, to)).forall(oldPtype.canMoveTo), "move must be within the capability")
   require(to.isLegalZone(newPiece), "to must be legal for the new piece")
   require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")

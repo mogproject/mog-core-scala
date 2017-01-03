@@ -35,6 +35,18 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     TestMoveBuilder.isCheckMove(State.empty.updateBoardPiece(P51, WK).get.updateHandPiece(BP, 1).get, None, P52, PAWN) mustBe true
   }
 
+  "Move#apply" must "throw an error when the requirements do not meet" in {
+    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, true, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, false, Some(PAWN), false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, true, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P56, PAWN, false, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P54, PAWN, false, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P11), P98, BISHOP, false, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P12), P11, PAWN, false, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, None, false, Some(-123)))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, Some(KING), false, None))
+  }
+
   "Move#parseCsaString" must "succeed in normal cases" in {
     csaForTest map { c => MoveBuilderCsa.parseCsaString(c) } must be(movesForTestCsa map (Some(_)))
   }

@@ -114,7 +114,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "-"
   )
 
-  "State#constructor" must "throw errors when the requirements do not meet" in {
+  "State#apply" must "throw an error when the requirements do not meet" in {
     assertThrows[IllegalArgumentException](State(BLACK, Map.empty, State.EMPTY_HANDS ++ Map(Hand(BP) -> 19)))
     assertThrows[IllegalArgumentException](State(BLACK, Map.empty, Map(Hand(BP) -> 1)))
     assertThrows[IllegalArgumentException](State(BLACK, Map(P11 -> BP), State.EMPTY_HANDS))
