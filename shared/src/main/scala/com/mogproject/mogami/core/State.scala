@@ -55,13 +55,6 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
 
   def updateHandPiece(piece: Piece, num: Int): Option[State] = Try(copy(hand = hand.updated(Hand(piece), num))).toOption
 
-  private[this] def getPromotionList(from: MoveFrom, to: Square): List[Boolean] = getPromotionFlag(from, to) match {
-    case Some(CanPromote) => List(false, true)
-    case Some(MustPromote) => List(true)
-    case Some(_) => List(false)
-    case None => List()
-  }
-
   /**
     * Occupancy bitboards
     */
@@ -257,6 +250,13 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     }
   }
 
+  private[this] def getPromotionList(from: MoveFrom, to: Square): List[Boolean] = getPromotionFlag(from, to) match {
+    case Some(CanPromote) => List(false, true)
+    case Some(MustPromote) => List(true)
+    case Some(CannotPromote) => List(false)
+    case None => List()
+  }
+
 }
 
 object State extends CsaStateReader with SfenStateReader {
@@ -267,9 +267,11 @@ object State extends CsaStateReader with SfenStateReader {
   // board or hand
   type MoveFrom = Either[Square, Hand]
 
-  object PromotionFlag extends Enumeration {
-    type PromotionFlag = Value
-    val CannotPromote, CanPromote, MustPromote = Value
+  object PromotionFlag {
+    sealed trait PromotionFlag
+    case object CannotPromote extends PromotionFlag
+    case object CanPromote extends PromotionFlag
+    case object MustPromote extends PromotionFlag
   }
 
   val EMPTY_HANDS: HandType = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Hand(t, pt) -> 0).toMap
