@@ -882,4 +882,11 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P-00HI00KA00KI00GI00KE00KY00FU
         |-""".stripMargin).get.isMated mustBe false
   }
+
+  "State#hasHand" must "return if the in-hand piece exists" in {
+    State.HIRATE.hasHand(Hand(BP)) mustBe false
+    State.empty.updateHandPiece(BP, 1).get.hasHand(Hand(BP)) mustBe true
+    State.empty.updateHandPiece(BP, 2).get.hasHand(Hand(BP)) mustBe true
+    State.empty.updateHandPiece(BP, 18).get.hasHand(Hand(BP)) mustBe true
+  }
 }
