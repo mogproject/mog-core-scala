@@ -257,6 +257,10 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     case None => List()
   }
 
+  /**
+    * Check if the in-hand piece is non-empty.
+    */
+  def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
 }
 
 object State extends CsaStateReader with SfenStateReader {
