@@ -102,7 +102,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestSfen map (_.toSfenString) must be(sfenForTest)
   }
 
-  "BuilderSfen#toMove" must "return move" in {
+  "MoveBuilderSfen#toMove" must "return move" in {
     val s1: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -118,5 +118,14 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+")).get
 
     MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, None, true, None))
+  }
+
+  "MoveBuilderSfen#apply" must "create instances" in {
+    MoveBuilderSfen(Left(P55), P33, false) mustBe MoveBuilderSfenBoard(P55, P33, false)
+    MoveBuilderSfen(Left(P55), P33, true) mustBe MoveBuilderSfenBoard(P55, P33, true)
+    MoveBuilderSfen(Right(Hand(BP)), P33, false) mustBe MoveBuilderSfenHand(PAWN, P33)
+  }
+  it must "throw an error when promote is true and from is in hand" in {
+    assertThrows[IllegalArgumentException](MoveBuilderSfen(Right(Hand(BP)), P33, true))
   }
 }

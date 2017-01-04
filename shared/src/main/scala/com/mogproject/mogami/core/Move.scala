@@ -107,6 +107,14 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] {
       case _ => None
     }
   }
+
+  def apply(from: MoveFrom, to: Square, promote: Boolean): MoveBuilderSfen = from match {
+    case Left(sq) =>
+      MoveBuilderSfenBoard(sq, to, promote)
+    case Right(h) =>
+      require(!promote, "promote must be false when dropping")
+      MoveBuilderSfenHand(h.ptype, to)
+  }
 }
 
 case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) extends MoveBuilderSfen {
