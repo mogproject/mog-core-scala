@@ -268,10 +268,15 @@ object State extends CsaStateReader with SfenStateReader {
   type MoveFrom = Either[Square, Hand]
 
   object PromotionFlag {
+
     sealed trait PromotionFlag
+
     case object CannotPromote extends PromotionFlag
+
     case object CanPromote extends PromotionFlag
+
     case object MustPromote extends PromotionFlag
+
   }
 
   val EMPTY_HANDS: HandType = (for (t <- Player.constructor; pt <- Ptype.inHand) yield Hand(t, pt) -> 0).toMap
