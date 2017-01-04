@@ -6,9 +6,9 @@ import com.mogproject.mogami.core.io._
   * Piece describing its owner and piece type
   */
 case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike {
-  override def toCsaString = Piece.csaTable(Piece.argsToId(owner, ptype))
+  override def toCsaString: String = Piece.csaTable(Piece.argsToId(owner, ptype))
 
-  override def toSfenString = Piece.sfenTable(Piece.argsToId(owner, ptype))
+  override def toSfenString: String = Piece.sfenTable(Piece.argsToId(owner, ptype))
 
   def unary_! : Piece = Piece(!owner, ptype)
 

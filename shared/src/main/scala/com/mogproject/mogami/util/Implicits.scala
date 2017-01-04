@@ -36,4 +36,14 @@ object Implicits {
     final def when[A](f: T => A => A): A => A = o.map(f).getOrElse(identity)
   }
 
+
+  /**
+    * Extension for build-tin Map type
+    */
+  implicit class RichMap[K, V](val m: Map[K, V]) extends AnyVal {
+    /**
+      * @return new Map instance whose keys are converted by a function
+      */
+    final def mapKeys[A](f: K => A): Map[A, V] = m.map { case (k, v) => f(k) -> v }
+  }
 }

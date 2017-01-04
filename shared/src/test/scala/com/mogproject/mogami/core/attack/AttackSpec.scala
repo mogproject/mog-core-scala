@@ -51,7 +51,7 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     val occs = Seq(allOcc, pawnOcc).transpose
     occs.length must be(expected.length)
     occs zip expected foreach {
-      case (aa :: b :: Nil, x) => (aa, Attack.get(BP, HAND, aa, b)) must be((aa, x))
+      case (aa :: b :: Nil, x) => (aa, Attack.get(BP, None, aa, b)) must be((aa, x))
       case _ =>
     }
   }
@@ -101,7 +101,7 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     params.length must be(expected.length)
     params zip expected foreach {
       case (pos :: piece :: aa :: b :: Nil, x) =>
-        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
+        (aa, Attack.get(piece.asInstanceOf[Piece], Some(pos.asInstanceOf[Square]), aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
       case _ =>
     }
   }
@@ -151,45 +151,9 @@ class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     params.length must be(expected.length)
     params zip expected foreach {
       case (pos :: piece :: aa :: b :: Nil, x) =>
-        (aa, Attack.get(piece.asInstanceOf[Piece], pos.asInstanceOf[Square], aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
+        (aa, Attack.get(piece.asInstanceOf[Piece], Some(pos.asInstanceOf[Square]), aa.asInstanceOf[BitBoard], b.asInstanceOf[BitBoard])) must be((aa, x))
       case _ =>
     }
   }
 
-  "Attack#getSeq" must "return sequence of attack bitboards" in {
-    Attack.getSeq(BP, P12, BitBoard("001.000.000.000.000.000.000.000.000")) mustBe Seq(
-      (BPP, BitBoard("001.000.000.000.000.000.000.000.000"))
-    )
-    Attack.getSeq(BP, P13, BitBoard("000.001.000.000.000.000.000.000.000")) mustBe Seq(
-      (BP, BitBoard("000.001.000.000.000.000.000.000.000")),
-      (BPP, BitBoard("000.001.000.000.000.000.000.000.000"))
-    )
-    Attack.getSeq(BP, P15, BitBoard("000.000.000.001.000.000.000.000.000")) mustBe Seq(
-      (BP, BitBoard("000.000.000.001.000.000.000.000.000"))
-    )
-    Attack.getSeq(WL, P57, BitBoard("000.000.000.000.000.000.000.020.020")) mustBe Seq(
-      (WL, BitBoard("000.000.000.000.000.000.000.020.000")),
-      (WPL, BitBoard("000.000.000.000.000.000.000.020.020"))
-    )
-    Attack.getSeq(BN, P44, BitBoard("000.012.000.000.000.000.000.000.000")) mustBe Seq(
-      (BPN, BitBoard("000.012.000.000.000.000.000.000.000"))
-    )
-    Attack.getSeq(BPN, P44, BitBoard("000.000.016.012.004.000.000.000.000")) mustBe Seq(
-      (BPN, BitBoard("000.000.016.012.004.000.000.000.000"))
-    )
-    Attack.getSeq(BG, P44, BitBoard("000.000.016.012.004.000.000.000.000")) mustBe Seq(
-      (BG, BitBoard("000.000.016.012.004.000.000.000.000"))
-    )
-    Attack.getSeq(WB, P56, BitBoard("000.401.202.104.050.000.050.104.401")) mustBe Seq(
-      (WB, BitBoard("000.401.202.104.050.000.050.104.401")),
-      (WPB, BitBoard("000.000.000.000.000.000.050.104.401"))
-    )
-    Attack.getSeq(WPB, P56, BitBoard("000.401.202.104.070.050.070.104.401")) mustBe Seq(
-      (WPB, BitBoard("000.401.202.104.070.050.070.104.401"))
-    )
-    Attack.getSeq(WB, P57, BitBoard("000.000.401.202.104.050.000.050.104")) mustBe Seq(
-      (WB, BitBoard("000.000.401.202.104.050.000.050.104")),
-      (WPB, BitBoard("000.000.401.202.104.050.000.050.104"))
-    )
-  }
 }

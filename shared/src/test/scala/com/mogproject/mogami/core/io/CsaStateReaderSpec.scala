@@ -7,6 +7,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.State.HIRATE
+import com.mogproject.mogami.util.Implicits._
 
 class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
@@ -25,7 +26,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
       P14 -> WP, P23 -> WP, P34 -> WP, P43 -> WP, P53 -> WP, P63 -> BPB, P73 -> WP, P83 -> WP, P93 -> WP,
       P16 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P75 -> BP, P87 -> BP, P97 -> BP,
       P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P58 -> BG, P78 -> BS, P89 -> BN, P99 -> BL
-    ), State.EMPTY_HANDS ++ Map(BP -> 1, BB -> 1, WP -> 1, WR -> 1)),
+    ), State.EMPTY_HANDS ++ Map(BP -> 1, BB -> 1, WP -> 1, WR -> 1).mapKeys(Hand.apply)),
     State(BLACK, Map(
       P11 -> WPL, P21 -> WPN, P31 -> WPS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WPS, P81 -> WPN, P91 -> WPL,
       P22 -> WPB, P82 -> WPR,
@@ -35,9 +36,9 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
       P19 -> BPL, P29 -> BPN, P39 -> BPS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BPS, P89 -> BPN, P99 -> BPL
     ), State.EMPTY_HANDS),
     State(BLACK, Map(P51 -> WK),
-      State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2)),
+      State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2).mapKeys(Hand.apply)),
     State(WHITE, Map(P59 -> BK),
-      State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2))
+      State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2).mapKeys(Hand.apply))
   )
 
   val csaForTest = Seq(
@@ -161,7 +162,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
     "P+51OU\nP-00AL\n+"
   )
 
-  "parseInitExpression" must "work with normal cases" in {
+  "CsaStateReader#parseInitExpression" must "work with normal cases" in {
     TestCsaStateReader.parseInitExpression("PI") must be(Some((Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
       P22 -> WB, P82 -> WR,
@@ -199,7 +200,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
       "11KY21KE31GI41KI51OU61KI71GI81KE91KY22KA82HI13FU23FU33FU43FU53FU63FU73FU83FU93FU19KY") mustBe None
   }
 
-  "parseBundleExpression" must "work with normal cases" in {
+  "CsaStateReader#parseBundleExpression" must "work with normal cases" in {
     TestCsaStateReader.parseBundleExpression(initResult, List(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
       "P2 * -HI *  *  *  *  * -KA * ",
@@ -277,6 +278,39 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
       "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
       "P8 * +KA *  *  *  *  * +HI * ",
       "P9+KY+KE+GI+KI+OU+KI+GI+KE *"
+    )) mustBe None
+    TestCsaStateReader.parseBundleExpression(initResult, List(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE * "
+    )) mustBe None
+    TestCsaStateReader.parseBundleExpression(initResult, List(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY ",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE * "
+    )) mustBe None
+    TestCsaStateReader.parseBundleExpression(initResult, List(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY * ",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE * "
     )) mustBe None
     TestCsaStateReader.parseBundleExpression(initResult, List(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
@@ -390,7 +424,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
     )) mustBe None
   }
 
-  "parseSingleExpression" must "work with normal cases" in {
+  "CsaStateReader#parseSingleExpression" must "work with normal cases" in {
     TestCsaStateReader.parseSingleExpression(initResult, "P+") must be(Some(initResult.get, false))
     TestCsaStateReader.parseSingleExpression(initResult, "P-") must be(Some(initResult.get, false))
     TestCsaStateReader.parseSingleExpression(hirateResult, "P+") must be(Some(hirateResult.get, false))
@@ -402,50 +436,50 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
     TestCsaStateReader.parseSingleExpression(initResult, "P-55KI") must be(Some((
       Map(P55 -> WG), State.EMPTY_HANDS, State.capacity.updated(GOLD, 3)), false))
     TestCsaStateReader.parseSingleExpression(initResult, "P+00KI") must be(Some((
-      Map(), State.EMPTY_HANDS ++ Map(BG -> 1), State.capacity.updated(GOLD, 3)), false))
+      Map(), State.EMPTY_HANDS ++ Map(Hand(BG) -> 1), State.capacity.updated(GOLD, 3)), false))
     TestCsaStateReader.parseSingleExpression(initResult, "P-00KI") must be(Some((
-      Map(), State.EMPTY_HANDS ++ Map(WG -> 1), State.capacity.updated(GOLD, 3)), false))
+      Map(), State.EMPTY_HANDS ++ Map(Hand(WG) -> 1), State.capacity.updated(GOLD, 3)), false))
     TestCsaStateReader.parseSingleExpression(initResult, "P+00KI55KI00KI") must be(Some((
-      Map(P55 -> BG), State.EMPTY_HANDS ++ Map(BG -> 2), State.capacity.updated(GOLD, 1)), false))
+      Map(P55 -> BG), State.EMPTY_HANDS ++ Map(Hand(BG) -> 2), State.capacity.updated(GOLD, 1)), false))
     TestCsaStateReader.parseSingleExpression(initResult, "P-00KI55KI00KI") must be(Some((
-      Map(P55 -> WG), State.EMPTY_HANDS ++ Map(WG -> 2), State.capacity.updated(GOLD, 1)), false))
+      Map(P55 -> WG), State.EMPTY_HANDS ++ Map(Hand(WG) -> 2), State.capacity.updated(GOLD, 1)), false))
     TestCsaStateReader.parseSingleExpression(initResult, "P+00AL") must be(Some((
-      Map(), State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2), zeroCap), true))
+      Map(), State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2).mapKeys(Hand.apply), zeroCap), true))
     TestCsaStateReader.parseSingleExpression(initResult, "P-00AL") must be(Some((
-      Map(), State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2), zeroCap), true))
+      Map(), State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2).mapKeys(Hand.apply), zeroCap), true))
     TestCsaStateReader.parseSingleExpression(initResult, "P-11TO22NY33NK44NG55KI66UM77RY88OU00FU99GI00AL") must be(Some((
       Map(
         P11 -> WPP, P22 -> WPL, P33 -> WPN, P44 -> WPS, P55 -> WG, P66 -> WPB, P77 -> WPR, P88 -> WK, P99 -> WS
       ),
-      State.EMPTY_HANDS ++ Map(WP -> 17, WL -> 3, WN -> 3, WS -> 2, WG -> 3, WB -> 1, WR -> 1),
+      State.EMPTY_HANDS ++ Map(WP -> 17, WL -> 3, WN -> 3, WS -> 2, WG -> 3, WB -> 1, WR -> 1).mapKeys(Hand.apply),
       zeroCap
     ), true))
     TestCsaStateReader.parseSingleExpression(Some((
       Map(
         P11 -> WPP, P22 -> WPL, P33 -> WPN, P44 -> WPS, P55 -> WG, P66 -> WPB, P77 -> WPR, P88 -> WK, P99 -> WS
       ),
-      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1),
+      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1).mapKeys(Hand.apply),
       Map(KING -> 1, ROOK -> 0, BISHOP -> 0, GOLD -> 2, SILVER -> 2, KNIGHT -> 2, LANCE -> 0, PAWN -> 5)
     )), "P+12FU13TO00GI89GI") must be(Some((
       Map(
         P11 -> WPP, P22 -> WPL, P33 -> WPN, P44 -> WPS, P55 -> WG, P66 -> WPB, P77 -> WPR, P88 -> WK, P99 -> WS,
         P12 -> BP, P13 -> BPP, P89 -> BS
       ),
-      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1, BS -> 1),
+      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1, BS -> 1).mapKeys(Hand.apply),
       Map(KING -> 1, ROOK -> 0, BISHOP -> 0, GOLD -> 2, SILVER -> 0, KNIGHT -> 2, LANCE -> 0, PAWN -> 3)
     ), false))
     TestCsaStateReader.parseSingleExpression(Some((
       Map(
         P11 -> WPP, P22 -> WPL, P33 -> WPN, P44 -> WPS, P55 -> WG, P66 -> WPB, P77 -> WPR, P88 -> WK, P99 -> WS
       ),
-      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1),
+      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1).mapKeys(Hand.apply),
       Map(KING -> 1, ROOK -> 0, BISHOP -> 0, GOLD -> 2, SILVER -> 2, KNIGHT -> 2, LANCE -> 0, PAWN -> 5)
     )), "P+12FU13TO00GI89GI00AL") must be(Some((
       Map(
         P11 -> WPP, P22 -> WPL, P33 -> WPN, P44 -> WPS, P55 -> WG, P66 -> WPB, P77 -> WPR, P88 -> WK, P99 -> WS,
         P12 -> BP, P13 -> BPP, P89 -> BS
       ),
-      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1, BP -> 3, BN -> 2, BG -> 2, BS -> 1),
+      State.EMPTY_HANDS ++ Map(WP -> 12, WL -> 3, WN -> 1, WS -> 0, WG -> 1, WB -> 1, WR -> 1, BP -> 3, BN -> 2, BG -> 2, BS -> 1).mapKeys(Hand.apply),
       zeroCap
     ), true))
   }
@@ -498,7 +532,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
     TestCsaStateReader.parseSingleExpression(hirateResult, "P-00FU") mustBe None
   }
 
-  "parseCsaString" must "work in normal cases" in {
+  "CsaStateReader#parseCsaString" must "work in normal cases" in {
     csaForTest.map(TestCsaStateReader.parseCsaString) zip dataForTest.map(Some(_)) foreach { case (a, b) => a must be(b) }
 
     csaForTestAlt.map(TestCsaStateReader.parseCsaString) zip Seq(
@@ -522,15 +556,15 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
         P28 -> BR, P88 -> BB,
         P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
       ), State.EMPTY_HANDS),
-      State(WHITE, Map(P59 -> BK, P51 -> WK), State.EMPTY_HANDS ++ Map(BP -> 2)),
+      State(WHITE, Map(P59 -> BK, P51 -> WK), State.EMPTY_HANDS ++ Map(BP -> 2).mapKeys(Hand.apply)),
       State(WHITE, Map(P59 -> BK, P51 -> WK, P11 -> BPB, P12 -> WPP), State.EMPTY_HANDS ++ Map(BP -> 2, WP -> 15,
-        WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 1, WR -> 2)),
-      State(WHITE, Map(), State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2)),
-      State(WHITE, Map(), State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2)),
+        WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 1, WR -> 2).mapKeys(Hand.apply)),
+      State(WHITE, Map(), State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2, BR -> 2).mapKeys(Hand.apply)),
+      State(WHITE, Map(), State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2, WR -> 2).mapKeys(Hand.apply)),
       State(BLACK, Map(P51 -> BK), State.EMPTY_HANDS ++ Map(BP -> 18, BL -> 4, BN -> 4, BS -> 4, BG -> 4, BB -> 2,
-        BR -> 2)),
+        BR -> 2).mapKeys(Hand.apply)),
       State(BLACK, Map(P51 -> BK), State.EMPTY_HANDS ++ Map(WP -> 18, WL -> 4, WN -> 4, WS -> 4, WG -> 4, WB -> 2,
-        WR -> 2))
+        WR -> 2).mapKeys(Hand.apply))
     ).map(Some(_)) foreach { case (a, b) => a must be(b) }
   }
   it must "return None in error cases" in {

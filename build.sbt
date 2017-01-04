@@ -16,11 +16,11 @@ lazy val mogCore = crossProject.in(file("."))
     libraryDependencies ++= Seq(
       "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
       "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test
-    )
+    ),
+    scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
+    parallelExecution in Test := false
   )
   .jvmSettings(
-    scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
-    parallelExecution in Test := false,
     initialCommands in console in Test :=
       """
       import com.mogproject.mogami.core._
@@ -28,12 +28,11 @@ lazy val mogCore = crossProject.in(file("."))
       import com.mogproject.mogami.core.Ptype._
       import com.mogproject.mogami.core.SquareConstant._
       import com.mogproject.mogami.core.PieceConstant._
-      import com.mogproject.mogami.core.Square.HAND
       import com.mogproject.mogami.core.State.PromotionFlag._
       """
   )
   .jsSettings(
-    // Add JS-specific settings here
+    //
   )
 
 lazy val mogCoreJVM = mogCore.jvm

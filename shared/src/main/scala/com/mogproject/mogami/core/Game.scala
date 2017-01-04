@@ -11,7 +11,7 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Seq[ExtendedMove] = Seq.empty,
+                moves: Seq[Move] = Seq.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0
                ) extends CsaLike with SfenLike {
@@ -45,14 +45,14 @@ case class Game(initialState: State = State.HIRATE,
     */
   def currentState: State = history.last
 
-  def lastMove: Option[ExtendedMove] = moves.lastOption
+  def lastMove: Option[Move] = moves.lastOption
 
   def turn: Player = currentState.turn
 
-  def makeMove(move: ExtendedMove): Option[Game] =
+  def makeMove(move: Move): Option[Game] =
     (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move))
 
-  def makeMove(move: Move): Option[Game] = ExtendedMove.fromMove(move, currentState).flatMap(makeMove)
+  def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)
 
   override def toCsaString: String =
     (gameInfo :: initialState :: moves.toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
@@ -80,7 +80,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
-      moves = c.flatMap(s => Move.parseCsaString(s)) if moves.length == c.length
+      moves = c.flatMap(s => MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
       game <- moves.foldLeft(Some(Game(st, Seq.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
@@ -92,7 +92,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
       offset <- Try(tokens(3).toInt).toOption
       gi = GameInfo() // initialize without information
-      moves = tokens.drop(4).flatMap(ss => Move.parseSfenString(ss)) if moves.length == tokens.length - 4
+      moves = tokens.drop(4).flatMap(ss => MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
       game <- moves.foldLeft(Some(Game(st, Seq.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }

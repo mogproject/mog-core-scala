@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.util.MapUtil
+import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -84,22 +85,22 @@ trait CsaStateReader extends CsaFactory[State] {
     @tailrec
     def f(sofar: Option[(Result, Boolean)], ls: List[String], t: Player) : Option[(Result, Boolean)] = (sofar, ls) match {
       case (Some(((b, h, rest), _)), "00AL" :: Nil) =>
-        val newHand = MapUtil.mergeMaps(h, rest.collect { case (k, v) if k != KING => Piece(t, k) -> v })(_ + _, 0)
+        val newHand = MapUtil.mergeMaps(h, rest.collect { case (k, v) if k != KING => Hand(t, k) -> v })(_ + _, 0)
         f(Some(((b, newHand, State.capacity.mapValues(_ => 0)), true)), Nil, t)
       case (Some(((b, h, rest), used)), x :: xs) if x.length == 4 =>
+        val isHand = x.startsWith("00")
         val next = for {
-          pos <- Square.parseCsaString(x.substring(0, 2))
+          pos <- if (isHand) Some(Square(0)) else Square.parseCsaString(x.substring(0, 2))
           pt <- Ptype.parseCsaString(x.substring(2, 4))
-          if !b.contains(pos)  // the square must be unused
-          if pos != HAND || Ptype.inHand.contains(pt)  // check the piece type
+          if isHand || !b.contains(pos)  // the square must be unused
+          if !isHand || pt.isHandType  // check the piece type
           if rest.getOrElse(pt.demoted, 0) >= 1  // check the number of piece types
         } yield {
           val p = Piece(t, pt)
+          val newBoard = (!isHand).when[BoardType](_.updated(pos, p))(b)
+          val newHand = isHand.when[HandType](MapUtil.incrementMap(_, Hand(t, pt)))(h)
           val newRest = MapUtil.decrementMap(rest, pt.demoted)
-          pos match {
-            case HAND => ((b, MapUtil.incrementMap(h, p), newRest), used)
-            case _ => ((b.updated(pos, p), h, newRest), used)
-          }
+          ((newBoard, newHand, newRest), used)
         }
         f(next, xs, t)
       case (_, Nil) => sofar

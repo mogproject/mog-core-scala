@@ -6,6 +6,7 @@ import scala.annotation.tailrec
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.util.MapUtil
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
 
@@ -28,26 +29,24 @@ object StateGen {
     }
 
     val posOcc = board.keys.toSet
-    (SquareGen.boards.toSet -- posOcc).filterNot(p => illegalFiles.contains(p.file) || illegalRanks.contains(p.rank))
+    (Square.all.toSet -- posOcc).filterNot(p => illegalFiles.contains(p.file) || illegalRanks.contains(p.rank))
   }
 
   @tailrec
   private[this] def f(pts: List[Ptype], boardSofar: BoardType, handSofar: HandType): (BoardType, HandType) = pts match {
     case pt :: xs =>
       val kingPlaced: Set[Player] = boardSofar.values.withFilter(_.ptype == KING).map(_.owner).toSet
-      val turnCandidates: Set[Player] = Player.constructor.toSet -- (if (pt == KING) kingPlaced else Set.empty)
-      val handCandidates: Set[Square] = if (Ptype.inHand.contains(pt)) Set(Square.HAND) else Set.empty
+      val turnCandidates: Set[Player] = Player.constructor.toSet -- (pt == KING).fold(kingPlaced, Set.empty)
+      val handCandidates: Set[Option[Square]] = pt.isHandType.fold(Set(None), Set.empty)
 
       val (newBoard, newHands) = (for {
         t <- Gen.oneOf(turnCandidates.toSeq)
         p <- Gen.oneOf(pt, pt, if (pt.canPromote) pt.promoted else pt) // promoted rate = 1/3
-        pos <- Gen.oneOf(boardCandidates(Piece(t, p), boardSofar).toSeq ++ handCandidates.toSeq.flatMap(Seq.fill(10)(_)))
+        posOpt <- Gen.oneOf(boardCandidates(Piece(t, p), boardSofar).map(Some.apply).toSeq ++ handCandidates.flatMap(List.fill(10)(_)))
       } yield {
-        if (pos == Square.HAND) {
-          (boardSofar, MapUtil.incrementMap(handSofar, Piece(t, pt)))
-        } else {
-          (boardSofar + (pos -> Piece(t, p)), handSofar)
-        }
+        posOpt
+          .map(s => (boardSofar + (s -> Piece(t, p)), handSofar))
+          .getOrElse((boardSofar, MapUtil.incrementMap(handSofar, Hand(Piece(t, pt)))))
       }).sample.get
       f(xs, newBoard, newHands)
     case Nil => (boardSofar, handSofar)
@@ -59,7 +58,7 @@ object StateGen {
       State.HIRATE
     } else {
       val (board, hands) = f(pts, Map.empty, State.EMPTY_HANDS)
-      val s = Try(State(turn, board, hands))  // test if the state is valid
+      val s = Try(State(turn, board, hands)) // test if the state is valid
       if (s.isSuccess)
         s.get
       else
