@@ -98,8 +98,17 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
   }
 
   object GameStatus extends Enumeration {
-    type GameStatus = Value
-    val Playing, Mated, Illegal, Drawn = Value
+
+    sealed trait GameStatus
+
+    case object Playing extends GameStatus
+
+    case object Mated extends GameStatus
+
+    case object Illegal extends GameStatus
+
+    case object Drawn extends GameStatus
+
   }
 
 }
