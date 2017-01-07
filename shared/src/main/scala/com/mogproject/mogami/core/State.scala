@@ -222,16 +222,9 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
 
   def checkCapacity: Boolean = getPieceCount.filterKeys(_.ptype == KING).forall(_._2 <= 1) && getUnusedPtypeCount.values.forall(_ >= 0)
 
-  def canAttack(from: Square, to: Square): Boolean = {
-    attackBBOnBoard(turn).get(from).exists(_.get(to))
-  }
+  def canAttack(from: Square, to: Square): Boolean = canAttack(Left(from), to)
 
-  def canAttack(from: MoveFrom, to: Square): Boolean = {
-    from match {
-      case Left(fr) => attackBBOnBoard(turn).get(fr).exists(_.get(to))
-      case Right(h) => attackBBInHand.get(h).exists(_.get(to))
-    }
-  }
+  def canAttack(from: MoveFrom, to: Square): Boolean = legalMovesBB.get(from).exists(_.get(to))
 
   /**
     * @note This method does not check the capability of the piece
