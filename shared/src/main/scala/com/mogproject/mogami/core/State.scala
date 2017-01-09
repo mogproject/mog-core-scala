@@ -177,7 +177,12 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     m.mapValues(_ & ~occupancy(turn)).filter(_._2.nonEmpty)
   }
 
-  // todo: consider converting to Set
+  /**
+    * Get all legal moves.
+    *
+    * @note This method can be relatively expensive.
+    * @return list of legal moves
+    */
   def legalMoves: Seq[Move] = (
     for {
       (from, bb) <- legalMovesBB
@@ -185,14 +190,6 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
       promote <- getPromotionList(from, to)
       mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this)
     } yield mv).toSeq
-
-  /**
-    * Check if the move is legal.
-    *
-    * @param move move to test
-    * @return true if the move is legal
-    */
-  def isValidMove(move: Move): Boolean = legalMoves.contains(move.copy(elapsedTime = None))
 
   /** *
     * Check if the state is mated.
@@ -248,6 +245,17 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     case Some(MustPromote) => List(true)
     case Some(CannotPromote) => List(false)
     case None => List()
+  }
+
+  /**
+    * Check if the move is legal.
+    *
+    * @param move move to test
+    * @return true if the move is legal
+    */
+  def isValidMove(move: Move): Boolean = {
+    val mf = move.moveFrom
+    canAttack(mf, move.to) && getPromotionList(mf, move.to).contains(move.promote)
   }
 
   /**
