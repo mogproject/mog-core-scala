@@ -12,5 +12,8 @@ console:
 clean:
 	${SBT} clean
 
-.PHONY: build test console clean
+bench: clean
+	${SBT} mogCoreJVM/test:run mogCoreJS/test:run
+
+.PHONY: build test console clean bench
 
