@@ -289,14 +289,6 @@ object State extends CsaStateReader with SfenStateReader {
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
-  /**
-    * Get the square where the turn-to-move player's king.
-    *
-    * @return None if the king is not on board
-    */
-  def getKingSquare(player: Player, board: BoardType): Option[Square] =
-    board.view.filter { case (s, p) => p == Piece(player, KING) }.map(_._1).headOption
-
   // constant states
   val HIRATE = State(BLACK, Map(
     Square(1, 1) -> Piece(WHITE, LANCE),
