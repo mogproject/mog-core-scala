@@ -13,15 +13,25 @@ import scala.util.Try
 case class Game(initialState: State = State.HIRATE,
                 moves: Seq[Move] = Seq.empty,
                 gameInfo: GameInfo = GameInfo(),
-                movesOffset: Int = 0
+                movesOffset: Int = 0,
+                givenHistory: Option[Seq[State]] = None
                ) extends CsaLike with SfenLike {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
   import com.mogproject.mogami.core.Game.GameStatus._
 
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that: Game =>
+      // ignore givenHistory
+      initialState == that.initialState && moves == that.moves && gameInfo == that.gameInfo && movesOffset == that.movesOffset
+    case _ => false
+  }
+
   /** history of states */
-  lazy val history: Seq[State] = moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten
+  lazy val history: Seq[State] = {
+    givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
+  }
 
   lazy val hashCodes: Seq[Int] = history.map(_.hashCode())
 
@@ -49,8 +59,9 @@ case class Game(initialState: State = State.HIRATE,
 
   def turn: Player = currentState.turn
 
-  def makeMove(move: Move): Option[Game] =
-    (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move))
+  def makeMove(move: Move): Option[Game] = {
+    (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move, givenHistory = currentState.makeMove(move).map(history :+ _)))
+  }
 
   def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)
 

@@ -177,7 +177,12 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     m.mapValues(_ & ~occupancy(turn)).filter(_._2.nonEmpty)
   }
 
-  // todo: consider converting to Set
+  /**
+    * Get all legal moves.
+    *
+    * @note This method can be relatively expensive.
+    * @return list of legal moves
+    */
   def legalMoves: Seq[Move] = (
     for {
       (from, bb) <- legalMovesBB
@@ -185,14 +190,6 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
       promote <- getPromotionList(from, to)
       mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this)
     } yield mv).toSeq
-
-  /**
-    * Check if the move is legal.
-    *
-    * @param move move to test
-    * @return true if the move is legal
-    */
-  def isValidMove(move: Move): Boolean = legalMoves.contains(move.copy(elapsedTime = None))
 
   /** *
     * Check if the state is mated.
@@ -251,6 +248,17 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
   }
 
   /**
+    * Check if the move is legal.
+    *
+    * @param move move to test
+    * @return true if the move is legal
+    */
+  def isValidMove(move: Move): Boolean = {
+    val mf = move.moveFrom
+    canAttack(mf, move.to) && getPromotionList(mf, move.to).contains(move.promote)
+  }
+
+  /**
     * Check if the in-hand piece is non-empty.
     */
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
@@ -280,14 +288,6 @@ object State extends CsaStateReader with SfenStateReader {
 
   val empty = State(BLACK, Map.empty, EMPTY_HANDS)
   lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
-
-  /**
-    * Get the square where the turn-to-move player's king.
-    *
-    * @return None if the king is not on board
-    */
-  def getKingSquare(player: Player, board: BoardType): Option[Square] =
-    board.view.filter { case (s, p) => p == Piece(player, KING) }.map(_._1).headOption
 
   // constant states
   val HIRATE = State(BLACK, Map(

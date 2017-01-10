@@ -173,6 +173,8 @@ case class Move(player: Player,
 
   def capturedPiece: Option[Piece] = captured.map(Piece(!player, _))
 
+  def moveFrom: MoveFrom = from.map(Left.apply).getOrElse(Right(Hand(player, oldPtype)))
+
   override def toCsaString: String =
     from.map(fr => MoveBuilderCsaBoard(player, fr, to, newPtype, elapsedTime))
       .getOrElse(MoveBuilderCsaHand(player, to, newPtype, elapsedTime)).toCsaString
