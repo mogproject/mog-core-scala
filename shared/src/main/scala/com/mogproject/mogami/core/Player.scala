@@ -15,6 +15,8 @@ sealed abstract class Player(val id: Int) extends CsaLike with SfenLike{
   override def toCsaString: String = Player.csaTable(id)
 
   override def toSfenString: String = Player.sfenTable(id)
+
+  def toSymbolString: String = Player.symbolTable(id)
 }
 
 object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
@@ -23,6 +25,8 @@ object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
   override val csaTable: Seq[String] = Seq("+", "-")
 
   override val sfenTable: Seq[String] = Seq("b", "w")
+
+  val symbolTable = Seq("☗", "☖")
 
   val constructor: Seq[Player] = Seq(BLACK, WHITE)
 
