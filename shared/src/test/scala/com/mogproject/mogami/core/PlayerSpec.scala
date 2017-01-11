@@ -28,6 +28,11 @@ class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     WHITE.toSfenString must be("w")
   }
 
+  "Player#toSymbolString" must "describe unicode characters" in {
+    BLACK.toSymbolString must be("☗")
+    WHITE.toSymbolString must be("☖")
+  }
+
   "Player#parseCsaString" must "make player" in {
     Player.parseCsaString("+") must be(Some(BLACK))
     Player.parseCsaString("-") must be(Some(WHITE))
