@@ -288,7 +288,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+1223GI",
       "-2211OU",
       "+2312GI"
-    )).get.status mustBe Illegal
+    )).get.status mustBe PerpetualCheck
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  *  * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -313,7 +313,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-1827GI",
       "+2819OU",
       "-2718GI"
-    )).get.status mustBe Illegal
+    )).get.status mustBe PerpetualCheck
   }
   it must "return Illegal when uchifuzume" in {
     Game.parseCsaString(Seq(
@@ -329,7 +329,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0012FU"
-    )).get.status mustBe Illegal
+    )).get.status mustBe Uchifuzume
   }
   it must "return Drawn when repetition" in {
     Game.parseCsaString(Seq(
