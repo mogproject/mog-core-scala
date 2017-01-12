@@ -38,11 +38,11 @@ case class Game(initialState: State = State.HIRATE,
   lazy val status: GameStatus = {
     if (currentState.isMated) {
       if (lastMove.exists(m => m.isDrop && m.oldPtype == PAWN))
-        Illegal // uchifuzume
+        Uchifuzume
       else
         Mated
     } else if (isPerpetualCheck) {
-      Illegal // perpetual check
+      PerpetualCheck
     } else if (isRepetition) {
       Drawn // Sennichite
     } else {
@@ -116,7 +116,9 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
 
     case object Mated extends GameStatus
 
-    case object Illegal extends GameStatus
+    case object Uchifuzume extends GameStatus
+
+    case object PerpetualCheck extends GameStatus
 
     case object Drawn extends GameStatus
 
