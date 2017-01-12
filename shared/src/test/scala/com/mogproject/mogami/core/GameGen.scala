@@ -13,7 +13,7 @@ object GameGen {
     n <- Gen.choose(0, 50)
   } yield {
     val moves = movesStream(state).take(n)
-    Game(state, moves, gameInfo)
+    Game(state, moves.toVector, gameInfo)
   }
 
   private[this] def movesStream(initState: State): Stream[Move] = {

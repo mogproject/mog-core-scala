@@ -22,8 +22,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
 
   val dataForTest = Seq(
-    Game(stateEmpty, Seq(), GameInfo()),
-    Game(stateHirate, Seq(
+    Game(stateEmpty, Vector(), GameInfo()),
+    Game(stateHirate, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, None, false)
     ), GameInfo(
       Map(
@@ -37,7 +37,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'timeLimit -> "00:25+00",
         'opening -> "YAGURA"
       ))),
-    Game(stateHirate, Seq(
+    Game(stateHirate, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, None, false, Some(50)),
       Move(WHITE, Some(P33), P34, PAWN, false, None, false, Some(1)),
       Move(BLACK, Some(P88), P22, PBISHOP, true, Some(BISHOP), false, Some(12)),
@@ -111,10 +111,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   "Game#parseCsaString" must "work in normal cases" in {
     csaForTest.map(Game.parseCsaString) zip dataForTest.map(Some(_)) foreach { case (a, b) => a must be(b) }
-    Game.parseCsaString("+") must be(Some(Game(stateEmpty, Seq(), GameInfo())))
-    Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo())))
+    Game.parseCsaString("+") must be(Some(Game(stateEmpty, Vector(), GameInfo())))
+    Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Vector(), GameInfo())))
 
-    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
+    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, None, false)
     ), GameInfo())))
@@ -130,19 +130,19 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
-      "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Seq(
+      "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, None, false)
     ), GameInfo(Map('whiteName -> "yyy")))))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") must be(Some(Game(stateEmpty, Seq(), GameInfo(
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") must be(Some(Game(stateEmpty, Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") must be(Some(Game(State(
-      WHITE, stateEmpty.board, stateEmpty.hand), Seq(), GameInfo(
+      WHITE, stateEmpty.board, stateEmpty.hand), Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))))
-    Game.parseCsaString("V2.2\n-") must be(Some(Game(stateEmptyInv, Seq(), GameInfo(Map('formatVersion -> "2.2")))))
+    Game.parseCsaString("V2.2\n-") must be(Some(Game(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))))
     Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(
       stateHirateInv,
-      Seq(
+      Vector(
         Move(WHITE, Some(P51), P52, KING, false, None, false, Some(2345)),
         Move(BLACK, Some(P59), P58, KING, false, None, false)
       ),
