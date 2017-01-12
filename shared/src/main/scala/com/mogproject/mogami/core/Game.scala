@@ -11,10 +11,10 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Seq[Move] = Seq.empty,
+                moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
-                givenHistory: Option[Seq[State]] = None
+                givenHistory: Option[Vector[State]] = None
                ) extends CsaLike with SfenLike {
 
   require(history.length == moves.length + 1, "all moves must be valid")
@@ -29,11 +29,11 @@ case class Game(initialState: State = State.HIRATE,
   }
 
   /** history of states */
-  lazy val history: Seq[State] = {
+  lazy val history: Vector[State] = {
     givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
   }
 
-  lazy val hashCodes: Seq[Int] = history.map(_.hashCode())
+  lazy val hashCodes: Vector[Int] = history.map(_.hashCode())
 
   lazy val status: GameStatus = {
     if (currentState.isMated) {
@@ -92,7 +92,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
       moves = c.flatMap(s => MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
-      game <- moves.foldLeft(Some(Game(st, Seq.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
+      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
 
@@ -104,7 +104,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       offset <- Try(tokens(3).toInt).toOption
       gi = GameInfo() // initialize without information
       moves = tokens.drop(4).flatMap(ss => MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
-      game <- moves.foldLeft(Some(Game(st, Seq.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
+      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
 
