@@ -11,7 +11,11 @@ import scala.util.Try
 /**
   * State class
   */
-case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandType = State.EMPTY_HANDS) extends CsaLike with SfenLike {
+case class State(turn: Player = BLACK,
+                 board: BoardType = Map.empty,
+                 hand: HandType = State.EMPTY_HANDS,
+                 lastMoveTo: Option[Square] = None
+                ) extends CsaLike with SfenLike {
 
   require(checkCapacity, "the number of pieces must be within the capacity")
   require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
@@ -208,7 +212,7 @@ case class State(turn: Player = BLACK, board: BoardType = Map.empty, hand: HandT
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
     val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand))
+    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(move.to))
   }
 
   def getPieceCount: Map[Piece, Int] = MapUtil.mergeMaps(board.groupBy(_._2).mapValues(_.size), hand.map { case (k, v) => k.toPiece -> v })(_ + _, 0)

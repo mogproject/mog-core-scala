@@ -5,10 +5,12 @@ import com.mogproject.mogami.core.io._
 /**
   * Piece type
   */
-sealed abstract class Ptype(val id: Int) extends CsaLike {
+sealed abstract class Ptype(val id: Int) extends CsaLike with KifLike {
   lazy val sortId: Int = Ptype.sortIdTable(id)
 
   override def toCsaString: String = Ptype.csaTable(id)
+
+  override def toKifString: String = Ptype.kifTable(id)
 
   final def isBasic: Boolean = 8 <= id
 
@@ -50,7 +52,7 @@ sealed abstract class Ptype(val id: Int) extends CsaLike {
   def canMoveTo(displacement: Displacement): Boolean = displacement.distance <= capability(displacement.direction.id)
 }
 
-object Ptype extends CsaTableFactory[Ptype] {
+object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   implicit def ordering[A <: Ptype]: Ordering[A] = Ordering.by(_.sortId)
 
   val sortIdTable: Seq[Int] = Seq(
@@ -61,6 +63,11 @@ object Ptype extends CsaTableFactory[Ptype] {
   val csaTable: Seq[String] = Seq(
     "", "", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"
+  )
+
+  val kifTable: Seq[String] = Seq(
+    "", "", "と", "成香", "成桂", "成銀", "馬", "竜",
+    "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
   val englishSimpleNames: Seq[String] = Seq(
