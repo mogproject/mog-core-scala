@@ -10,7 +10,7 @@ import com.mogproject.mogami.util.Implicits._
 /**
   * Square -- each cell on the board
   */
-case class Square(index: Int) extends CsaLike with SfenLike {
+case class Square(index: Int) extends CsaLike with SfenLike with KifLike {
   require(0 <= index && index < 81)
 
   import com.mogproject.mogami.core.Direction._
@@ -23,6 +23,8 @@ case class Square(index: Int) extends CsaLike with SfenLike {
   private def rankToChar: Char = ('a' + rank - 1).toChar
 
   override def toSfenString = s"${file}${rankToChar}"
+
+  override def toKifString: String = s"${"１２３４５６７８９".charAt(file - 1)}${"一二三四五六七八九".charAt(rank - 1)}"
 
   /**
     * Distance from the player's farthest rank.

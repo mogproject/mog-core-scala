@@ -108,7 +108,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
     } yield game
   }
 
-  object GameStatus extends Enumeration {
+  object GameStatus {
 
     sealed trait GameStatus
 

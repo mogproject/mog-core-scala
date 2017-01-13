@@ -36,15 +36,15 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
 
   "Move#apply" must "throw an error when the requirements do not meet" in {
-    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, true, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, false, Some(PAWN), false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, true, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P56, PAWN, false, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P54, PAWN, false, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P11), P98, BISHOP, false, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P12), P11, PAWN, false, None, false, None))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, None, false, Some(-123)))
-    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, Some(KING), false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, true, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, None, P55, PAWN, false, false, None, Some(PAWN), false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, true, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P56, PAWN, false, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P54, PAWN, false, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P11), P98, BISHOP, false, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P12), P11, PAWN, false, false, None, None, false, None))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, false, None, None, false, Some(-123)))
+    assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, false, None, Some(KING), false, None))
   }
 
   "Move#parseCsaString" must "succeed in normal cases" in {
@@ -101,6 +101,412 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   "Move#toSfenString" must "describes the move" in {
     movesForTestSfen map (_.toSfenString) must be(sfenForTest)
   }
+  "Move#toKifString" must "describes the move" in {
+    val states = Seq(
+      Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  * +KI *  *  *  *  *  * ",
+        "P3+KI *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1 *  *  *  *  *  * +KI *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  * +KI *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  * +KI *  *  * ",
+        "P6 *  *  *  * +KI *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  * +GI *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 * +GI *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  * +GI * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  * +GI *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2+KI * +KI *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  * +KI * +KI",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  * +GI * +GI *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 * +KI+KI *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  * +GI+GI * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  * +KI+KI+KI *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 * +TO *  *  *  *  *  *  * ",
+        "P8+TO *  *  *  *  *  *  *  * ",
+        "P9+TO+TO+TO *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  * +GI * +GI",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  * +GI+GI * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1+RY *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 * +RY *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  * +RY *  *  *  * ",
+        "P3 *  *  *  *  *  *  * +RY * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  * +RY *  *  * +RY",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9+RY+RY *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  * +RY * ",
+        "P9 *  *  *  *  *  *  *  * +RY",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1+UM+UM *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  * +UM *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5+UM *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  * +UM",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  * +UM *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9+UM *  *  * +UM *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+        Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  * +UM *  *  * ",
+        "P8 *  *  *  *  *  *  *  * +UM",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1 *  *  * -KY *  *  *  *  * ",
+        "P2 *  *  *  *  *  *  *  *  * ",
+        "P3 *  *  *  *  *  *  *  *  * ",
+        "P4 * -KA *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  * -KA *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+",
+        "P-00KY",
+        "-"
+      )
+    ).map(State.parseCsaString(_).get)
+
+    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(State.HIRATE).get.toKifString mustBe "７六歩"
+
+    MoveBuilderCsa.parseCsaString("+9382KI").get.toMove(states(0)).get.toKifString mustBe "８二金上"
+    MoveBuilderCsa.parseCsaString("+7282KI").get.toMove(states(0)).get.toKifString mustBe "８二金寄"
+    MoveBuilderCsa.parseCsaString("+4332KI").get.toMove(states(1)).get.toKifString mustBe "３二金上"
+    MoveBuilderCsa.parseCsaString("+3132KI").get.toMove(states(1)).get.toKifString mustBe "３二金引"
+    MoveBuilderCsa.parseCsaString("+5655KI").get.toMove(states(2)).get.toKifString mustBe "５五金上"
+    MoveBuilderCsa.parseCsaString("+4555KI").get.toMove(states(2)).get.toKifString mustBe "５五金寄"
+    MoveBuilderCsa.parseCsaString("+8988GI").get.toMove(states(3)).get.toKifString mustBe "８八銀上"
+    MoveBuilderCsa.parseCsaString("+7788GI").get.toMove(states(3)).get.toKifString mustBe "８八銀引"
+    MoveBuilderCsa.parseCsaString("+4938GI").get.toMove(states(4)).get.toKifString mustBe "３八銀上"
+    MoveBuilderCsa.parseCsaString("+2738GI").get.toMove(states(4)).get.toKifString mustBe "３八銀引"
+
+    MoveBuilderCsa.parseCsaString("+9281KI").get.toMove(states(5)).get.toKifString mustBe "８一金左"
+    MoveBuilderCsa.parseCsaString("+7281KI").get.toMove(states(5)).get.toKifString mustBe "８一金右"
+    MoveBuilderCsa.parseCsaString("+3222KI").get.toMove(states(6)).get.toKifString mustBe "２二金左"
+    MoveBuilderCsa.parseCsaString("+1222KI").get.toMove(states(6)).get.toKifString mustBe "２二金右"
+    MoveBuilderCsa.parseCsaString("+6556GI").get.toMove(states(7)).get.toKifString mustBe "５六銀左"
+    MoveBuilderCsa.parseCsaString("+4556GI").get.toMove(states(7)).get.toKifString mustBe "５六銀右"
+    MoveBuilderCsa.parseCsaString("+8978KI").get.toMove(states(8)).get.toKifString mustBe "７八金左"
+    MoveBuilderCsa.parseCsaString("+7978KI").get.toMove(states(8)).get.toKifString mustBe "７八金直"
+    MoveBuilderCsa.parseCsaString("+3938GI").get.toMove(states(9)).get.toKifString mustBe "３八銀直"
+    MoveBuilderCsa.parseCsaString("+2938GI").get.toMove(states(9)).get.toKifString mustBe "３八銀右"
+
+    MoveBuilderCsa.parseCsaString("+6352KI").get.toMove(states(10)).get.toKifString mustBe "５二金左"
+    MoveBuilderCsa.parseCsaString("+5352KI").get.toMove(states(10)).get.toKifString mustBe "５二金直"
+    MoveBuilderCsa.parseCsaString("+4352KI").get.toMove(states(10)).get.toKifString mustBe "５二金右"
+    MoveBuilderCsa.parseCsaString("+7988TO").get.toMove(states(11)).get.toKifString mustBe "８八と右"
+    MoveBuilderCsa.parseCsaString("+8988TO").get.toMove(states(11)).get.toKifString mustBe "８八と直"
+    MoveBuilderCsa.parseCsaString("+9988TO").get.toMove(states(11)).get.toKifString mustBe "８八と左上"
+    MoveBuilderCsa.parseCsaString("+9888TO").get.toMove(states(11)).get.toKifString mustBe "８八と寄"
+    MoveBuilderCsa.parseCsaString("+8788TO").get.toMove(states(11)).get.toKifString mustBe "８八と引"
+    MoveBuilderCsa.parseCsaString("+2928GI").get.toMove(states(12)).get.toKifString mustBe "２八銀直"
+    MoveBuilderCsa.parseCsaString("+1728GI").get.toMove(states(12)).get.toKifString mustBe "２八銀右"
+    MoveBuilderCsa.parseCsaString("+3928GI").get.toMove(states(12)).get.toKifString mustBe "２八銀左上"
+    MoveBuilderCsa.parseCsaString("+3728GI").get.toMove(states(12)).get.toKifString mustBe "２八銀左引"
+
+    MoveBuilderCsa.parseCsaString("+9182RY").get.toMove(states(13)).get.toKifString mustBe "８二竜引"
+    MoveBuilderCsa.parseCsaString("+8482RY").get.toMove(states(13)).get.toKifString mustBe "８二竜上"
+    MoveBuilderCsa.parseCsaString("+2343RY").get.toMove(states(14)).get.toKifString mustBe "４三竜寄"
+    MoveBuilderCsa.parseCsaString("+5243RY").get.toMove(states(14)).get.toKifString mustBe "４三竜引"
+    MoveBuilderCsa.parseCsaString("+5535RY").get.toMove(states(15)).get.toKifString mustBe "３五竜左"
+    MoveBuilderCsa.parseCsaString("+1535RY").get.toMove(states(15)).get.toKifString mustBe "３五竜右"
+    MoveBuilderCsa.parseCsaString("+9988RY").get.toMove(states(16)).get.toKifString mustBe "８八竜左"
+    MoveBuilderCsa.parseCsaString("+8988RY").get.toMove(states(16)).get.toKifString mustBe "８八竜右"
+    MoveBuilderCsa.parseCsaString("+2817RY").get.toMove(states(17)).get.toKifString mustBe "１七竜左"
+    MoveBuilderCsa.parseCsaString("+1917RY").get.toMove(states(17)).get.toKifString mustBe "１七竜右"
+
+    MoveBuilderCsa.parseCsaString("+9182UM").get.toMove(states(18)).get.toKifString mustBe "８二馬左"
+    MoveBuilderCsa.parseCsaString("+8182UM").get.toMove(states(18)).get.toKifString mustBe "８二馬右"
+    MoveBuilderCsa.parseCsaString("+9585UM").get.toMove(states(19)).get.toKifString mustBe "８五馬寄"
+    MoveBuilderCsa.parseCsaString("+6385UM").get.toMove(states(19)).get.toKifString mustBe "８五馬引"
+    MoveBuilderCsa.parseCsaString("+1112UM").get.toMove(states(20)).get.toKifString mustBe "１二馬引"
+    MoveBuilderCsa.parseCsaString("+3412UM").get.toMove(states(20)).get.toKifString mustBe "１二馬上"
+    MoveBuilderCsa.parseCsaString("+9977UM").get.toMove(states(21)).get.toKifString mustBe "７七馬左"
+    MoveBuilderCsa.parseCsaString("+5977UM").get.toMove(states(21)).get.toKifString mustBe "７七馬右"
+    MoveBuilderCsa.parseCsaString("+4729UM").get.toMove(states(22)).get.toKifString mustBe "２九馬左"
+    MoveBuilderCsa.parseCsaString("+1829UM").get.toMove(states(22)).get.toKifString mustBe "２九馬右"
+
+    MoveBuilderCsa.parseCsaString("-5766KA").get.toMove(states(23)).get.toKifString mustBe "６六角引不成"
+    MoveBuilderCsa.parseCsaString("-5766UM").get.toMove(states(23)).get.toKifString mustBe "６六角引成"
+    MoveBuilderCsa.parseCsaString("-6168KY").get.toMove(states(23)).get.toKifString mustBe "６八香不成"
+    MoveBuilderCsa.parseCsaString("-6168NY").get.toMove(states(23)).get.toKifString mustBe "６八香成"
+    MoveBuilderCsa.parseCsaString("-0068KY").get.toMove(states(23)).get.toKifString mustBe "６八香打"
+
+  }
 
   "MoveBuilderSfen#toMove" must "return move" in {
     val s1: State = State.parseCsaString(Seq(
@@ -117,7 +523,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+")).get
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, None, true, None))
+    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, None))
   }
 
   "MoveBuilderSfen#apply" must "create instances" in {
@@ -128,4 +534,5 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "throw an error when promote is true and from is in hand" in {
     assertThrows[IllegalArgumentException](MoveBuilderSfen(Right(Hand(BP)), P33, true))
   }
+
 }
