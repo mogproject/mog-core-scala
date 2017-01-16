@@ -23,5 +23,6 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
 
     benchGameLoading(recordSfen01)
     benchGameLoading(recordSfen02)
+    benchGameLoading(recordSfen03)
   }
 }
