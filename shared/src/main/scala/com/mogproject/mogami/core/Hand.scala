@@ -7,6 +7,8 @@ case class Hand(owner: Player, ptype: Ptype) {
   require(ptype.isHandType, "piece must be an in-hand type")
 
   def toPiece: Piece = Piece(owner, ptype)
+
+  def unary_! : Hand = Hand(!owner, ptype)
 }
 
 object Hand {

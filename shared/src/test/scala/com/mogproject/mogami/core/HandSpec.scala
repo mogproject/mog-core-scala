@@ -51,4 +51,10 @@ class HandSpec extends FlatSpec with MustMatchers {
   "Hand" must "be able to sort" in {
     List(Hand(BP), Hand(WP), Hand(BR)).sorted mustBe List(Hand(BR), Hand(BP), Hand(WP))
   }
+
+  "Hand#unary_!" must "flip the owner" in {
+    !Hand(BLACK, PAWN) mustBe Hand(WHITE, PAWN)
+    !Hand(WHITE, PAWN) mustBe Hand(BLACK, PAWN)
+  }
+
 }
