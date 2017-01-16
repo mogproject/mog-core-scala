@@ -235,6 +235,8 @@ case class Move(player: Player,
 
   def isDrop: Boolean = from.isEmpty
 
+  def isAmbiguous: Boolean = movement.isDefined
+
   def hasCapture: Boolean = captured.isDefined
 
   def capturedPiece: Option[Piece] = captured.map(Piece(!player, _))
@@ -252,6 +254,13 @@ case class Move(player: Player,
 
   override def toKifString: String =
     isSameSquare.fold("同", to.toKifString) + oldPtype.toKifString + movement.map(_.kifString).getOrElse("") + promote.fold("成", couldPromote.fold("不成", ""))
+
+  def toWesternNotationString: String = {
+    val movementType = isDrop.fold("*", hasCapture.fold("x", "-"))
+    val origin = isAmbiguous.fold(from.map(_.toSfenString).getOrElse(""), "")
+    val promotionStatus = promote.fold("+", couldPromote.fold("=", ""))
+    s"${oldPtype.toEnglishSimpleName}${origin}${movementType}${to.toSfenString}${promotionStatus}"
+  }
 }
 
 object Movement {

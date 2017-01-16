@@ -131,7 +131,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -145,7 +145,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -159,7 +159,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -173,7 +173,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2+KI * +KI *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -187,7 +187,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  * +KI * +KI",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -201,7 +201,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -215,7 +215,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -229,7 +229,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -243,7 +243,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  * +KI+KI+KI *  *  * ",
@@ -257,7 +257,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -271,7 +271,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -285,7 +285,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1+RY *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -299,7 +299,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  * +RY *  *  *  * ",
         "P3 *  *  *  *  *  *  * +RY * ",
@@ -313,7 +313,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -327,7 +327,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -341,7 +341,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -355,7 +355,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1+UM+UM *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -369,7 +369,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  * +UM *  *  *  *  * ",
@@ -383,7 +383,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  * +UM",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -397,7 +397,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -411,7 +411,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-",
         "+"
       ),
-        Seq(
+      Seq(
         "P1 *  *  *  *  *  *  *  *  * ",
         "P2 *  *  *  *  *  *  *  *  * ",
         "P3 *  *  *  *  *  *  *  *  * ",
@@ -505,7 +505,37 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     MoveBuilderCsa.parseCsaString("-6168KY").get.toMove(states(23)).get.toKifString mustBe "６八香不成"
     MoveBuilderCsa.parseCsaString("-6168NY").get.toMove(states(23)).get.toKifString mustBe "６八香成"
     MoveBuilderCsa.parseCsaString("-0068KY").get.toMove(states(23)).get.toKifString mustBe "６八香打"
+  }
+  "Move#toWesternNotationString" must "describes the move" in {
+    val states = Seq(
+      Seq(
+        "P1 *  *  *  *  *  *  *  *  * ",
+        "P2+GI *  *  *  *  *  *  *  * ",
+        "P3 * -KI *  * +UM *  *  *  * ",
+        "P4+GI *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  * +KE * +KE *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7 *  *  *  *  *  *  *  *  * ",
+        "P8 *  *  *  *  *  *  *  *  * ",
+        "P9 *  *  *  *  *  *  *  *  * ",
+        "P+00KY",
+        "P-",
+        "+"
+      )
+    ).map(State.parseCsaString(_).get)
 
+    MoveBuilderCsa.parseCsaString("+7776FU").get.toMove(State.HIRATE).get.toWesternNotationString mustBe "P-7f"
+    MoveBuilderCsa.parseCsaString("-3334FU").get.toMove(State.HIRATE.copy(turn = WHITE)).get.toWesternNotationString mustBe "P-3d"
+    MoveBuilderCsa.parseCsaString("+5352UM").get.toMove(states(0)).get.toWesternNotationString mustBe "+B-5b"
+    MoveBuilderCsa.parseCsaString("+0033KY").get.toMove(states(0)).get.toWesternNotationString mustBe "L*3c"
+    MoveBuilderCsa.parseCsaString("+5563KE").get.toMove(states(0)).get.toWesternNotationString mustBe "N-6c="
+    MoveBuilderCsa.parseCsaString("+5563NK").get.toMove(states(0)).get.toWesternNotationString mustBe "N-6c+"
+    MoveBuilderCsa.parseCsaString("+5543KE").get.toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c="
+    MoveBuilderCsa.parseCsaString("+5543NK").get.toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c+"
+    MoveBuilderCsa.parseCsaString("+9283GI").get.toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c="
+    MoveBuilderCsa.parseCsaString("+9283NG").get.toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c+"
+    MoveBuilderCsa.parseCsaString("+9483GI").get.toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c="
+    MoveBuilderCsa.parseCsaString("+9483NG").get.toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c+"
   }
 
   "MoveBuilderSfen#toMove" must "return move" in {

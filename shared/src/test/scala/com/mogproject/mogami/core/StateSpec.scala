@@ -119,6 +119,9 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     assertThrows[IllegalArgumentException](State(BLACK, Map.empty, Map(Hand(BP) -> 1)))
     assertThrows[IllegalArgumentException](State(BLACK, Map(P11 -> BP), State.EMPTY_HANDS))
     assertThrows[IllegalArgumentException](State(BLACK, Map(P11 -> WK, P12 -> BP), State.EMPTY_HANDS))
+    assertThrows[IllegalArgumentException](State(BLACK, Map(P56 -> BP, P55 -> BP), State.EMPTY_HANDS)) // nifu
+    assertThrows[IllegalArgumentException](State(BLACK, Map(P11 -> WP, P12 -> WP, P13 -> WP), State.EMPTY_HANDS)) // nifu
+    assertThrows[IllegalArgumentException](State(BLACK, Map(P11 -> WP, P12 -> WP, P13 -> WP, P14 -> BP, P15 -> BP), State.EMPTY_HANDS)) // nifu
   }
 
   "State#toCsaString" must "describe the state" in {

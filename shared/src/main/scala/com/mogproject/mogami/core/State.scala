@@ -21,9 +21,20 @@ case class State(turn: Player = BLACK,
   require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
   require(board.forall { case (s, p) => s.isLegalZone(p) }, "all board pieces must be placed in their legal zones")
   require(!getKing(!turn).exists(getAttackBB(turn).get), "player must not be able to attack the opponent's king")
+  require(!isNifu, "two pawns cannot be in the same file")
 
   import com.mogproject.mogami.core.State.MoveFrom
   import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
+
+  /**
+    * Test if the board is Nifu.
+    *
+    * @return true if Nifu
+    */
+  private[this] def isNifu: Boolean = Player.constructor.exists { pl =>
+    val files = board.withFilter(_._2 == Piece(pl, PAWN)).map(_._1.file).toSeq
+    files.length != files.distinct.length
+  }
 
   override def toCsaString: String = {
     val boardString = (1 to 9).map { rank =>
