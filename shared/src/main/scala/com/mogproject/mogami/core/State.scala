@@ -294,70 +294,21 @@ object State extends CsaStateReader with SfenStateReader {
   lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
   // constant states
-  val HIRATE = State(BLACK, Map(
-    Square(1, 1) -> Piece(WHITE, LANCE),
-    Square(2, 1) -> Piece(WHITE, KNIGHT),
-    Square(3, 1) -> Piece(WHITE, SILVER),
-    Square(4, 1) -> Piece(WHITE, GOLD),
-    Square(5, 1) -> Piece(WHITE, KING),
-    Square(6, 1) -> Piece(WHITE, GOLD),
-    Square(7, 1) -> Piece(WHITE, SILVER),
-    Square(8, 1) -> Piece(WHITE, KNIGHT),
-    Square(9, 1) -> Piece(WHITE, LANCE),
-    Square(2, 2) -> Piece(WHITE, BISHOP),
-    Square(8, 2) -> Piece(WHITE, ROOK),
-    Square(1, 3) -> Piece(WHITE, PAWN),
-    Square(2, 3) -> Piece(WHITE, PAWN),
-    Square(3, 3) -> Piece(WHITE, PAWN),
-    Square(4, 3) -> Piece(WHITE, PAWN),
-    Square(5, 3) -> Piece(WHITE, PAWN),
-    Square(6, 3) -> Piece(WHITE, PAWN),
-    Square(7, 3) -> Piece(WHITE, PAWN),
-    Square(8, 3) -> Piece(WHITE, PAWN),
-    Square(9, 3) -> Piece(WHITE, PAWN),
-    Square(1, 7) -> Piece(BLACK, PAWN),
-    Square(2, 7) -> Piece(BLACK, PAWN),
-    Square(3, 7) -> Piece(BLACK, PAWN),
-    Square(4, 7) -> Piece(BLACK, PAWN),
-    Square(5, 7) -> Piece(BLACK, PAWN),
-    Square(6, 7) -> Piece(BLACK, PAWN),
-    Square(7, 7) -> Piece(BLACK, PAWN),
-    Square(8, 7) -> Piece(BLACK, PAWN),
-    Square(9, 7) -> Piece(BLACK, PAWN),
-    Square(2, 8) -> Piece(BLACK, ROOK),
-    Square(8, 8) -> Piece(BLACK, BISHOP),
-    Square(1, 9) -> Piece(BLACK, LANCE),
-    Square(2, 9) -> Piece(BLACK, KNIGHT),
-    Square(3, 9) -> Piece(BLACK, SILVER),
-    Square(4, 9) -> Piece(BLACK, GOLD),
-    Square(5, 9) -> Piece(BLACK, KING),
-    Square(6, 9) -> Piece(BLACK, GOLD),
-    Square(7, 9) -> Piece(BLACK, SILVER),
-    Square(8, 9) -> Piece(BLACK, KNIGHT),
-    Square(9, 9) -> Piece(BLACK, LANCE)
-  ), EMPTY_HANDS)
+  lazy val HIRATE = StateConstant.HIRATE
+  lazy val MATING_BLACK = StateConstant.MATING_BLACK
+  lazy val MATING_WHITE = StateConstant.MATING_WHITE
+  lazy val HANDICAP_LANCE = StateConstant.HANDICAP_LANCE
+  lazy val HANDICAP_BISHOP = StateConstant.HANDICAP_BISHOP
+  lazy val HANDICAP_ROOK = StateConstant.HANDICAP_ROOK
+  lazy val HANDICAP_ROOK_LANCE = StateConstant.HANDICAP_ROOK_LANCE
+  lazy val HANDICAP_2_PIECE = StateConstant.HANDICAP_2_PIECE
+  lazy val HANDICAP_3_PIECE = StateConstant.HANDICAP_3_PIECE
+  lazy val HANDICAP_4_PIECE = StateConstant.HANDICAP_4_PIECE
+  lazy val HANDICAP_5_PIECE = StateConstant.HANDICAP_5_PIECE
+  lazy val HANDICAP_6_PIECE = StateConstant.HANDICAP_6_PIECE
+  lazy val HANDICAP_8_PIECE = StateConstant.HANDICAP_8_PIECE
+  lazy val HANDICAP_10_PIECE = StateConstant.HANDICAP_10_PIECE
+  lazy val HANDICAP_THREE_PAWNS = StateConstant.HANDICAP_THREE_PAWNS
+  lazy val HANDICAP_NAKED_KING = StateConstant.HANDICAP_NAKED_KING
 
-  val MATING_BLACK = State(BLACK, Map(
-    Square(5, 1) -> Piece(WHITE, KING)
-  ), EMPTY_HANDS ++ Map(
-    Hand(BLACK, ROOK) -> 2,
-    Hand(BLACK, BISHOP) -> 2,
-    Hand(BLACK, GOLD) -> 4,
-    Hand(BLACK, SILVER) -> 4,
-    Hand(BLACK, KNIGHT) -> 4,
-    Hand(BLACK, LANCE) -> 4,
-    Hand(BLACK, PAWN) -> 18
-  ))
-
-  val MATING_WHITE = State(WHITE, Map(
-    Square(5, 9) -> Piece(BLACK, KING)
-  ), EMPTY_HANDS ++ Map(
-    Hand(WHITE, ROOK) -> 2,
-    Hand(WHITE, BISHOP) -> 2,
-    Hand(WHITE, GOLD) -> 4,
-    Hand(WHITE, SILVER) -> 4,
-    Hand(WHITE, KNIGHT) -> 4,
-    Hand(WHITE, LANCE) -> 4,
-    Hand(WHITE, PAWN) -> 18
-  ))
 }
