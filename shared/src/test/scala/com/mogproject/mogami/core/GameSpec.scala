@@ -262,6 +262,22 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+",
       "+1312FU"
     ).mkString("\n")).get.status mustBe Mated
+
+    // dropping pawn but not a check
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  * +RY * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+00FU",
+      "+",
+      "+0013FU"
+    ).mkString("\n")).get.status mustBe Mated
   }
   it must "return Illegal when perpetual check" in {
     Game.parseCsaString(Seq(
