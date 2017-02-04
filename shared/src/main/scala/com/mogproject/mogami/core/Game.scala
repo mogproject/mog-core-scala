@@ -37,7 +37,7 @@ case class Game(initialState: State = State.HIRATE,
 
   lazy val status: GameStatus = {
     if (currentState.isMated) {
-      if (lastMove.exists(m => m.isDrop && m.oldPtype == PAWN))
+      if (lastMove.exists(m => m.isCheck && m.isDrop && m.oldPtype == PAWN))
         Uchifuzume
       else
         Mated
