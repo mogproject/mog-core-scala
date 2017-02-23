@@ -18,6 +18,8 @@ case class Square(index: Int) extends CsaLike with SfenLike with KifLike {
   val rank: Int = (index + 9) / 9
   val file: Int = index % 9 + 1
 
+  def unary_! : Square = Square(10 - file, 10 - rank)
+
   override def toCsaString = s"${file}${rank}"
 
   private def rankToChar: Char = ('a' + rank - 1).toChar
