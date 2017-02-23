@@ -11,6 +11,18 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   private val csaSquare = for (r <- '1' to '9'; f <- '1' to '9') yield s"$f$r"
   private val sfenSquare = for (r <- 'a' to 'i'; f <- '1' to '9') yield s"$f$r"
 
+  "Square#unary_!" must "flip the position" in {
+    !P11 mustBe P99
+    !P12 mustBe P98
+    !P19 mustBe P91
+    !P55 mustBe P55
+    !P76 mustBe P34
+    !P99 mustBe P11
+  }
+  it must "cancel double negation" in forAll(SquareGen.squares) { sq =>
+    !(!sq) must be(sq)
+  }
+
   "Square#parseCsaString" must "return Some in normal cases" in {
     csaSquare map { c => Square.parseCsaString(c) } mustBe Square.all.map(Some(_))
   }
