@@ -402,7 +402,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     s3.isChecked mustBe true
     s4.isChecked mustBe true
   }
-  it must "return false whtn the king is not on the board" in {
+  it must "return false when the king is not on the board" in {
     val s1: State = State.parseCsaString(Seq(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
       "P2 * -HI *  *  *  *  * -KA * ",
@@ -548,7 +548,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     s1.guards mustBe Map(
       P53 -> BitBoard(Seq(
         "---------",
-        "---------",
+        "----*----",
         "----*----",
         "----*----",
         "----*----",
@@ -560,7 +560,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P35 -> BitBoard(Seq(
         "---------",
         "---------",
-        "---------",
+        "--------*",
         "-------*-",
         "------*--",
         "-----*---",
@@ -571,7 +571,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       P84 -> BitBoard(Seq(
         "---------",
         "---------",
-        "---------",
+        "*--------",
         "-*-------",
         "--*------",
         "---*-----",
@@ -586,7 +586,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         "---------",
         "---------",
         "---------",
-        "-----**--",
+        "-----***-",
         "---------",
         "---------"
       ).mkString),
@@ -599,7 +599,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         "---------",
         "---------",
         "----*----",
-        "---------"
+        "----*----"
       ).mkString))
   }
 
@@ -890,5 +890,43 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     State.empty.updateHandPiece(BP, 1).get.hasHand(Hand(BP)) mustBe true
     State.empty.updateHandPiece(BP, 2).get.hasHand(Hand(BP)) mustBe true
     State.empty.updateHandPiece(BP, 18).get.hasHand(Hand(BP)) mustBe true
+  }
+
+  "State#getNonSuicidalMovesOnBoard" must "return" in {
+    State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  *  *  * +HI-KI-OU * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+",
+      "P-",
+      "-"
+    )).get.getNonSuicidalMovesOnBoard mustBe Map(
+      Square(3, 2) -> BitBoard("000.010.000.000.000.000.000.000.000"),
+      Square(2, 2) -> BitBoard("007.001.007.000.000.000.000.000.000")
+    )
+    State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  * +HI * +HI-KI-OU * ",
+      "P3 *  *  *  *  *  * -GI *  * ",
+      "P4 *  *  *  *  * +KA *  *  * ",
+      "P5 *  *  *  *  * +KA *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+",
+      "P-",
+      "-"
+    )).get.getNonSuicidalMovesOnBoard mustBe Map(
+      Square(3, 2) -> BitBoard("000.010.000.000.000.000.000.000.000"),
+      Square(2, 2) -> BitBoard("007.000.001.000.000.000.000.000.000"),
+      Square(3, 3) -> BitBoard("000.000.000.010.000.000.000.000.000")
+    )
   }
 }

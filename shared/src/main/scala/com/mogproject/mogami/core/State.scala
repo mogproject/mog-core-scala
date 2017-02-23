@@ -129,7 +129,7 @@ case class State(turn: Player = BLACK,
   /**
     * Get the guard pieces, which protect the turn player's king from ranged attack.
     *
-    * @return set of squares and guarding area bitboards
+    * @return set of squares and guarding area + attacker bitboards
     */
   lazy val guards: Map[Square, BitBoard] = {
     for {
@@ -138,7 +138,7 @@ case class State(turn: Player = BLACK,
       bt = s.getBetweenBB(k) if Attack.getRangedAttack(p, s, BitBoard.empty).get(k)
       g = bt & occupancy if g.count == 1
     } yield {
-      g.toList.head -> bt
+      g.toList.head -> bt.set(s)
     }
   }
 
