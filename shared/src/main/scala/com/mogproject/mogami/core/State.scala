@@ -2,6 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
 import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.Implicits._
 
@@ -198,7 +199,7 @@ case class State(turn: Player = BLACK,
     * @note This method can be relatively expensive.
     * @return list of legal moves
     */
-  def legalMoves: Seq[Move] = (
+  def legalMoves: Seq[move.Move] = (
     for {
       (from, bb) <- legalMovesBB
       to <- bb.toList

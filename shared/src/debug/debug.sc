@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.Square.HAND
+import com.mogproject.mogami.core.move.Move
 
 val g = Game(
   State(BLACK,

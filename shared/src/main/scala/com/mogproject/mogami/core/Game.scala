@@ -3,6 +3,7 @@ package com.mogproject.mogami.core
 import scala.annotation.tailrec
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.move.MoveBuilder
 import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
@@ -11,7 +12,7 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Vector[Move] = Vector.empty,
+                moves: Vector[move.Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 givenHistory: Option[Vector[State]] = None
@@ -91,7 +92,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
-      moves = c.flatMap(s => MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
+      moves = c.flatMap(s => move.MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
       game <- moves.foldLeft(Some(Game(st, Vector.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
@@ -103,7 +104,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
       st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
       offset <- Try(tokens(3).toInt).toOption
       gi = GameInfo() // initialize without information
-      moves = tokens.drop(4).flatMap(ss => MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
+      moves = tokens.drop(4).flatMap(ss => move.MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
       game <- moves.foldLeft(Some(Game(st, Vector.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }

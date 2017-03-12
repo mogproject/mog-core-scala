@@ -1,7 +1,8 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.move
 
-import org.scalacheck.Gen
+import com.mogproject.mogami.core.{PlayerGen, PtypeGen, SquareGen}
 import com.mogproject.mogami.util.Implicits._
+import org.scalacheck.Gen
 
 /**
   * Move generator for scalacheck

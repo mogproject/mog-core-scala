@@ -47,14 +47,14 @@ package object mogami {
   type HandType = com.mogproject.mogami.core.State.HandType
   type MoveFrom = com.mogproject.mogami.core.State.MoveFrom
 
-  type MoveBuilderCsa = com.mogproject.mogami.core.MoveBuilderCsa
-  val MoveBuilderCsa = com.mogproject.mogami.core.MoveBuilderCsa
+  type MoveBuilderCsa = com.mogproject.mogami.core.move.MoveBuilderCsa
+  val MoveBuilderCsa = com.mogproject.mogami.core.move.MoveBuilderCsa
 
-  type MoveBuilderSfen = com.mogproject.mogami.core.MoveBuilderSfen
-  val MoveBuilderSfen = com.mogproject.mogami.core.MoveBuilderSfen
+  type MoveBuilderSfen = com.mogproject.mogami.core.move.MoveBuilderSfen
+  val MoveBuilderSfen = com.mogproject.mogami.core.move.MoveBuilderSfen
 
-  type Move = com.mogproject.mogami.core.Move
-  val Move = com.mogproject.mogami.core.Move
+  type Move = com.mogproject.mogami.core.move.Move
+  val Move = com.mogproject.mogami.core.move.Move
 
   type Game = com.mogproject.mogami.core.Game
   val Game = com.mogproject.mogami.core.Game
