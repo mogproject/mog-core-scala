@@ -45,12 +45,12 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     sfenSquare map { c => Square.parseSfenString(c) } mustBe Square.all.map(Some(_))
   }
   it must "return None in error cases" in {
-    Square.parseCsaString("") mustBe None
-    Square.parseCsaString(" ") mustBe None
-    Square.parseCsaString("x" * 1000) mustBe None
-    Square.parseCsaString("01") mustBe None
-    Square.parseCsaString("90") mustBe None
-    Square.parseCsaString("123") mustBe None
+    Square.parseSfenString("") mustBe None
+    Square.parseSfenString(" ") mustBe None
+    Square.parseSfenString("x" * 1000) mustBe None
+    Square.parseSfenString("0a") mustBe None
+    Square.parseSfenString("i0") mustBe None
+    Square.parseSfenString("123") mustBe None
   }
   "Square#toSfenString" must "make SFEN-formatted string" in {
     Square.all map (_.toSfenString) mustBe sfenSquare
@@ -60,6 +60,14 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   }
   "Square#toKifString" must "make KIF-formatted string" in {
     Square.all map (_.toKifString) mustBe kifSquare
+  }
+  "Square#parseKifString" must "return Some in normal cases" in {
+    kifSquare map Square.parseKifString mustBe Square.all.map(Some.apply)
+  }
+  it must "return None in error cases" in {
+    Square.parseKifString("") mustBe None
+    Square.parseKifString(" ") mustBe None
+    Square.parseKifString("  ") mustBe None
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
     Square.parseKifString(s.toKifString) mustBe Some(s)
