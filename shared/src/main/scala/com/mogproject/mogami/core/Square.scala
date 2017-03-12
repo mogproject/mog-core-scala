@@ -93,6 +93,19 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
     }
   }
 
+  def parseKifString(s: String): Option[Square] = {
+    if (s.length == 2) {
+      val f = "１２３４５６７８９".indexOf(s(0))
+      val r = "一二三四五六七八九".indexOf(s(1))
+      if (f >= 0 && r >= 0)
+        Some(Square(f + 1, r + 1))
+      else
+        None
+    } else {
+      None
+    }
+  }
+
   val all: Seq[Square] = (0 until 81).map(Square.apply)
 
 }

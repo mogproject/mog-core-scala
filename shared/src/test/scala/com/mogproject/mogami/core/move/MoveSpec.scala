@@ -21,8 +21,26 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     MoveBuilderSfenBoard(P99, P11, promote = true),
     MoveBuilderSfenHand(Ptype.LANCE, P82)
   )
+  val movesForTestKif = Seq(
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, None),
+    MoveBuilderKifBoard(P88, Some(P22), BISHOP, promote = true, None),
+    MoveBuilderKifBoard(P31, None, SILVER, promote = false, None),
+    MoveBuilderKifBoard(P23, None, LANCE, promote = true, None),
+    MoveBuilderKifHand(P55, KNIGHT, None),
+    MoveBuilderKifBoard(P55, Some(P43), PKNIGHT, promote = false, None),
+    MoveBuilderKifBoard(P44, Some(P43), PSILVER, promote = false, None),
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, Some(0)),
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, Some(1)),
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, Some(60)),
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, Some(999)),
+    MoveBuilderKifBoard(P77, Some(P76), PAWN, promote = false, Some(Int.MaxValue))
+  )
   val csaForTest = Seq("+7776FU", "-9911UM", "+0082KY", "-9911UM,T0", "+0082KY,T1499")
   val sfenForTest = Seq("7g7f", "9i1a+", "L*8b")
+  val kifForTest = Seq(
+    "７六歩(77)", "２二角成(88)", "同　銀(31)", "同　香成(23)", "５五桂打", "４三成桂(55)", "４三成銀(44)",
+    "７六歩(77) (00:00/)", "７六歩(77) (00:01/)", "７六歩(77) (01:00/)", "７六歩(77) (16:39/)", "７六歩(77) (35791394:07/)"
+  )
 
   object TestMoveBuilder extends MoveBuilder {
     override def isCheckMove(state: State, from: Option[Square], to: Square, newPtype: Ptype): Boolean = super.isCheckMove(state, from, to, newPtype)
@@ -48,6 +66,9 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     assertThrows[IllegalArgumentException](Move(BLACK, Some(P56), P55, PAWN, false, false, None, Some(KING), false, None))
   }
 
+  "Move#toCsaString" must "describe the move" in {
+    movesForTestCsa map (_.toCsaString) must be(csaForTest)
+  }
   "Move#parseCsaString" must "succeed in normal cases" in {
     csaForTest map { c => MoveBuilderCsa.parseCsaString(c) } must be(movesForTestCsa map (Some(_)))
   }
@@ -78,6 +99,9 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     MoveBuilderCsa.parseCsaString(m.toCsaString) must be(Some(m))
   }
 
+  "Move#toSfenString" must "describe the move" in {
+    movesForTestSfen map (_.toSfenString) must be(sfenForTest)
+  }
   "Move#parseSfenString" must "succeed in normal cases" in {
     sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } must be(movesForTestSfen map (Some(_)))
   }
@@ -95,25 +119,31 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     MoveBuilderSfen.parseSfenString(m.toSfenString) must be(Some(m))
   }
 
-  "Move#toCsaString" must "describe the move" in {
-    movesForTestCsa map (_.toCsaString) must be(csaForTest)
-  }
-
-  "Move#toSfenString" must "describe the move" in {
-    movesForTestSfen map (_.toSfenString) must be(sfenForTest)
-  }
-
   "Move#toKifString" must "describe the move" in {
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, None).toKifString mustBe "７六歩(77)"
-    Move(BLACK, Some(P88), P22, BISHOP, promote = true, isSameSquare = false, None, None, isCheck = false, None).toKifString mustBe "２二角成(88)"
-    Move(WHITE, Some(P31), P22, SILVER, promote = false, isSameSquare = true, None, None, isCheck = false, None).toKifString mustBe "同　銀(31)"
-    Move(BLACK, Some(P23), P22, LANCE, promote = true, isSameSquare = true, None, None, isCheck = true, None).toKifString mustBe "同　香成(23)"
-    Move(WHITE, None, P55, KNIGHT, promote = false, isSameSquare = false, None, None, isCheck = false, None).toKifString mustBe "５五桂打"
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, Some(0)).toKifString mustBe "７六歩(77) (00:00/)"
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, Some(1)).toKifString mustBe "７六歩(77) (00:01/)"
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, Some(60)).toKifString mustBe "７六歩(77) (01:00/)"
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, Some(999)).toKifString mustBe "７六歩(77) (16:39/)"
-    Move(BLACK, Some(P77), P76, PAWN, promote = false, isSameSquare = false, None, None, isCheck = false, Some(Int.MaxValue)).toKifString mustBe "７六歩(77) (35791394:07/)"
+    movesForTestKif map (_.toKifString) mustBe kifForTest
+  }
+  "Move#parseKifString" must "succeed in normal cases" in {
+    kifForTest map { c => MoveBuilderKif.parseKifString(c) } mustBe (movesForTestKif map Some.apply)
+
+    MoveBuilderKif.parseKifString("６五桂打   ( 0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
+    MoveBuilderKif.parseKifString("６五桂打   ( 0: 3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
+    MoveBuilderKif.parseKifString("６五桂打 (0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
+    MoveBuilderKif.parseKifString("同　銀(43)   (00:00/00:00:00)") mustBe Some(MoveBuilderKifBoard(P43, None, SILVER, promote = false, Some(0)))
+  }
+  it must "return None in error cases" in {
+    MoveBuilderKif.parseKifString("") must be(None)
+    MoveBuilderKif.parseKifString(" ") must be(None)
+    MoveBuilderKif.parseKifString("x" * 1000) must be(None)
+    MoveBuilderKif.parseKifString("３四歩") must be(None)
+    MoveBuilderKif.parseKifString("３四歩 (33)") must be(None)
+    MoveBuilderKif.parseKifString("３四歩(33) (0)") must be(None)
+    MoveBuilderKif.parseKifString("３四歩(33) (0:0)") must be(None)
+    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0)") must be(None)
+    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0)") must be(None)
+    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0:a)") must be(None)
+  }
+  it must "restore moves" in forAll(MoveGen.movesKifFormat) { m =>
+    MoveBuilderKif.parseKifString(m.toKifString) mustBe Some(m)
   }
 
   "Move#toJapaneseNotationString" must "describe the move" in {
@@ -578,6 +608,24 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   it must "throw an error when promote is true and from is in hand" in {
     assertThrows[IllegalArgumentException](MoveBuilderSfen(Right(Hand(BP)), P33, true))
+  }
+
+  "MoveBuilderKif#toMove" must "return move" in {
+    val s1: State = State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  * +FU *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9+KA *  *  *  *  *  *  *  * ",
+      "P+00FU",
+      "P-",
+      "+")).get
+
+    MoveBuilderKif.parseKifString("７六歩(77) (0:03/)").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, Some(3)))
   }
 
 }

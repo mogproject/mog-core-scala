@@ -21,8 +21,18 @@ object MoveGen {
     isHand <- Gen.oneOf(true, false, false, false)
     from <- SquareGen.squares
     to <- SquareGen.squaresOnBoardExcept(Seq(from))
-    pt <- PtypeGen.ptypesInHand
-    pr <- Gen.oneOf(false, true)
+    pt <- if (isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
+    pr <- Gen.oneOf(false, !pt.isPromoted)
   } yield isHand.fold(MoveBuilderSfenHand(pt, to), MoveBuilderSfenBoard(from, to, pr))
+
+  val movesKifFormat: Gen[MoveBuilderKif] = for {
+    isHand <- Gen.oneOf(true, false, false, false)
+    from <- SquareGen.squares
+    to <- SquareGen.squaresOnBoardExcept(Seq(from))
+    pt <- if (isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
+    pr <- Gen.oneOf(false, !pt.isPromoted)
+    t <- Gen.option(Gen.choose(0, 1000000000))
+  } yield isHand.fold(MoveBuilderKifHand(to, pt, t), MoveBuilderKifBoard(from, Some(to), pt, pr, t))
+
 }
 

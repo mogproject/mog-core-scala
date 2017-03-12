@@ -54,11 +54,9 @@ case class Move(player: Player,
   override def toSfenString: String =
     from.map(fr => MoveBuilderSfenBoard(fr, to, promote)).getOrElse(MoveBuilderSfenHand(newPtype, to)).toSfenString
 
-  override def toKifString: String = {
-    val mv = isSameSquare.fold("同　", to.toKifString) + oldPtype.toKifString + isDrop.fold("打", promote.fold("成", "") + s"(${from.map(_.toCsaString).getOrElse("")})")
-    val tm = elapsedTime.map { t => f" (${t / 60}%02d:${t % 60}%02d/)" }.getOrElse("")
-    mv + tm
-  }
+  override def toKifString: String =
+    from.map(fr => MoveBuilderKifBoard(fr, (!isSameSquare).option(to), oldPtype, promote, elapsedTime))
+      .getOrElse(MoveBuilderKifHand(to, oldPtype, elapsedTime)).toKifString
 
   def toJapaneseNotationString: String =
     isSameSquare.fold("同", to.toKifString) + oldPtype.toKifString + movement.map(_.kifString).getOrElse("") + promote.fold("成", couldPromote.fold("不成", ""))

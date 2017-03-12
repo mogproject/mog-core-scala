@@ -10,6 +10,7 @@ import com.mogproject.mogami.core.Direction._
 class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   private val csaSquare = for (r <- '1' to '9'; f <- '1' to '9') yield s"$f$r"
   private val sfenSquare = for (r <- 'a' to 'i'; f <- '1' to '9') yield s"$f$r"
+  private val kifSquare = for (r <- "一二三四五六七八九"; f <- "１２３４５６７８９") yield s"$f$r"
 
   "Square#unary_!" must "flip the position" in {
     !P11 mustBe P99
@@ -51,11 +52,17 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Square.parseCsaString("90") mustBe None
     Square.parseCsaString("123") mustBe None
   }
-  "Square#toSfenString" must "make CSA-formatted string" in {
+  "Square#toSfenString" must "make SFEN-formatted string" in {
     Square.all map (_.toSfenString) mustBe sfenSquare
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
     Square.parseSfenString(s.toSfenString) must be(Some(s))
+  }
+  "Square#toKifString" must "make KIF-formatted string" in {
+    Square.all map (_.toKifString) mustBe kifSquare
+  }
+  it must "recover the original square" in forAll(SquareGen.squares) { s =>
+    Square.parseKifString(s.toKifString) mustBe Some(s)
   }
   "Square#isPromotionZone" must "return if a piece can promote" in {
     Square(1, 2).isPromotionZone(BLACK) must be(true)
