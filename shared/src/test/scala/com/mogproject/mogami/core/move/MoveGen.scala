@@ -1,7 +1,8 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.move
 
-import org.scalacheck.Gen
+import com.mogproject.mogami.core.{PlayerGen, PtypeGen, SquareGen}
 import com.mogproject.mogami.util.Implicits._
+import org.scalacheck.Gen
 
 /**
   * Move generator for scalacheck
@@ -20,8 +21,18 @@ object MoveGen {
     isHand <- Gen.oneOf(true, false, false, false)
     from <- SquareGen.squares
     to <- SquareGen.squaresOnBoardExcept(Seq(from))
-    pt <- PtypeGen.ptypesInHand
-    pr <- Gen.oneOf(false, true)
+    pt <- if (isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
+    pr <- Gen.oneOf(false, !pt.isPromoted)
   } yield isHand.fold(MoveBuilderSfenHand(pt, to), MoveBuilderSfenBoard(from, to, pr))
+
+  val movesKifFormat: Gen[MoveBuilderKif] = for {
+    isHand <- Gen.oneOf(true, false, false, false)
+    from <- SquareGen.squares
+    to <- SquareGen.squaresOnBoardExcept(Seq(from))
+    pt <- if (isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
+    pr <- Gen.oneOf(false, !pt.isPromoted)
+    t <- Gen.option(Gen.choose(0, 1000000000))
+  } yield isHand.fold(MoveBuilderKifHand(to, pt, t), MoveBuilderKifBoard(from, Some(to), pt, pr, t))
+
 }
 

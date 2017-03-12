@@ -1,5 +1,6 @@
 package com.mogproject.mogami.core
 
+import com.mogproject.mogami.core.move.Move
 import org.scalacheck.Gen
 
 /**
