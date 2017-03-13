@@ -16,7 +16,7 @@ case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
                  lastMoveTo: Option[Square] = None
-                ) extends CsaLike with SfenLike {
+                ) extends CsaLike with SfenLike with KifLike {
 
   require(checkCapacity, "the number of pieces must be within the capacity")
   require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
@@ -65,6 +65,10 @@ case class State(turn: Player = BLACK,
     val handString = hand.filter(_._2 != 0).toSeq.sorted.map { case (p, n) => stringifyNumber(n, 1) + p.toPiece.toSfenString }.mkString
 
     s"$boardString ${turn.toSfenString} ${handString.isEmpty.fold("-", handString)}"
+  }
+
+  override def toKifString: String = {
+    ???
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
