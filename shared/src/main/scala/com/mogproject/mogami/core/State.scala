@@ -3,8 +3,8 @@ package com.mogproject.mogami.core
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
-import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.Implicits._
+import com.mogproject.mogami.util.MapUtil
 
 import scala.util.Try
 
@@ -25,7 +25,7 @@ case class State(turn: Player = BLACK,
   require(!isNifu, "two pawns cannot be in the same file")
 
   import com.mogproject.mogami.core.State.MoveFrom
-  import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
+  import com.mogproject.mogami.core.State.PromotionFlag.{CanPromote, CannotPromote, MustPromote, PromotionFlag}
 
   /**
     * Test if the board is Nifu.
@@ -67,24 +67,31 @@ case class State(turn: Player = BLACK,
     s"$boardString ${turn.toSfenString} ${handString.isEmpty.fold("-", handString)}"
   }
 
+  private[this] def numberToJapanese(n: Int): String = n match {
+    case _ if 1 <= n && n <= 18 =>
+      Vector("", "十")(n / 10) + Vector("", "一", "二", "三", "四", "五", "六", "七", "八", "九")(n % 10)
+    case _ => ""
+  }
+
   override def toKifString: String = {
-    def numberToJapanese(n: Int): String = n match {
-      case _ if 2 <= n && n <= 18 =>
-        Vector("二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八")(n - 2)
-      case _ => ""
-    }
-
     val handString = Player.constructor.map(pl =>
-      hand.toSeq.sorted.collect {
-        case (p, n) if p.owner == pl && n != 0 => p.ptype.toJapaneseSimpleName + numberToJapanese(n)
-        case _ => ""
-      }.mkString)
+      hand.toSeq.sorted.flatMap {
+        case (p, n) if p.owner == pl && n != 0 => Seq(p.ptype.toJapaneseSimpleName + (n >= 2).fold(numberToJapanese(n), ""))
+        case _ => Seq()
+      }.mkString("", "　", "　"))
 
-    Seq(
+    (Seq(
       "後手の持駒：" + handString(1),
-      "",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      (1 to 9).map { rank =>
+        (9 to 1 by -1).map {
+          file => board.get(Square(file, rank)).map(_.toKifString).getOrElse(" ・")
+        }.mkString("|", "", s"|${numberToJapanese(rank)}")
+      }.mkString("\n"),
+      "+---------------------------+",
       "先手の持駒：" + handString(0)
-    ).mkString("\n")
+    ) ++ turn.isBlack.fold(Seq.empty, Seq("後手番"))).mkString("\n")
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
