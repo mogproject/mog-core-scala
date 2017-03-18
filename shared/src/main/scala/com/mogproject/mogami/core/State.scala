@@ -68,7 +68,23 @@ case class State(turn: Player = BLACK,
   }
 
   override def toKifString: String = {
-    ???
+    def numberToJapanese(n: Int): String = n match {
+      case _ if 2 <= n && n <= 18 =>
+        Vector("二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八")(n - 2)
+      case _ => ""
+    }
+
+    val handString = Player.constructor.map(pl =>
+      hand.toSeq.sorted.collect {
+        case (p, n) if p.owner == pl && n != 0 => p.ptype.toJapaneseSimpleName + numberToJapanese(n)
+        case _ => ""
+      }.mkString)
+
+    Seq(
+      "後手の持駒：" + handString(1),
+      "",
+      "先手の持駒：" + handString(0)
+    ).mkString("\n")
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
