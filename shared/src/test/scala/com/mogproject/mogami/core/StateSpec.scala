@@ -256,6 +256,10 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     dataForTest(4).toKifString mustBe kifForTest(4)
     dataForTest(5).toKifString mustBe kifForTest(5)
   }
+  it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
+    State.parseKifString(st.toKifString) mustBe Some(st)
+  }
+
   "State#makeMove" must "make next state" in {
     State.HIRATE.makeMove(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)) mustBe Some(State(WHITE, Map(
       P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,

@@ -94,7 +94,7 @@ case class State(turn: Player = BLACK,
       }.mkString("\n"),
       "+---------------------------+",
       "先手の持駒：" + handString(0)
-    ) ++ turn.isBlack.fold(Seq.empty, Seq("後手番"))).mkString("\n")
+    ) ++ turn.isBlack.fold(Seq.empty, Seq(WHITE.toKifString))).mkString("\n")
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
@@ -310,7 +310,7 @@ case class State(turn: Player = BLACK,
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
 }
 
-object State extends CsaStateReader with SfenStateReader {
+object State extends CsaStateReader with SfenStateReader with KifStateReader {
 
   type BoardType = Map[Square, Piece]
   type HandType = Map[Hand, Int]

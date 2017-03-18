@@ -61,12 +61,12 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   )
 
   val csaTable: Seq[String] = Seq(
-    "", "", "TO", "NY", "NK", "NG", "UM", "RY",
+    "N/A", "N/A", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"
   )
 
   val kifTable: Seq[String] = Seq(
-    "", "", "と", "成香", "成桂", "成銀", "馬", "竜",
+    "N/A", "N/A", "と", "成香", "成桂", "成銀", "馬", "竜",
     "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
