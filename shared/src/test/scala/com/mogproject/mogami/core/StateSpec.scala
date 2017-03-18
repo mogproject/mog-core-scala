@@ -115,7 +115,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
 
   val kifForTest = Seq(
     Seq(
-      "後手の持駒：　",
+      "後手の持駒：なし",
       "  ９ ８ ７ ６ ５ ４ ３ ２ １",
       "+---------------------------+",
       "|v香v桂v銀v金v玉v金v銀v桂v香|一",
@@ -128,10 +128,10 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "| ・ 角 ・ ・ ・ ・ ・ 飛 ・|八",
       "| 香 桂 銀 金 玉 金 銀 桂 香|九",
       "+---------------------------+",
-      "先手の持駒：　"
+      "先手の持駒：なし"
     ),
     Seq(
-      "後手の持駒：　",
+      "後手の持駒：なし",
       "  ９ ８ ７ ６ ５ ４ ３ ２ １",
       "+---------------------------+",
       "| ・ ・ ・ ・ ・ ・ ・ ・ ・|一",
@@ -144,7 +144,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "| ・ ・ ・ ・ ・ ・ ・ ・ ・|八",
       "| ・ ・ ・ ・ ・ ・ ・ ・ ・|九",
       "+---------------------------+",
-      "先手の持駒：　"
+      "先手の持駒：なし"
     ),
     Seq(
       "後手の持駒：飛　歩　",
@@ -164,7 +164,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "後手番"
     ),
     Seq(
-      "後手の持駒：　",
+      "後手の持駒：なし",
       "  ９ ８ ７ ６ ５ ４ ３ ２ １",
       "+---------------------------+",
       "|v杏v圭v全v金v玉v金v全v圭v杏|一",
@@ -177,10 +177,10 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "| ・ 馬 ・ ・ ・ ・ ・ 竜 ・|八",
       "| 杏 圭 全 金 玉 金 全 圭 杏|九",
       "+---------------------------+",
-      "先手の持駒：　"
+      "先手の持駒：なし"
     ),
     Seq(
-      "後手の持駒：　",
+      "後手の持駒：なし",
       "  ９ ８ ７ ６ ５ ４ ３ ２ １",
       "+---------------------------+",
       "| ・ ・ ・ ・v玉 ・ ・ ・ ・|一",
@@ -209,7 +209,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "| ・ ・ ・ ・ ・ ・ ・ ・ ・|八",
       "| ・ ・ ・ ・ 玉 ・ ・ ・ ・|九",
       "+---------------------------+",
-      "先手の持駒：　",
+      "先手の持駒：なし",
       "後手番"
     )
   ).map(_.mkString("\n"))

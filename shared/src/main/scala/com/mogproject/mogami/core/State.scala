@@ -74,11 +74,14 @@ case class State(turn: Player = BLACK,
   }
 
   override def toKifString: String = {
-    val handString = Player.constructor.map(pl =>
-      hand.toSeq.sorted.flatMap {
-        case (p, n) if p.owner == pl && n != 0 => Seq(p.ptype.toJapaneseSimpleName + (n >= 2).fold(numberToJapanese(n), ""))
+    val handString = Player.constructor.map(pl => {
+      val xs = hand.toSeq.sorted.flatMap {
+        case (p, n) if p.owner == pl && n != 0 =>
+          Seq(p.ptype.toJapaneseSimpleName + (n >= 2).fold(numberToJapanese(n), "") + "　")
         case _ => Seq()
-      }.mkString("", "　", "　"))
+      }
+      xs.isEmpty.fold("なし", xs.mkString(""))
+    })
 
     (Seq(
       "後手の持駒：" + handString(1),
