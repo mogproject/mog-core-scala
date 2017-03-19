@@ -14,7 +14,7 @@ class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   val englishNames = Seq(
     "K", "G", "P", "N", "S", "L", "B", "R", "+P", "+N", "+S", "+L", "+B", "+R")
   val japaneseNames = Seq(
-    "玉", "金", "歩", "桂", "銀", "香", "角", "飛", "と", "圭", "全", "杏", "馬", "竜")
+    "玉", "金", "歩", "桂", "銀", "香", "角", "飛", "と", "圭", "全", "杏", "馬", "龍")
   val promotedPtypes = Seq(
     KING, GOLD, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK)
   val demotedPtypes = Seq(

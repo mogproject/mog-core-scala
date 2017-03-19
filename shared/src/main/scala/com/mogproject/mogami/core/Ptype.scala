@@ -12,6 +12,8 @@ sealed abstract class Ptype(val id: Int) extends CsaLike with KifLike {
 
   override def toKifString: String = Ptype.kifTable(id)
 
+  def toJapaneseNotationString: String = Ptype.japaneseNotationTable(id)
+
   final def isBasic: Boolean = 8 <= id
 
   final def isPromoted: Boolean = id < 8
@@ -66,6 +68,12 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   )
 
   val kifTable: Seq[String] = Seq(
+    "N/A", "N/A", "と", "成香", "成桂", "成銀", "馬", "龍",
+    "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
+  )
+
+  // 龍 -> 竜
+  val japaneseNotationTable: Seq[String] = Seq(
     "N/A", "N/A", "と", "成香", "成桂", "成銀", "馬", "竜",
     "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
@@ -76,7 +84,7 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   )
 
   val japaneseSimpleNames: Seq[String] = Seq(
-    "", "", "と", "杏", "圭", "全", "馬", "竜",
+    "", "", "と", "杏", "圭", "全", "馬", "龍",
     "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
@@ -92,13 +100,6 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   def apply(id: Int): Ptype = {
     assert(2 <= id && id < 16, s"Invalid id: ${id}")
     constructor(id - 2)
-  }
-
-  override def parseKifString(s: String): Option[Ptype] = {
-    if (s == "龍")
-      Some(PROOK)
-    else
-      super.parseKifString(s)
   }
 
   case object PPAWN extends Ptype(2)
