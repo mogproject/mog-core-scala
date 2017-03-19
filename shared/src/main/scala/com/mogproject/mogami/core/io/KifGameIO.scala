@@ -6,7 +6,7 @@ import com.mogproject.mogami.core.{Game, GameInfo, State, StateConstant}
 /**
   * Common interface for Kif format
   */
-trait KifGameInterface {
+trait KifGameIO {
   protected val presetStates: Map[String, State] = Map(
     "平手" -> StateConstant.HIRATE,
     "香落ち" -> StateConstant.HANDICAP_LANCE,
@@ -32,7 +32,7 @@ trait KifGameInterface {
 /**
   * Writes Kif-formatted game
   */
-trait KifGameWriter extends KifGameInterface with KifLike {
+trait KifGameWriter extends KifGameIO with KifLike {
   def initialState: State
 
   def moves: Vector[Move]
@@ -64,7 +64,7 @@ trait KifGameWriter extends KifGameInterface with KifLike {
 /**
   * Reads Kif-formatted game
   */
-trait KifGameReader extends KifGameInterface with KifFactory[Game] {
+trait KifGameReader extends KifGameIO with KifFactory[Game] {
   override def parseKifString(s: String): Option[Game] = {
     def getPresetState(ls: Seq[String]): Option[State] =
       ls.withFilter(_.startsWith("手合割：")).flatMap(ss => presetStates.get(ss.drop(4))).headOption

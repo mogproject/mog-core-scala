@@ -2,7 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.MoveBuilder
+import com.mogproject.mogami.core.move.{Move => _, MoveBuilderCsa => _, _}
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -15,6 +15,7 @@ case class Game(initialState: State = State.HIRATE,
                 moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
+                finalAction: Option[SpecialMove] = None,
                 givenHistory: Option[Vector[State]] = None
                ) extends CsaLike with SfenLike with KifGameWriter {
 
@@ -28,7 +29,8 @@ case class Game(initialState: State = State.HIRATE,
       initialState == that.initialState &&
         moves == that.moves &&
         gameInfo == that.gameInfo &&
-        movesOffset == that.movesOffset
+        movesOffset == that.movesOffset &&
+        finalAction == that.finalAction
     case _ => false
   }
 
@@ -85,34 +87,7 @@ case class Game(initialState: State = State.HIRATE,
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
 }
 
-object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
-  override def parseCsaString(s: String): Option[Game] = {
-    def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
-
-    def concatMoveLines(lines: List[String]): List[String] = {
-      @tailrec
-      def f(ss: List[String], latest: String, sofar: List[String]): List[String] = (ss, latest.isEmpty) match {
-        case (x :: xs, true) => f(xs, x, sofar)
-        case (x :: xs, false) if x.startsWith("T") => f(xs, "", s"${latest},${x}" :: sofar)
-        case (x :: xs, false) => f(xs, x, latest :: sofar)
-        case (Nil, true) => sofar.reverse
-        case (Nil, false) => (latest :: sofar).reverse
-      }
-
-      f(lines, "", Nil)
-    }
-
-    for {
-      xs <- Some(s.split("[,\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
-      (a, ys) = xs.span(!isStateText(_))
-      (b, c) = ys.span(isStateText)
-      gi <- GameInfo.parseCsaString(a)
-      st <- State.parseCsaString(b)
-      lines = concatMoveLines(c.toList)
-      moves = lines.flatMap(s => move.MoveBuilderCsa.parseCsaString(s)) if moves.length == lines.length
-      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
-    } yield game
-  }
+object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
   override def parseSfenString(s: String): Option[Game] = {
     val tokens = s.split(" ")

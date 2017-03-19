@@ -1,8 +1,8 @@
 package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.util.Implicits._
 
 
@@ -18,16 +18,35 @@ case class Move(player: Player,
                 movement: Option[Movement], // None = no ambiguity
                 captured: Option[Ptype],
                 isCheck: Boolean,
-                elapsedTime: Option[Int] = None
+                elapsedTime: Option[Int] = None,
+                isStrict: Boolean = true // enable strict requirement check
                ) extends CsaLike with SfenLike with KifLike {
-  require(!isDrop || !promote, "promote must be false when dropping")
-  require(!isDrop || captured.isEmpty, "captured must be None when dropping")
-  require(from.exists(_.isPromotionZone(player)) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
-  require(from.map(_.getDisplacement(player, to)).forall(oldPtype.canMoveTo), "move must be within the capability")
-  require(to.isLegalZone(newPiece), "to must be legal for the new piece")
-  require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
-  require(!captured.contains(KING), "king cannot be captured")
-  require(oldPtype != PAWN || movement.isEmpty, "pawn cannot be ambiguous")
+  if (isStrict) {
+    require(!isDrop || !promote, "promote must be false when dropping")
+    require(!isDrop || captured.isEmpty, "captured must be None when dropping")
+    require(from.exists(_.isPromotionZone(player)) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
+    require(from.map(_.getDisplacement(player, to)).forall(oldPtype.canMoveTo), "move must be within the capability")
+    require(to.isLegalZone(newPiece), "to must be legal for the new piece")
+    require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
+    require(!captured.contains(KING), "king cannot be captured")
+    require(oldPtype != PAWN || movement.isEmpty, "pawn cannot be ambiguous")
+  }
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that: Move =>
+      // ignore isStrict
+      player == that.player &&
+        from == that.from &&
+        to == that.to &&
+        newPtype == that.newPtype &&
+        promote == that.promote &&
+        isSameSquare == that.isSameSquare &&
+        movement == that.movement &&
+        captured == that.captured &&
+        isCheck == that.isCheck &&
+        elapsedTime == that.elapsedTime
+    case _ => false
+  }
 
   def oldPtype: Ptype = if (promote) newPtype.demoted else newPtype
 

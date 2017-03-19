@@ -4,15 +4,13 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.io.{KifFactory, KifLike}
 import com.mogproject.mogami.util.Implicits._
 
-import scala.util.{Success, Try}
 import scala.util.matching.Regex
+import scala.util.{Success, Try}
 
 /**
   *
   */
-sealed trait MoveBuilderKif extends MoveBuilder with KifLike {
-  protected def timeToKifString(time: Option[Int]): String = time.map(t => f" (${t / 60}%02d:${t % 60}%02d/)").getOrElse("")
-}
+sealed trait MoveBuilderKif extends MoveBuilder with KifLike
 
 
 object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
@@ -55,7 +53,7 @@ case class MoveBuilderKifBoard(from: Square, to: Option[Square], oldPtype: Ptype
   override def toKifString: String =
     to.map(_.toKifString).getOrElse("同　") + oldPtype.toKifString + promote.fold("成", "") + s"(${from.toCsaString})${timeToKifString(elapsedTime)}"
 
-  override def toMove(state: State): Option[Move] =
+  override def toMove(state: State, isStrict: Boolean = true): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       newPtype = promote.fold(oldPiece.ptype.promoted, oldPiece.ptype)
@@ -67,18 +65,18 @@ case class MoveBuilderKifBoard(from: Square, to: Option[Square], oldPtype: Ptype
       isCheck = isCheckMove(state, Some(from), moveTo, newPtype)
       movement = getMovement(state, Some(from), moveTo, oldPiece.ptype)
       captured = state.board.get(moveTo).map(_.ptype)
-      mv <- Try(Move(state.turn, Some(from), moveTo, newPtype, promote, isSame, movement, captured, isCheck, elapsedTime)).toOption
+      mv <- Try(Move(state.turn, Some(from), moveTo, newPtype, promote, isSame, movement, captured, isCheck, elapsedTime, isStrict)).toOption
     } yield mv
 }
 
 case class MoveBuilderKifHand(to: Square, ptype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderKif {
   override def toKifString: String = s"${to.toKifString}${ptype.toKifString}打${timeToKifString(elapsedTime)}"
 
-  override def toMove(state: State): Option[Move] = {
+  override def toMove(state: State, isStrict: Boolean = true): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     val movement = getMovement(state, None, to, ptype)
     for {
-      mv <- Try(Move(state.turn, None, to, ptype, promote = false, isSameSquare = false, movement, captured = None, isCheck, elapsedTime)).toOption
+      mv <- Try(Move(state.turn, None, to, ptype, promote = false, isSameSquare = false, movement, captured = None, isCheck, elapsedTime, isStrict)).toOption
     } yield mv
   }
 }

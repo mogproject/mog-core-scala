@@ -49,26 +49,26 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] {
 case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) extends MoveBuilderSfen {
   override def toSfenString: String = s"${from.toSfenString}${to.toSfenString}${promote.fold("+", "")}"
 
-  override def toMove(state: State): Option[Move] =
+  override def toMove(state: State, isStrict: Boolean = true): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       newPtype = promote.fold(oldPiece.ptype.promoted, oldPiece.ptype)
       isSame = state.lastMoveTo.contains(to)
       isCheck = isCheckMove(state, Some(from), to, newPtype)
       movement = getMovement(state, Some(from), to, oldPiece.ptype)
-      captured = state.board.get(to).map(_.ptype)
-      mv <- Try(Move(state.turn, Some(from), to, newPtype, promote, isSame, movement, captured, isCheck, None)).toOption
+      captured = state.board.get(to).map(_.ptype).filter(_ != KING)
+      mv <- Try(Move(state.turn, Some(from), to, newPtype, promote, isSame, movement, captured, isCheck, None, isStrict)).toOption
     } yield mv
 }
 
 case class MoveBuilderSfenHand(ptype: Ptype, to: Square) extends MoveBuilderSfen {
   override def toSfenString: String = s"${Piece(Player.BLACK, ptype).toSfenString}*${to.toSfenString}"
 
-  override def toMove(state: State): Option[Move] = {
+  override def toMove(state: State, isStrict: Boolean = true): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     val movement = getMovement(state, None, to, ptype)
     for {
-      mv <- Try(Move(state.turn, None, to, ptype, promote = false, isSameSquare = false, movement, None, isCheck, None)).toOption
+      mv <- Try(Move(state.turn, None, to, ptype, promote = false, isSameSquare = false, movement, None, isCheck, None, isStrict)).toOption
     } yield mv
   }
 }
