@@ -16,7 +16,7 @@ case class Game(initialState: State = State.HIRATE,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 givenHistory: Option[Vector[State]] = None
-               ) extends CsaLike with SfenLike {
+               ) extends CsaLike with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
@@ -145,6 +145,19 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
       case _ => Nil
     } mkString "\n"
   }
+
+  // todo: impl toKifString
+  /*
+  example:
+
+#KIF version=2.0 encoding=UTF-8
+開始日時：2017/03/13
+場所：81Dojo (ver.2016/03/20)
+持ち時間：15分+60秒
+手合割：平手
+先手：black
+後手：white
+   */
 }
 
 object GameInfo extends CsaFactory[GameInfo] {

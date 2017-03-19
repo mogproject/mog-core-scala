@@ -4,26 +4,18 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.core.StateConstant._
 import com.mogproject.mogami.core.Game.GameStatus._
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
-  val stateHirate = State(BLACK, Map(
-    P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
-    P22 -> WB, P82 -> WR,
-    P13 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
-    P17 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
-    P28 -> BR, P88 -> BB,
-    P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-  ), State.EMPTY_HANDS)
-  val stateHirateInv = State(WHITE, stateHirate.board, stateHirate.hand)
+  val stateHirateInv = State(WHITE, HIRATE.board, HIRATE.hand)
   val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
   val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
 
   val dataForTest = Seq(
     Game(stateEmpty, Vector(), GameInfo()),
-    Game(stateHirate, Vector(
+    Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)
     ), GameInfo(
       Map(
@@ -37,7 +29,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'timeLimit -> "00:25+00",
         'opening -> "YAGURA"
       ))),
-    Game(stateHirate, Vector(
+    Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(50)),
       Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, Some(1)),
       Move(BLACK, Some(P88), P22, PBISHOP, true, false, None, Some(BISHOP), false, Some(12)),
@@ -104,6 +96,41 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     "9/9/9/9/9/9/9/9/9 b - 0",
     "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f",
     "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f 3c3d 8h2b+ 3a2b B*3c 5a6b 3c5e+"
+  )
+  val kifForTest = Seq(
+    """後手：
+      |後手の持駒：なし
+      |  ９ ８ ７ ６ ５ ４ ３ ２ １
+      |+---------------------------+
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|一
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|二
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|三
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|四
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|五
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|六
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|七
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|八
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|九
+      |+---------------------------+
+      |先手：
+      |先手の持駒：なし
+      |手数----指手----消費時間--""".stripMargin,
+    """手合割：平手
+      |先手：NAKAHARA
+      |後手：YONENAGA
+      |手数----指手----消費時間--
+      |   1 ７六歩(77)""".stripMargin,
+    """手合割：平手
+      |先手：B
+      |後手：W
+      |手数----指手----消費時間--
+      |   1 ７六歩(77) (00:50/)
+      |   2 ３四歩(33) (00:01/)
+      |   3 ２二角成(88) (00:12/)
+      |   4 同　銀(31) (01:40/)
+      |   5 ３三角打 (00:10/)
+      |   6 ６二玉(51) (00:02/)
+      |   7 ５五角成(33) (00:03/)""".stripMargin
   )
 
   "Game#toCsaString" must "describe some games" in {
@@ -203,6 +230,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val s = g.toSfenString
     Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
+  }
+
+  "Game#toKifString" must "describe some games" in {
+    dataForTest.map(_.toKifString) zip kifForTest foreach { case (a, b) => a must be(b) }
   }
 
   "Game#status" must "return Playing when playing" in {

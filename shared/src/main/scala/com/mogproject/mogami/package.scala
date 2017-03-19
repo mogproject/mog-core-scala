@@ -59,5 +59,8 @@ package object mogami {
   type Game = com.mogproject.mogami.core.Game
   val Game = com.mogproject.mogami.core.Game
 
+  type GameInfo = com.mogproject.mogami.core.GameInfo
+  val GameInfo = com.mogproject.mogami.core.GameInfo
+
 }
 

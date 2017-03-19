@@ -49,13 +49,6 @@ class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Player.parseSfenString("x" * 1000) must be(None)
   }
 
-  "Player#parseKifString" must "make player" in {
-    Player.parseKifString("") must be(Some(BLACK))
-    Player.parseKifString("後手番") must be(Some(WHITE))
-    Player.parseKifString(" ") must be(None)
-    Player.parseKifString("x" * 1000) must be(None)
-  }
-
   "Player#unary_!" must "change the player" in {
     !BLACK must be(WHITE)
     !WHITE must be(BLACK)

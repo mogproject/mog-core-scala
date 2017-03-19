@@ -5,7 +5,7 @@ import com.mogproject.mogami.core.io._
 /**
   * Player
   */
-sealed abstract class Player(val id: Int) extends CsaLike with SfenLike with KifLike {
+sealed abstract class Player(val id: Int) extends CsaLike with SfenLike {
   def unary_! : Player = Player(id ^ 1)
 
   def isBlack: Boolean = id == 0
@@ -16,19 +16,15 @@ sealed abstract class Player(val id: Int) extends CsaLike with SfenLike with Kif
 
   override def toSfenString: String = Player.sfenTable(id)
 
-  override def toKifString: String = Player.kifTable(id)
-
   def toSymbolString: String = Player.symbolTable(id)
 }
 
-object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] with KifTableFactory[Player] {
+object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
   implicit def ordering[A <: Player]: Ordering[A] = Ordering.by(_.id)
 
   override val csaTable: Seq[String] = Seq("+", "-")
 
   override val sfenTable: Seq[String] = Seq("b", "w")
-
-  override val kifTable: Seq[String] = Seq("", "後手番")
 
   val symbolTable = Seq("☗", "☖")
 

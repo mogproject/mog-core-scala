@@ -23,7 +23,7 @@ lazy val mogCore = crossProject.in(file("."))
   .jvmSettings(
     initialCommands in console in Test :=
       """
-      import com.mogproject.mogami.core._
+      import com.mogproject.mogami._
       import com.mogproject.mogami.core.Player.{BLACK, WHITE}
       import com.mogproject.mogami.core.Ptype._
       import com.mogproject.mogami.core.SquareConstant._

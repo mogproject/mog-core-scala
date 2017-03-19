@@ -25,6 +25,7 @@ trait KifStateReader extends KifFactory[State] {
       case _ => None
     }
   }
+
   protected[io] def parseHandExpression(s: String, player: Player): Option[HandType] = {
     def f(h: String): Option[(Hand, Int)] = {
       (Ptype.parseKifString(h.take(1)), parseNumber(h.drop(1), 1)) match {
@@ -76,13 +77,14 @@ trait KifStateReader extends KifFactory[State] {
       (ss, sofar) match {
         case (x :: xs, Some((b, h))) if x.slice(1, 6) == "手の持駒：" =>
           // todo: more strict check?
-          parseHandExpression(x.drop(6), x.headOption.contains('先').fold(BLACK, WHITE)) match {
+          parseHandExpression(x.drop(6), x.headOption.exists(Seq('先', '下').contains).fold(BLACK, WHITE)) match {
             case Some(hh) => f(xs, Some((b, h ++ hh)))
             case None => None
           }
         case (xs, Some((b, h))) if xs.length <= 1 => // Turn to move should be written in the last line
-          Player.parseKifString(xs.mkString("")) flatMap { t =>
-            Try(State(t, b, h)).toOption }
+          Map("" -> BLACK, "後手番" -> WHITE, "上手番" -> WHITE).get(xs.mkString) flatMap { t =>
+            Try(State(t, b, h)).toOption
+          }
         case (x :: _, Some((_, h))) if x == "  ９ ８ ７ ６ ５ ４ ３ ２ １" =>
           parseBoardExpression(ss.take(12)) match {
             case Some(b) => f(ss.drop(12), Some(b, h))

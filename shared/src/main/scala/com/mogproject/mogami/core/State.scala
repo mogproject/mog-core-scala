@@ -83,6 +83,7 @@ case class State(turn: Player = BLACK,
       xs.isEmpty.fold("なし", xs.mkString(""))
     })
 
+    // todo: 上手/下手
     (Seq(
       "後手の持駒：" + handString(1),
       "  ９ ８ ７ ６ ５ ４ ３ ２ １",
@@ -94,7 +95,7 @@ case class State(turn: Player = BLACK,
       }.mkString("\n"),
       "+---------------------------+",
       "先手の持駒：" + handString(0)
-    ) ++ turn.isBlack.fold(Seq.empty, Seq(WHITE.toKifString))).mkString("\n")
+    ) ++ turn.isBlack.fold(Seq.empty, Seq("後手番"))).mkString("\n")
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
