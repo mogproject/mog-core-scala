@@ -50,6 +50,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
     f(lines, "", Nil)
   }
 
+  // todo: refactor w/ KifGameIO
   @tailrec
   final protected[io] def parseMovesCsa(chunks: List[String], pending: Option[Move], sofar: Option[Game]): Option[Game] = (chunks, pending, sofar) match {
     case (x :: Nil, None, Some(g)) if x.startsWith("%") => // ends with a special move
@@ -69,9 +70,9 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
     case (Nil, None, Some(g)) => sofar // ends without errors
     case (x :: xs, None, Some(g)) => MoveBuilderCsa.parseCsaString(x) match {
       case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {
-        case Some(mv) => g.makeMove(mv) match {
-          case Some(gg) => parseMovesCsa(xs, None, Some(gg))
-          case None => parseMovesCsa(xs, Some(mv), sofar)
+        case Some(mv) => mv.verify.flatMap(g.makeMove) match {
+          case Some(gg) => parseMovesCsa(xs, None, Some(gg)) // legal move
+          case None => parseMovesCsa(xs, Some(mv), sofar) // illegal move
         }
         case None => None // failed to create Move
       }

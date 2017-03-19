@@ -3,6 +3,7 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -46,6 +47,7 @@ case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtyp
       captured = state.board.get(to).map(_.ptype).filter(_ != KING)
       mv <- Try(Move(player, Some(from), to, newPtype, promote, isSame, movement, captured, isCheck, elapsedTime, isStrict)).toOption
       if player == state.turn
+      if oldPiece.ptype == promote.fold(newPtype.demoted, newPtype)
     } yield mv
 }
 

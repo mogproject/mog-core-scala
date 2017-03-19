@@ -5,6 +5,8 @@ import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.util.Implicits._
 
+import scala.util.Try
+
 
 /**
   * Move with complete information
@@ -21,7 +23,9 @@ case class Move(player: Player,
                 elapsedTime: Option[Int] = None,
                 isStrict: Boolean = true // enable strict requirement check
                ) extends CsaLike with SfenLike with KifLike {
-  if (isStrict) {
+  if (isStrict) checkRequirement()
+
+  def checkRequirement(): Unit = {
     require(!isDrop || !promote, "promote must be false when dropping")
     require(!isDrop || captured.isEmpty, "captured must be None when dropping")
     require(from.exists(_.isPromotionZone(player)) || to.isPromotionZone(player) || !promote, "either from or to must be in the promotion zone")
@@ -86,4 +90,6 @@ case class Move(player: Player,
     val promotionStatus = promote.fold("+", couldPromote.fold("=", ""))
     s"${oldPtype.toEnglishSimpleName}${origin}${movementType}${to.toSfenString}${promotionStatus}"
   }
+
+  def verify: Option[Move] = if (Try(checkRequirement()).isSuccess) Some(copy(isStrict = true)) else None
 }

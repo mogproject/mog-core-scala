@@ -27,7 +27,7 @@ object Resign {
 }
 
 case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
-  override def toCsaString: String = TimeUp.csaKeyword
+  override def toCsaString: String = TimeUp.csaKeyword + timeToCsaString(elapsedTime)
 
   override def toKifString: String = TimeUp.kifKeyword + timeToKifString(elapsedTime)
 }

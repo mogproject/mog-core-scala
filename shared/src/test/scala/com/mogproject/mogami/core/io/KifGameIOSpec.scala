@@ -12,6 +12,26 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
 
   object TestKifGameReader extends KifGameReader
 
+  val hirateState = Seq(
+    "手合割：平手",
+    "先手：",
+    "後手：",
+    "手数----指手----消費時間--"
+  )
+
+  "KifGameWriter#toKifString" must "describe special moves" in {
+    Game(HIRATE, finalAction = Some(Resign())).toKifString mustBe (hirateState ++ Seq("   1 投了")).mkString("\n")
+    Game(HIRATE, finalAction = Some(Resign(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 投了 (02:03/)")).mkString("\n")
+    Game(HIRATE, finalAction = Some(TimeUp())).toKifString mustBe (hirateState ++ Seq("   1 切れ負け")).mkString("\n")
+    Game(HIRATE, finalAction = Some(TimeUp(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 切れ負け (02:03/)")).mkString("\n")
+    Game(HIRATE, finalAction = Some(IllegalMove(
+      Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)
+    ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59)", "   2 反則手")).mkString("\n")
+    Game(HIRATE, finalAction = Some(IllegalMove(
+      Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)
+    ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59) (02:03/)", "   2 反則手")).mkString("\n")
+  }
+
   "KifGameReader#parseMovesKif" must "parse normal moves" in {
     TestKifGameReader.parseMovesKif(List(), None, Some(Game())) mustBe Some(Game())
 

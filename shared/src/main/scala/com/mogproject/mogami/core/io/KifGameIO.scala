@@ -44,6 +44,8 @@ trait KifGameWriter extends KifGameIO with KifLike {
 
   def movesOffset: Int
 
+  def finalAction: Option[SpecialMove]
+
   override def toKifString: String = {
     // todo: add 上手/下手
     val blackName = s"先手：${gameInfo.tags.getOrElse('blackName, "")}"
@@ -56,8 +58,9 @@ trait KifGameWriter extends KifGameIO with KifLike {
       (whiteName +: ss.take(13)) ++ (blackName +: ss.drop(13))
     }
 
-    val body = "手数----指手----消費時間--" +: moves.zipWithIndex.map { case (m, n) =>
-      f"${n + movesOffset + 1}%4d ${m.toKifString}"
+    val ms = moves.map(_.toKifString) ++ finalAction.toList.flatMap(_.toKifString.split('\n'))
+    val body = "手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
+      f"${n + movesOffset + 1}%4d ${m}"
     }
 
     (header ++ body).mkString("\n")
@@ -100,7 +103,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] {
     case (Nil, None, Some(g)) => sofar // ends without errors
     case (x :: xs, None, Some(g)) => MoveBuilderKif.parseKifString(x) match {
       case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {
-        case Some(mv) => g.makeMove(mv) match {
+        case Some(mv) => mv.verify.flatMap(g.makeMove) match {
           case Some(gg) => parseMovesKif(xs, None, Some(gg)) // read the next line
           case None => parseMovesKif(xs, Some(mv), sofar)
         }
