@@ -15,8 +15,8 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     "+p", "+l", "+n", "+s", "+b", "+r", "k", "g", "p", "l", "n", "s", "b", "r"
   )
   val kifPieces: Seq[String] = Seq(
-    " と", " 杏", " 圭", " 全", " 馬", " 竜", " 玉", " 金", " 歩", " 香", " 桂", " 銀", " 角", " 飛",
-    "vと", "v杏", "v圭", "v全", "v馬", "v竜", "v玉", "v金", "v歩", "v香", "v桂", "v銀", "v角", "v飛"
+    " と", " 杏", " 圭", " 全", " 馬", " 龍", " 玉", " 金", " 歩", " 香", " 桂", " 銀", " 角", " 飛",
+    "vと", "v杏", "v圭", "v全", "v馬", "v龍", "v玉", "v金", "v歩", "v香", "v桂", "v銀", "v角", "v飛"
   )
 
   "Piece#parseCsaString" must "succeed in normal cases" in {

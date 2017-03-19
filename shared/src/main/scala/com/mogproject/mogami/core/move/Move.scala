@@ -59,7 +59,7 @@ case class Move(player: Player,
       .getOrElse(MoveBuilderKifHand(to, oldPtype, elapsedTime)).toKifString
 
   def toJapaneseNotationString: String =
-    isSameSquare.fold("同", to.toKifString) + oldPtype.toKifString + movement.map(_.kifString).getOrElse("") + promote.fold("成", couldPromote.fold("不成", ""))
+    isSameSquare.fold("同", to.toKifString) + oldPtype.toJapaneseNotationString + movement.map(_.kifString).getOrElse("") + promote.fold("成", couldPromote.fold("不成", ""))
 
   def toWesternNotationString: String = {
     val movementType = isDrop.fold("*", hasCapture.fold("x", "-"))
