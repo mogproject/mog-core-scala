@@ -2,7 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.MoveBuilder
+import com.mogproject.mogami.core.move.{Move => _, MoveBuilderCsa => _, _}
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -12,11 +12,12 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Vector[move.Move] = Vector.empty,
+                moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
+                finalAction: Option[SpecialMove] = None,
                 givenHistory: Option[Vector[State]] = None
-               ) extends CsaLike with SfenLike with KifGameWriter {
+               ) extends CsaGameWriter with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
@@ -25,7 +26,11 @@ case class Game(initialState: State = State.HIRATE,
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: Game =>
       // ignore givenHistory
-      initialState == that.initialState && moves == that.moves && gameInfo == that.gameInfo && movesOffset == that.movesOffset
+      initialState == that.initialState &&
+        moves == that.moves &&
+        gameInfo == that.gameInfo &&
+        movesOffset == that.movesOffset &&
+        finalAction == that.finalAction
     case _ => false
   }
 
@@ -47,7 +52,12 @@ case class Game(initialState: State = State.HIRATE,
     } else if (isRepetition) {
       Drawn // Sennichite
     } else {
-      Playing
+      finalAction match {
+        case Some(IllegalMove(_)) => IllegallyMoved
+        case Some(Resign(_)) => Resigned
+        case Some(TimeUp(_)) => TimedUp
+        case _ => Playing
+      }
     }
   }
 
@@ -66,9 +76,6 @@ case class Game(initialState: State = State.HIRATE,
 
   def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)
 
-  override def toCsaString: String =
-    (gameInfo :: initialState :: moves.toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
-
   override def toSfenString: String = (initialState.toSfenString :: movesOffset.toString :: moves.map(_.toSfenString).toList).mkString(" ")
 
   /**
@@ -82,20 +89,7 @@ case class Game(initialState: State = State.HIRATE,
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
 }
 
-object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
-  override def parseCsaString(s: String): Option[Game] = {
-    def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
-
-    for {
-      xs <- Some(s.split("[;\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
-      (a, ys) = xs.span(!isStateText(_))
-      (b, c) = ys.span(isStateText)
-      gi <- GameInfo.parseCsaString(a)
-      st <- State.parseCsaString(b)
-      moves = c.flatMap(s => move.MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
-      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
-    } yield game
-  }
+object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
   override def parseSfenString(s: String): Option[Game] = {
     val tokens = s.split(" ")
@@ -123,6 +117,11 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
 
     case object Drawn extends GameStatus
 
+    case object TimedUp extends GameStatus
+
+    case object IllegallyMoved extends GameStatus
+
+    case object Resigned extends GameStatus
   }
 
 }
@@ -151,7 +150,8 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
   example:
 
 #KIF version=2.0 encoding=UTF-8
-開始日時：2017/03/13
+開始日時：2017/03/13 ??:??
+終了日時：2017/03/13 ??:??
 場所：81Dojo (ver.2016/03/20)
 持ち時間：15分+60秒
 手合割：平手

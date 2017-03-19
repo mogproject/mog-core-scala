@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core
 
-import com.mogproject.mogami.core.move.Move
+import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
 import org.scalacheck.Gen
 
 /**
@@ -12,9 +12,11 @@ object GameGen {
     gameInfo <- GameInfoGen.infos
     state <- StateGen.statesWithFullPieces
     n <- Gen.choose(0, 50)
+    finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
   } yield {
     val moves = movesStream(state).take(n)
-    Game(state, moves.toVector, gameInfo)
+    val g = Game(state, moves.toVector, gameInfo)
+    if (g.currentState.isMated) g else g.copy(finalAction = finalAction)
   }
 
   private[this] def movesStream(initState: State): Stream[Move] = {

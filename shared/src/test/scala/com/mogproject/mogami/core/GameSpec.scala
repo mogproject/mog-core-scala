@@ -4,6 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.Game.GameStatus._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.StateConstant._
+import com.mogproject.mogami.core.move.Resign
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -157,7 +158,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
-      "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+      "-\n-5152OU\nT2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo(Map('whiteName -> "yyy")))))
@@ -207,10 +208,15 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
   it must "ignore comments" in {
-    Game.parseCsaString("PI;-;'comment;-5152OU,T2345\n'comment\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI,-,'comment,-5152OU,T2345,'comment,+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo())))
+  }
+  it must "parse special moves" in {
+    Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe Some(Game(HIRATE, Vector(
+      Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
+    ), finalAction = Some(Resign(Some(3)))))
   }
 
   "Game#toSfenString" must "describe some games" in {
@@ -406,7 +412,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+2839OU,T12",
       "-5848KI,T8",
       "+3948OU,T12",
-      "-6958NG,T5"
+      "-6958NG,T5",
+      "%TORYO,T32"
     ))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
@@ -589,5 +596,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+3423GI",
       "-2111OU"
     )).get.status mustBe Drawn
+  }
+  it must "tell special moves" in {
+    Game.parseCsaString("PI,+,+7776FU,%TORYO").get.status mustBe Resigned
+    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").get.status mustBe TimedUp
+    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").get.status mustBe IllegallyMoved
   }
 }

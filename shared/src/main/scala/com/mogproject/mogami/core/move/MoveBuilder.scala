@@ -79,6 +79,6 @@ trait MoveBuilder {
 
   }
 
-  def toMove(state: State): Option[Move]
+  def toMove(state: State, isStrict: Boolean = true): Option[Move]
 }
 
