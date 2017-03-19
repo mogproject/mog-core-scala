@@ -1,11 +1,11 @@
 package com.mogproject.mogami.core
 
-import scala.annotation.tailrec
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.MoveBuilder
 import com.mogproject.mogami.util.Implicits._
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 /**
@@ -16,7 +16,7 @@ case class Game(initialState: State = State.HIRATE,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 givenHistory: Option[Vector[State]] = None
-               ) extends CsaLike with SfenLike {
+               ) extends CsaLike with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
@@ -82,12 +82,12 @@ case class Game(initialState: State = State.HIRATE,
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
 }
 
-object Game extends CsaFactory[Game] with SfenFactory[Game] {
+object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
   override def parseCsaString(s: String): Option[Game] = {
     def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
 
     for {
-      xs <- Some(s.split('\n').toList)
+      xs <- Some(s.split("[;\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
       (a, ys) = xs.span(!isStateText(_))
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)
@@ -145,6 +145,19 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
       case _ => Nil
     } mkString "\n"
   }
+
+  // todo: impl toKifString
+  /*
+  example:
+
+#KIF version=2.0 encoding=UTF-8
+開始日時：2017/03/13
+場所：81Dojo (ver.2016/03/20)
+持ち時間：15分+60秒
+手合割：平手
+先手：black
+後手：white
+   */
 }
 
 object GameInfo extends CsaFactory[GameInfo] {
@@ -160,6 +173,22 @@ object GameInfo extends CsaFactory[GameInfo] {
     }
 
     f(s.isEmpty.fold(List(), s.split('\n').toList), Some(GameInfo()))
+  }
+
+  def parseKifString(s: String): Option[GameInfo] = {
+    @tailrec
+    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
+      case (x :: xs, Some(gt)) =>
+        if (x.startsWith("先手：") || x.startsWith("下手："))
+          f(xs, Some(gt.updated('blackName, x.drop(3))))
+        else if (x.startsWith("後手：") || x.startsWith("上手："))
+          f(xs, Some(gt.updated('whiteName, x.drop(3))))
+        else // ignore other flags
+          f(xs, sofar)
+      case _ => sofar
+    }
+
+    f(s.split('\n').toList, Some(GameInfo()))
   }
 
   /** pairs of a symbol name and its csa-formatted string */

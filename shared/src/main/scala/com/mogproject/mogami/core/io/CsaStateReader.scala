@@ -69,6 +69,8 @@ trait CsaStateReader extends CsaFactory[State] {
         val pos = Square(file, rank)
         val p = Piece.parseCsaString(x)
         val pt = p.map(_.ptype.demoted)
+
+        // todo: use match syntax
         if (p.isDefined && rest.getOrElse(pt.get, 0) >= 1) {
           parseOneLine(Some((b.updated(pos, p.get), h, MapUtil.decrementMap(rest, pt.get))), xs, file - 1, rank)
         } else {

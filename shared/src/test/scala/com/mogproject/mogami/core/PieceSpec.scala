@@ -14,6 +14,10 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     "+P", "+L", "+N", "+S", "+B", "+R", "K", "G", "P", "L", "N", "S", "B", "R",
     "+p", "+l", "+n", "+s", "+b", "+r", "k", "g", "p", "l", "n", "s", "b", "r"
   )
+  val kifPieces: Seq[String] = Seq(
+    " と", " 杏", " 圭", " 全", " 馬", " 竜", " 玉", " 金", " 歩", " 香", " 桂", " 銀", " 角", " 飛",
+    "vと", "v杏", "v圭", "v全", "v馬", "v竜", "v玉", "v金", "v歩", "v香", "v桂", "v銀", "v角", "v飛"
+  )
 
   "Piece#parseCsaString" must "succeed in normal cases" in {
     csaPieces map { c => Piece.parseCsaString(c) } must be(allPieces map (Some(_)))
@@ -33,6 +37,9 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     Piece.parseCsaString(p.toCsaString) must be(Some(p))
   }
 
+  "Piece#toSfenString" must "describe in SFEN format" in {
+    allPieces map (_.toSfenString) must be(sfenPieces)
+  }
   "Piece#parseSfenString" must "succeed in normal cases" in {
     sfenPieces map { c => Piece.parseSfenString(c) } must be(allPieces map (Some(_)))
   }
@@ -44,11 +51,25 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     Piece.parseSfenString("-Fu") must be(None)
     Piece.parseSfenString("-FU+") must be(None)
   }
-  "Piece#toSfenString" must "describe in csa format" in {
-    allPieces map (_.toSfenString) must be(sfenPieces)
-  }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
     Piece.parseSfenString(p.toSfenString) must be(Some(p))
+  }
+  "Piece#toKifString" must "describe pieces in KIF format" in {
+    allPieces map (_.toKifString) mustBe kifPieces
+  }
+  "Piece#parseKifString" must "succeed in normal cases" in {
+    kifPieces map { c => Piece.parseKifString(c) } must be(allPieces map (Some(_)))
+  }
+  it must "return None in error cases" in {
+    Piece.parseKifString("") must be(None)
+    Piece.parseKifString(" ") must be(None)
+    Piece.parseKifString("x" * 1000) must be(None)
+    Piece.parseKifString("=FU") must be(None)
+    Piece.parseKifString("-Fu") must be(None)
+    Piece.parseKifString("-FU+") must be(None)
+  }
+  it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
+    Piece.parseKifString(p.toKifString) must be(Some(p))
   }
 
   "Piece#unary_!" must "flip the owner" in {

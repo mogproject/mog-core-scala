@@ -53,11 +53,17 @@ package object mogami {
   type MoveBuilderSfen = com.mogproject.mogami.core.move.MoveBuilderSfen
   val MoveBuilderSfen = com.mogproject.mogami.core.move.MoveBuilderSfen
 
+  type MoveBuilderKif = com.mogproject.mogami.core.move.MoveBuilderKif
+  val MoveBuilderKif = com.mogproject.mogami.core.move.MoveBuilderKif
+
   type Move = com.mogproject.mogami.core.move.Move
   val Move = com.mogproject.mogami.core.move.Move
 
   type Game = com.mogproject.mogami.core.Game
   val Game = com.mogproject.mogami.core.Game
+
+  type GameInfo = com.mogproject.mogami.core.GameInfo
+  val GameInfo = com.mogproject.mogami.core.GameInfo
 
 }
 

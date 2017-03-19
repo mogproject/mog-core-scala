@@ -3,8 +3,8 @@ package com.mogproject.mogami.core
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
-import com.mogproject.mogami.util.MapUtil
 import com.mogproject.mogami.util.Implicits._
+import com.mogproject.mogami.util.MapUtil
 
 import scala.util.Try
 
@@ -16,7 +16,7 @@ case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
                  lastMoveTo: Option[Square] = None
-                ) extends CsaLike with SfenLike {
+                ) extends CsaLike with SfenLike with KifLike {
 
   require(checkCapacity, "the number of pieces must be within the capacity")
   require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
@@ -25,7 +25,7 @@ case class State(turn: Player = BLACK,
   require(!isNifu, "two pawns cannot be in the same file")
 
   import com.mogproject.mogami.core.State.MoveFrom
-  import com.mogproject.mogami.core.State.PromotionFlag.{PromotionFlag, CannotPromote, CanPromote, MustPromote}
+  import com.mogproject.mogami.core.State.PromotionFlag.{CanPromote, CannotPromote, MustPromote, PromotionFlag}
 
   /**
     * Test if the board is Nifu.
@@ -65,6 +65,37 @@ case class State(turn: Player = BLACK,
     val handString = hand.filter(_._2 != 0).toSeq.sorted.map { case (p, n) => stringifyNumber(n, 1) + p.toPiece.toSfenString }.mkString
 
     s"$boardString ${turn.toSfenString} ${handString.isEmpty.fold("-", handString)}"
+  }
+
+  private[this] def numberToJapanese(n: Int): String = n match {
+    case _ if 1 <= n && n <= 18 =>
+      Vector("", "十")(n / 10) + Vector("", "一", "二", "三", "四", "五", "六", "七", "八", "九")(n % 10)
+    case _ => ""
+  }
+
+  override def toKifString: String = {
+    val handString = Player.constructor.map(pl => {
+      val xs = hand.toSeq.sorted.flatMap {
+        case (p, n) if p.owner == pl && n != 0 =>
+          Seq(p.ptype.toJapaneseSimpleName + (n >= 2).fold(numberToJapanese(n), "") + "　")
+        case _ => Seq()
+      }
+      xs.isEmpty.fold("なし", xs.mkString(""))
+    })
+
+    // todo: 上手/下手
+    (Seq(
+      "後手の持駒：" + handString(1),
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      (1 to 9).map { rank =>
+        (9 to 1 by -1).map {
+          file => board.get(Square(file, rank)).map(_.toKifString).getOrElse(" ・")
+        }.mkString("|", "", s"|${numberToJapanese(rank)}")
+      }.mkString("\n"),
+      "+---------------------------+",
+      "先手の持駒：" + handString(0)
+    ) ++ turn.isBlack.fold(Seq.empty, Seq("後手番"))).mkString("\n")
   }
 
   def updateBoardPiece(square: Square, piece: Piece): Option[State] = Try(copy(board = board.updated(square, piece))).toOption
@@ -280,7 +311,7 @@ case class State(turn: Player = BLACK,
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
 }
 
-object State extends CsaStateReader with SfenStateReader {
+object State extends CsaStateReader with SfenStateReader with KifStateReader {
 
   type BoardType = Map[Square, Piece]
   type HandType = Map[Hand, Int]

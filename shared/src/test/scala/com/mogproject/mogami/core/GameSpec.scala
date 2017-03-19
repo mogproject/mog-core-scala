@@ -1,29 +1,21 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.Game.GameStatus._
+import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.StateConstant._
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{FlatSpec, MustMatchers}
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
-  val stateHirate = State(BLACK, Map(
-    P11 -> WL, P21 -> WN, P31 -> WS, P41 -> WG, P51 -> WK, P61 -> WG, P71 -> WS, P81 -> WN, P91 -> WL,
-    P22 -> WB, P82 -> WR,
-    P13 -> WP, P23 -> WP, P33 -> WP, P43 -> WP, P53 -> WP, P63 -> WP, P73 -> WP, P83 -> WP, P93 -> WP,
-    P17 -> BP, P27 -> BP, P37 -> BP, P47 -> BP, P57 -> BP, P67 -> BP, P77 -> BP, P87 -> BP, P97 -> BP,
-    P28 -> BR, P88 -> BB,
-    P19 -> BL, P29 -> BN, P39 -> BS, P49 -> BG, P59 -> BK, P69 -> BG, P79 -> BS, P89 -> BN, P99 -> BL
-  ), State.EMPTY_HANDS)
-  val stateHirateInv = State(WHITE, stateHirate.board, stateHirate.hand)
+  val stateHirateInv = State(WHITE, HIRATE.board, HIRATE.hand)
   val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
   val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
 
   val dataForTest = Seq(
     Game(stateEmpty, Vector(), GameInfo()),
-    Game(stateHirate, Vector(
+    Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)
     ), GameInfo(
       Map(
@@ -37,7 +29,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'timeLimit -> "00:25+00",
         'opening -> "YAGURA"
       ))),
-    Game(stateHirate, Vector(
+    Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(50)),
       Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, Some(1)),
       Move(BLACK, Some(P88), P22, PBISHOP, true, false, None, Some(BISHOP), false, Some(12)),
@@ -104,6 +96,41 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     "9/9/9/9/9/9/9/9/9 b - 0",
     "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f",
     "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 7g7f 3c3d 8h2b+ 3a2b B*3c 5a6b 3c5e+"
+  )
+  val kifForTest = Seq(
+    """後手：
+      |後手の持駒：なし
+      |  ９ ８ ７ ６ ５ ４ ３ ２ １
+      |+---------------------------+
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|一
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|二
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|三
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|四
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|五
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|六
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|七
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|八
+      || ・ ・ ・ ・ ・ ・ ・ ・ ・|九
+      |+---------------------------+
+      |先手：
+      |先手の持駒：なし
+      |手数----指手----消費時間--""".stripMargin,
+    """手合割：平手
+      |先手：NAKAHARA
+      |後手：YONENAGA
+      |手数----指手----消費時間--
+      |   1 ７六歩(77)""".stripMargin,
+    """手合割：平手
+      |先手：B
+      |後手：W
+      |手数----指手----消費時間--
+      |   1 ７六歩(77) (00:50/)
+      |   2 ３四歩(33) (00:01/)
+      |   3 ２二角成(88) (00:12/)
+      |   4 同　銀(31) (01:40/)
+      |   5 ３三角打 (00:10/)
+      |   6 ６二玉(51) (00:02/)
+      |   7 ５五角成(33) (00:03/)""".stripMargin
   )
 
   "Game#toCsaString" must "describe some games" in {
@@ -179,6 +206,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
+  it must "ignore comments" in {
+    Game.parseCsaString("PI;-;'comment;-5152OU,T2345\n'comment\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+      Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
+      Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
+    ), GameInfo())))
+  }
 
   "Game#toSfenString" must "describe some games" in {
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
@@ -203,6 +236,186 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val s = g.toSfenString
     Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
+  }
+
+  "Game#toKifString" must "describe some games" in {
+    dataForTest.map(_.toKifString) zip kifForTest foreach { case (a, b) => a must be(b) }
+  }
+
+  "Game#parseKifString" must "create games in normal cases" in {
+    val s =
+      """#KIF version=2.0 encoding=UTF-8
+        |開始日時：2017/03/07
+        |場所：81Dojo (ver.2016/03/20)
+        |持ち時間：15分+60秒
+        |手合割：平手
+        |先手：black123
+        |後手：why
+        |手数----指手---------消費時間--
+        |   1 ７六歩(77)   ( 0:12/)
+        |   2 ８四歩(83)   ( 0:11/)
+        |   3 ６八銀(79)   ( 0:3/)
+        |   4 ８五歩(84)   ( 0:2/)
+        |   5 ７七銀(68)   ( 0:2/)
+        |   6 ３四歩(33)   ( 0:2/)
+        |   7 ２六歩(27)   ( 0:1/)
+        |   8 ４二銀(31)   ( 0:12/)
+        |   9 ５八金(49)   ( 0:25/)
+        |  10 ８六歩(85)   ( 0:39/)
+        |  11 同　歩(87)   ( 0:12/)
+        |  12 同　飛(82)   ( 0:3/)
+        |  13 ８七歩打   ( 0:2/)
+        |  14 同　飛成(86)   ( 0:14/)
+        |  15 ６六歩(67)   ( 1:6/)
+        |  16 ８四龍(87)   ( 0:23/)
+        |  17 ２五歩(26)   ( 0:49/)
+        |  18 ３三銀(42)   ( 0:18/)
+        |  19 ６七金(58)   ( 0:29/)
+        |  20 ８六歩打   ( 0:27/)
+        |  21 ２四歩(25)   ( 1:43/)
+        |  22 同　銀(33)   ( 0:31/)
+        |  23 ５六歩(57)   ( 1:4/)
+        |  24 ３二金(41)   ( 0:16/)
+        |  25 ７九角(88)   ( 0:13/)
+        |  26 ８七歩成(86)   ( 0:13/)
+        |  27 ８八銀(77)   ( 0:31/)
+        |  28 ８六歩打   ( 0:36/)
+        |  29 ７七銀(88)   ( 2:24/)
+        |  30 同　と(87)   ( 0:14/)
+        |  31 同　桂(89)   ( 0:2/)
+        |  32 ８七歩成(86)   ( 0:13/)
+        |  33 ８五歩打   ( 0:6/)
+        |  34 ４四龍(84)   ( 0:28/)
+        |  35 ４八銀(39)   ( 0:49/)
+        |  36 ８八歩打   ( 0:40/)
+        |  37 ６五桂(77)   ( 1:7/)
+        |  38 ６四歩(63)   ( 0:24/)
+        |  39 ８四歩(85)   ( 0:8/)
+        |  40 ７二金(61)   ( 0:28/)
+        |  41 ８三歩成(84)   ( 0:37/)
+        |  42 同　金(72)   ( 0:2/)
+        |  43 ５三桂成(65)   ( 0:45/)
+        |  44 同　龍(44)   ( 0:3/)
+        |  45 ２四角(79)   ( 1:7/)
+        |  46 同　歩(23)   ( 0:5/)
+        |  47 同　飛(28)   ( 0:10/)
+        |  48 ２三歩打   ( 0:39/)
+        |  49 ２五飛(24)   ( 0:20/)
+        |  50 ８九歩成(88)   ( 0:28/)
+        |  51 ８五飛(25)   ( 0:51/)
+        |  52 ７四歩(73)   ( 0:58/)
+        |  53 ５五飛(85)   ( 0:20/)
+        |  54 同　角(22)   ( 0:18/)
+        |  55 同　歩(56)   ( 0:1/)
+        |  56 ７八銀打   ( 0:39/)
+        |  57 ５四銀打   ( 0:20/)
+        |  58 ６九銀(78)   ( 1:15/)
+        |  59 ４九玉(59)   ( 0:23/)
+        |  60 ５八金打   ( 0:47/)
+        |  61 ３八玉(49)   ( 0:27/)
+        |  62 ４九角打   ( 0:7/)
+        |  63 ２八玉(38)   ( 0:36/)
+        |  64 ２七飛打   ( 0:31/)
+        |  65 ３九玉(28)   ( 0:12/)
+        |  66 ４八金(58)   ( 0:8/)
+        |  67 同　玉(39)   ( 0:12/)
+        |  68 ５八銀成(69)   ( 0:5/)
+        |  69 投了   ( 0:32/)
+        |
+    """.stripMargin
+
+    Game.parseKifString(s) mustBe Game.parseCsaString(Seq(
+      "N+black123",
+      "N-why",
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+      "P2 * -HI *  *  *  *  * -KA * ",
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+      "P8 * +KA *  *  *  *  * +HI * ",
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+      "P+",
+      "P-",
+      "+",
+      "+7776FU,T12",
+      "-8384FU,T11",
+      "+7968GI,T3",
+      "-8485FU,T2",
+      "+6877GI,T2",
+      "-3334FU,T2",
+      "+2726FU,T1",
+      "-3142GI,T12",
+      "+4958KI,T25",
+      "-8586FU,T39",
+      "+8786FU,T12",
+      "-8286HI,T3",
+      "+0087FU,T2",
+      "-8687RY,T14",
+      "+6766FU,T66",
+      "-8784RY,T23",
+      "+2625FU,T49",
+      "-4233GI,T18",
+      "+5867KI,T29",
+      "-0086FU,T27",
+      "+2524FU,T103",
+      "-3324GI,T31",
+      "+5756FU,T64",
+      "-4132KI,T16",
+      "+8879KA,T13",
+      "-8687TO,T13",
+      "+7788GI,T31",
+      "-0086FU,T36",
+      "+8877GI,T144",
+      "-8777TO,T14",
+      "+8977KE,T2",
+      "-8687TO,T13",
+      "+0085FU,T6",
+      "-8444RY,T28",
+      "+3948GI,T49",
+      "-0088FU,T40",
+      "+7765KE,T67",
+      "-6364FU,T24",
+      "+8584FU,T8",
+      "-6172KI,T28",
+      "+8483TO,T37",
+      "-7283KI,T2",
+      "+6553NK,T45",
+      "-4453RY,T3",
+      "+7924KA,T67",
+      "-2324FU,T5",
+      "+2824HI,T10",
+      "-0023FU,T39",
+      "+2425HI,T20",
+      "-8889TO,T28",
+      "+2585HI,T51",
+      "-7374FU,T58",
+      "+8555HI,T20",
+      "-2255KA,T18",
+      "+5655FU,T1",
+      "-0078GI,T39",
+      "+0054GI,T20",
+      "-7869GI,T75",
+      "+5949OU,T23",
+      "-0058KI,T47",
+      "+4938OU,T27",
+      "-0049KA,T7",
+      "+3828OU,T36",
+      "-0027HI,T31",
+      "+2839OU,T12",
+      "-5848KI,T8",
+      "+3948OU,T12",
+      "-6958NG,T5"
+    ))
+  }
+  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
+    val ts = g.gameInfo.tags
+    val gg = g.copy(gameInfo = GameInfo(Map(
+      'blackName -> ts.getOrElse('blackName, ""),
+      'whiteName -> ts.getOrElse('whiteName, "")
+    )))
+    Game.parseKifString(gg.toKifString) must be(Some(gg))
   }
 
   "Game#status" must "return Playing when playing" in {

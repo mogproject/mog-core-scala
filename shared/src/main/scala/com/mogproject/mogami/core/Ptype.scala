@@ -61,12 +61,12 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   )
 
   val csaTable: Seq[String] = Seq(
-    "", "", "TO", "NY", "NK", "NG", "UM", "RY",
+    "N/A", "N/A", "TO", "NY", "NK", "NG", "UM", "RY",
     "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI"
   )
 
   val kifTable: Seq[String] = Seq(
-    "", "", "と", "成香", "成桂", "成銀", "馬", "竜",
+    "N/A", "N/A", "と", "成香", "成桂", "成銀", "馬", "竜",
     "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
@@ -92,6 +92,13 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   def apply(id: Int): Ptype = {
     assert(2 <= id && id < 16, s"Invalid id: ${id}")
     constructor(id - 2)
+  }
+
+  override def parseKifString(s: String): Option[Ptype] = {
+    if (s == "龍")
+      Some(PROOK)
+    else
+      super.parseKifString(s)
   }
 
   case object PPAWN extends Ptype(2)

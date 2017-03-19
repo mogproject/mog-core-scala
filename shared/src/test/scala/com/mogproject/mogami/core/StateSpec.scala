@@ -1,13 +1,12 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
-
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.State.PromotionFlag._
 import com.mogproject.mogami.util.Implicits._
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{FlatSpec, MustMatchers}
 
 class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
@@ -114,6 +113,107 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "-"
   )
 
+  val kifForTest = Seq(
+    Seq(
+      "後手の持駒：なし",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "|v香v桂v銀v金v玉v金v銀v桂v香|一",
+      "| ・v飛 ・ ・ ・ ・ ・v角 ・|二",
+      "|v歩v歩v歩v歩v歩v歩v歩v歩v歩|三",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|四",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|六",
+      "| 歩 歩 歩 歩 歩 歩 歩 歩 歩|七",
+      "| ・ 角 ・ ・ ・ ・ ・ 飛 ・|八",
+      "| 香 桂 銀 金 玉 金 銀 桂 香|九",
+      "+---------------------------+",
+      "先手の持駒：なし"
+    ),
+    Seq(
+      "後手の持駒：なし",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|一",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|二",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|三",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|四",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|六",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|七",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|八",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|九",
+      "+---------------------------+",
+      "先手の持駒：なし"
+    ),
+    Seq(
+      "後手の持駒：飛　歩　",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "|v香v桂v銀v金v玉 ・ ・v桂v香|一",
+      "| ・v飛 ・ ・ ・ ・v金v銀 ・|二",
+      "|v歩v歩v歩 馬v歩v歩 ・v歩 ・|三",
+      "| ・ ・ ・ ・ ・ ・v歩 ・v歩|四",
+      "| ・ ・ 歩 ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ 歩|六",
+      "| 歩 歩 ・ ・ 歩 歩 歩 歩 ・|七",
+      "| ・ ・ 銀 ・ 金 ・ ・ ・ ・|八",
+      "| 香 桂 ・ ・ 玉 金 銀 桂 香|九",
+      "+---------------------------+",
+      "先手の持駒：角　歩　",
+      "後手番"
+    ),
+    Seq(
+      "後手の持駒：なし",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "|v杏v圭v全v金v玉v金v全v圭v杏|一",
+      "| ・v竜 ・ ・ ・ ・ ・v馬 ・|二",
+      "|vとvとvとvとvとvとvとvとvと|三",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|四",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|六",
+      "| と と と と と と と と と|七",
+      "| ・ 馬 ・ ・ ・ ・ ・ 竜 ・|八",
+      "| 杏 圭 全 金 玉 金 全 圭 杏|九",
+      "+---------------------------+",
+      "先手の持駒：なし"
+    ),
+    Seq(
+      "後手の持駒：なし",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "| ・ ・ ・ ・v玉 ・ ・ ・ ・|一",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|二",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|三",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|四",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|六",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|七",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|八",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|九",
+      "+---------------------------+",
+      "先手の持駒：飛二　角二　金四　銀四　桂四　香四　歩十八　"
+    ),
+    Seq(
+      "後手の持駒：飛二　角二　金四　銀四　桂四　香四　歩十八　",
+      "  ９ ８ ７ ６ ５ ４ ３ ２ １",
+      "+---------------------------+",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|一",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|二",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|三",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|四",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|五",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|六",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|七",
+      "| ・ ・ ・ ・ ・ ・ ・ ・ ・|八",
+      "| ・ ・ ・ ・ 玉 ・ ・ ・ ・|九",
+      "+---------------------------+",
+      "先手の持駒：なし",
+      "後手番"
+    )
+  ).map(_.mkString("\n"))
+
   "State#apply" must "throw an error when the requirements do not meet" in {
     assertThrows[IllegalArgumentException](State(BLACK, Map.empty, State.EMPTY_HANDS ++ Map(Hand(BP) -> 19)))
     assertThrows[IllegalArgumentException](State(BLACK, Map.empty, Map(Hand(BP) -> 1)))
@@ -146,6 +246,18 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   }
   it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
     State.parseSfenString(st.toSfenString) mustBe Some(st)
+  }
+
+  "State#toKifString" must "describe the state" in {
+    dataForTest(0).toKifString mustBe kifForTest(0)
+    dataForTest(1).toKifString mustBe kifForTest(1)
+    dataForTest(2).toKifString mustBe kifForTest(2)
+    dataForTest(3).toKifString mustBe kifForTest(3)
+    dataForTest(4).toKifString mustBe kifForTest(4)
+    dataForTest(5).toKifString mustBe kifForTest(5)
+  }
+  it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
+    State.parseKifString(st.toKifString) mustBe Some(st)
   }
 
   "State#makeMove" must "make next state" in {
