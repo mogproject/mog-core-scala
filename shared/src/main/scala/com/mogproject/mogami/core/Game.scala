@@ -87,7 +87,7 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] {
     def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
 
     for {
-      xs <- Some(s.split('\n').toList)
+      xs <- Some(s.split("[;\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
       (a, ys) = xs.span(!isStateText(_))
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)

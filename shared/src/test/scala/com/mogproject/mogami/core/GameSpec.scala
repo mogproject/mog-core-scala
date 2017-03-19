@@ -206,6 +206,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
+  it must "ignore comments" in {
+    Game.parseCsaString("PI;-;'comment;-5152OU,T2345\n'comment\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+      Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
+      Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
+    ), GameInfo())))
+  }
 
   "Game#toSfenString" must "describe some games" in {
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
