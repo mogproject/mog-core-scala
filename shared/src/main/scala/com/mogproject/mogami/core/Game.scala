@@ -12,7 +12,7 @@ import scala.util.Try
   * Game
   */
 case class Game(initialState: State = State.HIRATE,
-                moves: Vector[move.Move] = Vector.empty,
+                moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 givenHistory: Option[Vector[State]] = None
@@ -25,7 +25,10 @@ case class Game(initialState: State = State.HIRATE,
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: Game =>
       // ignore givenHistory
-      initialState == that.initialState && moves == that.moves && gameInfo == that.gameInfo && movesOffset == that.movesOffset
+      initialState == that.initialState &&
+        moves == that.moves &&
+        gameInfo == that.gameInfo &&
+        movesOffset == that.movesOffset
     case _ => false
   }
 
@@ -86,13 +89,27 @@ object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
   override def parseCsaString(s: String): Option[Game] = {
     def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
 
+    def concatMoveLines(lines: List[String]): List[String] = {
+      @tailrec
+      def f(ss: List[String], latest: String, sofar: List[String]): List[String] = (ss, latest.isEmpty) match {
+        case (x :: xs, true) => f(xs, x, sofar)
+        case (x :: xs, false) if x.startsWith("T") => f(xs, "", s"${latest},${x}" :: sofar)
+        case (x :: xs, false) => f(xs, x, latest :: sofar)
+        case (Nil, true) => sofar.reverse
+        case (Nil, false) => (latest :: sofar).reverse
+      }
+
+      f(lines, "", Nil)
+    }
+
     for {
-      xs <- Some(s.split("[;\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
+      xs <- Some(s.split("[,\n]").filter(s => !s.startsWith("'"))) // ignore comment lines
       (a, ys) = xs.span(!isStateText(_))
       (b, c) = ys.span(isStateText)
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
-      moves = c.flatMap(s => move.MoveBuilderCsa.parseCsaString(s)) if moves.length == c.length
+      lines = concatMoveLines(c.toList)
+      moves = lines.flatMap(s => move.MoveBuilderCsa.parseCsaString(s)) if moves.length == lines.length
       game <- moves.foldLeft(Some(Game(st, Vector.empty, gi)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
     } yield game
   }
@@ -151,7 +168,8 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
   example:
 
 #KIF version=2.0 encoding=UTF-8
-開始日時：2017/03/13
+開始日時：2017/03/13 ??:??
+終了日時：2017/03/13 ??:??
 場所：81Dojo (ver.2016/03/20)
 持ち時間：15分+60秒
 手合割：平手

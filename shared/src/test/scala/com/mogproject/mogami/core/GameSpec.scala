@@ -157,7 +157,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
-      "-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+      "-\n-5152OU\nT2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo(Map('whiteName -> "yyy")))))
@@ -207,7 +207,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString(g.toCsaString) must be(Some(g))
   }
   it must "ignore comments" in {
-    Game.parseCsaString("PI;-;'comment;-5152OU,T2345\n'comment\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI,-,'comment,-5152OU,T2345,'comment,+5958OU") must be(Some(Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo())))
