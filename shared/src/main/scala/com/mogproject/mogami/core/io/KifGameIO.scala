@@ -96,7 +96,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] {
     case (x :: Nil, Some(mv), Some(g)) if x.startsWith(IllegalMove.kifKeyword) => // ends with an explicit illegal move
       Some(g.copy(finalAction = Some(IllegalMove(mv))))
     case (Nil, Some(mv), Some(g)) => // ends with implicit illegal move
-      None
+      Some(g.copy(finalAction = Some(IllegalMove(mv))))
     case (Nil, None, Some(g)) => sofar // ends without errors
     case (x :: xs, None, Some(g)) => MoveBuilderKif.parseKifString(x) match {
       case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {

@@ -17,7 +17,7 @@ case class Game(initialState: State = State.HIRATE,
                 movesOffset: Int = 0,
                 finalAction: Option[SpecialMove] = None,
                 givenHistory: Option[Vector[State]] = None
-               ) extends CsaLike with SfenLike with KifGameWriter {
+               ) extends CsaGameWriter with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
@@ -70,9 +70,6 @@ case class Game(initialState: State = State.HIRATE,
   }
 
   def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)
-
-  override def toCsaString: String =
-    (gameInfo :: initialState :: moves.toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
 
   override def toSfenString: String = (initialState.toSfenString :: movesOffset.toString :: moves.map(_.toSfenString).toList).mkString(" ")
 

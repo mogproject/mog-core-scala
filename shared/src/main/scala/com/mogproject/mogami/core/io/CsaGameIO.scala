@@ -12,6 +12,23 @@ trait CsaGameIO {
 }
 
 /**
+  * Writes Csa-formatted game
+  */
+trait CsaGameWriter extends CsaGameIO with CsaLike {
+  def initialState: State
+
+  def moves: Vector[Move]
+
+  def gameInfo: GameInfo
+
+  def finalAction: Option[SpecialMove]
+
+  override def toCsaString: String =
+    (gameInfo :: initialState :: (moves ++ finalAction).toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
+
+}
+
+/**
   * Reads Csa-formatted game
   */
 trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
@@ -47,8 +64,8 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
       }
     case (IllegalMove.csaKeyword :: Nil, Some(mv), Some(g)) => // ends with an explicit illegal move
       Some(g.copy(finalAction = Some(IllegalMove(mv))))
-    case (Nil, Some(_), Some(g)) => // ends with implicit illegal move
-      None
+    case (Nil, Some(mv), Some(g)) => // ends with implicit illegal move
+      Some(g.copy(finalAction = Some(IllegalMove(mv))))
     case (Nil, None, Some(g)) => sofar // ends without errors
     case (x :: xs, None, Some(g)) => MoveBuilderCsa.parseCsaString(x) match {
       case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {
