@@ -52,7 +52,12 @@ case class Game(initialState: State = State.HIRATE,
     } else if (isRepetition) {
       Drawn // Sennichite
     } else {
-      Playing
+      finalAction match {
+        case Some(IllegalMove(_)) => IllegallyMoved
+        case Some(Resign(_)) => Resigned
+        case Some(TimeUp(_)) => TimedUp
+        case _ => Playing
+      }
     }
   }
 
@@ -112,6 +117,11 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
     case object Drawn extends GameStatus
 
+    case object TimedUp extends GameStatus
+
+    case object IllegallyMoved extends GameStatus
+
+    case object Resigned extends GameStatus
   }
 
 }

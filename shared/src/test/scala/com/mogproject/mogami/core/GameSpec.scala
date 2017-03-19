@@ -597,4 +597,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-2111OU"
     )).get.status mustBe Drawn
   }
+  it must "tell special moves" in {
+    Game.parseCsaString("PI,+,+7776FU,%TORYO").get.status mustBe Resigned
+    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").get.status mustBe TimedUp
+    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").get.status mustBe IllegallyMoved
+  }
 }
