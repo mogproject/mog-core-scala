@@ -1,11 +1,11 @@
 package com.mogproject.mogami.core
 
-import scala.annotation.tailrec
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.MoveBuilder
 import com.mogproject.mogami.util.Implicits._
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 /**
@@ -82,7 +82,7 @@ case class Game(initialState: State = State.HIRATE,
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
 }
 
-object Game extends CsaFactory[Game] with SfenFactory[Game] {
+object Game extends CsaFactory[Game] with SfenFactory[Game] with KifGameReader {
   override def parseCsaString(s: String): Option[Game] = {
     def isStateText(t: String) = t.startsWith("P") || t == "+" || t == "-"
 
@@ -173,6 +173,22 @@ object GameInfo extends CsaFactory[GameInfo] {
     }
 
     f(s.isEmpty.fold(List(), s.split('\n').toList), Some(GameInfo()))
+  }
+
+  def parseKifString(s: String): Option[GameInfo] = {
+    @tailrec
+    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
+      case (x :: xs, Some(gt)) =>
+        if (x.startsWith("先手：") || x.startsWith("下手："))
+          f(xs, Some(gt.updated('blackName, x.drop(3))))
+        else if (x.startsWith("後手：") || x.startsWith("上手："))
+          f(xs, Some(gt.updated('whiteName, x.drop(3))))
+        else // ignore other flags
+          f(xs, sofar)
+      case _ => sofar
+    }
+
+    f(s.split('\n').toList, Some(GameInfo()))
   }
 
   /** pairs of a symbol name and its csa-formatted string */

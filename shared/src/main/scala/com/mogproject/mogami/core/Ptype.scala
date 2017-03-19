@@ -94,6 +94,13 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
     constructor(id - 2)
   }
 
+  override def parseKifString(s: String): Option[Ptype] = {
+    if (s == "龍")
+      Some(PROOK)
+    else
+      super.parseKifString(s)
+  }
+
   case object PPAWN extends Ptype(2)
 
   case object PLANCE extends Ptype(3)
