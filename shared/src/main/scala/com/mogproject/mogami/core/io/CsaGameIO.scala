@@ -12,15 +12,15 @@ trait CsaGameIO {
 }
 
 /**
-  * Reads Kif-formatted game
+  * Reads Csa-formatted game
   */
-trait CsaGameReader extends KifGameIO with CsaFactory[Game] {
+trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
 
-  protected[io] def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
+  private def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
 
-  protected[io] def isValidLine(ss: String): Boolean = ss.nonEmpty && !ss.startsWith("'") && !ss.startsWith("%CHUDAN")
+  private def isValidLine(s: String): Boolean = s.nonEmpty && !s.startsWith("'") && !s.startsWith("%CHUDAN")
 
-  protected[io] def concatMoveLines(lines: List[String]): List[String] = {
+  private def concatMoveLines(lines: List[String]): List[String] = {
     @tailrec
     def f(ss: List[String], latest: String, sofar: List[String]): List[String] = (ss, latest.isEmpty) match {
       case (x :: xs, true) => f(xs, x, sofar)
@@ -34,7 +34,7 @@ trait CsaGameReader extends KifGameIO with CsaFactory[Game] {
   }
 
   @tailrec
-  final protected[io] def parseMoves(chunks: List[String], pending: Option[Move], sofar: Option[Game]): Option[Game] = (chunks, pending, sofar) match {
+  final protected[io] def parseMovesCsa(chunks: List[String], pending: Option[Move], sofar: Option[Game]): Option[Game] = (chunks, pending, sofar) match {
     case (x :: Nil, None, Some(g)) if x.startsWith("%") => // ends with a special move
       MoveBuilderCsa.parseTime(x) match {
         case Some((ss, tm)) =>
@@ -53,8 +53,8 @@ trait CsaGameReader extends KifGameIO with CsaFactory[Game] {
     case (x :: xs, None, Some(g)) => MoveBuilderCsa.parseCsaString(x) match {
       case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {
         case Some(mv) => g.makeMove(mv) match {
-          case Some(gg) => parseMoves(xs, None, Some(gg))
-          case None => parseMoves(xs, Some(mv), sofar)
+          case Some(gg) => parseMovesCsa(xs, None, Some(gg))
+          case None => parseMovesCsa(xs, Some(mv), sofar)
         }
         case None => None // failed to create Move
       }
@@ -71,7 +71,7 @@ trait CsaGameReader extends KifGameIO with CsaFactory[Game] {
       gi <- GameInfo.parseCsaString(a)
       st <- State.parseCsaString(b)
       chunks = concatMoveLines(c.toList)
-      game <- parseMoves(chunks, None, Some(Game(st, Vector.empty, gi)))
+      game <- parseMovesCsa(chunks, None, Some(Game(st, Vector.empty, gi)))
     } yield game
   }
 

@@ -412,7 +412,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+2839OU,T12",
       "-5848KI,T8",
       "+3948OU,T12",
-      "-6958NG,T5"
+      "-6958NG,T5",
+      "%TORYO,T32"
     ))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
