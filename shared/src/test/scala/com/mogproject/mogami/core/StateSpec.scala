@@ -730,6 +730,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P+00HI00KA00KI00GI00KE00KY00FU
         |P-00KI00KI00KI00KE00KE00KE00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
         |+""".stripMargin).get.legalMoves.size must be(593)
+    State.parseSfenString("ln1g4l/1ks1g4/1pp6/pg1P2pp1/2P2R2p/PP1NP1PP1/1KNg4P/1S+r6/L7L b 2B2SN4P").get.legalMoves.size mustBe 3
   }
 
   "State#isMated" must "return true when the state is mated" in {
@@ -1039,6 +1040,42 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       Square(3, 2) -> BitBoard("000.010.000.000.000.000.000.000.000"),
       Square(2, 2) -> BitBoard("007.000.001.000.000.000.000.000.000"),
       Square(3, 3) -> BitBoard("000.000.000.010.000.000.000.000.000")
+    )
+  }
+  "State#getEscapeMoves" must "return" in {
+    State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  *  *  *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  * +OU+KE-KI *  *  *  * ",
+      "P7 *  * +GI-RY *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "P+",
+      "P-",
+      "+"
+    )).get.getEscapeMoves mustBe Map(
+      Left(P76) -> BitBoard("000.000.000.000.340.200.200.000.000"),
+      Left(P66) -> BitBoard("000.000.000.000.000.000.000.000.000"),
+      Left(P77) -> BitBoard("000.000.000.000.000.000.000.000.000")
+    )
+    State.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  *  * ",
+      "P2 *  *  *  *  *  *  *  *  * ",
+      "P3 *  *  *  *  * -OU *  *  * ",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  * +KA * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  * +KY+KY *  * ",
+      "P+",
+      "P-",
+      "-"
+    )).get.getEscapeMoves mustBe Map(
+      Left(P43) -> BitBoard("000.000.020.020.000.000.000.000.000")
     )
   }
 }

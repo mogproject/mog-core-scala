@@ -56,7 +56,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   }
 
   "KifGameReader#parseKifString" must "create games" in {
-    val s = Seq(
+    val s1 = Seq(
       "N+",
       "N-",
       "P1 *  * -FU-FU * -FU *  * +TO",
@@ -79,6 +79,6 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       "+5847KA",
       "-6747HI"
     )
-    Game.parseKifString(Game.parseCsaString(s).get.toKifString).isDefined mustBe true
+    Game.parseKifString(Game.parseCsaString(s1).get.toKifString).isDefined mustBe true
   }
 }
