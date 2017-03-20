@@ -154,11 +154,6 @@ case class State(turn: Player = BLACK,
   lazy val attackers: Set[Square] = turnsKing.map(k => attackBBOnBoard(!turn).filter(_._2.get(k)).keys.toSet).getOrElse(Set.empty)
 
   /**
-    * Get the attackers' potential attack bitboard (assuming that there is no obstacles)
-    */
-  lazy val attackerPotentialBB: BitBoard = attackers.map(sq => Attack.get(board(sq), Some(sq), BitBoard.empty, BitBoard.empty)).fold(BitBoard.empty)(_ | _)
-
-  /**
     * Get the guard pieces, which protect the turn player's king from ranged attack.
     *
     * @return set of squares and guarding area + attacker bitboards
@@ -193,6 +188,8 @@ case class State(turn: Player = BLACK,
 
     // king's move
     val king = turnsKing.get
+    val occExceptKing = occupancyAll.reset(king)
+    val attackerPotentialBB: BitBoard = attackers.map(sq => Attack.get(board(sq), Some(sq), occExceptKing, BitBoard.empty)).fold(BitBoard.empty)(_ | _)
     val kingEscape = Map(king -> (attackBBOnBoard(turn)(king) & ~(getAttackBB(!turn) | occupancy(turn) | attackerPotentialBB)))
 
     // move a piece between king and the attacker or capture the attacker (except king's move)
