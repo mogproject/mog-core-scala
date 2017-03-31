@@ -4,7 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.Game.GameStatus._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.StateConstant._
-import com.mogproject.mogami.core.move.Resign
+import com.mogproject.mogami.core.move.{Pause, Resign, TimeUp}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -220,6 +220,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe Some(Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
     ), finalAction = Some(Resign(Some(3)))))
+    Game.parseCsaString("PI,+,+7776FU,T2,%TIME_UP,T3") mustBe Some(Game(HIRATE, Vector(
+      Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
+    ), finalAction = Some(TimeUp(Some(3)))))
+    Game.parseCsaString("PI,+,+7776FU,T2,%CHUDAN") mustBe Some(Game(HIRATE, Vector(
+      Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
+    ), finalAction = Some(Pause)))
   }
 
   "Game#toSfenString" must "describe some games" in {

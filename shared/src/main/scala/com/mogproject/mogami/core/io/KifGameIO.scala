@@ -1,7 +1,8 @@
 package com.mogproject.mogami.core.io
 
+import com.mogproject.mogami.core.Game.GameStatus.GameStatus
 import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.{Game, GameInfo, State, StateConstant}
+import com.mogproject.mogami.core._
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -38,7 +39,7 @@ trait KifGameIO {
 trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   def initialState: State
 
-  def moves: Vector[Move]
+  def descriptiveMoves: Vector[Move]
 
   def gameInfo: GameInfo
 
@@ -46,7 +47,11 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
 
   def finalAction: Option[SpecialMove]
 
-  def toHeaderString: String = {
+  def turn: Player
+
+  def status: GameStatus
+
+  private[this] def getHeader: String = {
     // todo: add 上手/下手
     val blackName = s"先手：${gameInfo.tags.getOrElse('blackName, "")}"
     val whiteName = s"後手：${gameInfo.tags.getOrElse('whiteName, "")}"
@@ -60,17 +65,19 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   }
 
   override def toKifString: String = {
-    val ms = moves.map(_.toKifString) ++ finalAction.toList.flatMap(_.toKifString.split('\n'))
+    val ms = (descriptiveMoves ++ finalAction).map(_.toKifString)
     val body = ("手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
       f"${n + movesOffset + 1}%4d ${m}"
     }).mkString("\n")
-    toHeaderString + "\n\n" + body
+    getHeader + "\n\n" + body
   }
 
   override def toKi2String: String = {
-    val ms = moves.map(m => m.player.toSymbolString(false) + m.toJapaneseNotationString)
-    val body = ms.grouped(6).map(_.mkString(" ")).mkString("\n")
-    toHeaderString + "\n\n" + body
+    val movesPerLine: Int = 6
+    val ms = descriptiveMoves.map(_.toKi2String)
+    val lst = finalAction.map(_.toKi2String(turn, descriptiveMoves.length))
+    val body = (ms.grouped(movesPerLine).map(_.mkString(" ")) ++ lst).mkString("\n")
+    getHeader + "\n\n" + body
   }
 }
 
@@ -99,6 +106,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] {
           (ss match {
             case Resign.kifKeyword => Some(Resign(tm))
             case TimeUp.kifKeyword => Some(TimeUp(tm))
+            case Pause.kifKeyword => Some(Pause)
             case _ => None // unknown command
           }).map(sm => g.copy(finalAction = Some(sm)))
         case None => None // format error

@@ -18,6 +18,8 @@ sealed abstract class Player(val id: Int) extends CsaLike with SfenLike {
   override def toSfenString: String = Player.sfenTable(id)
 
   def toSymbolString(unicode: Boolean = true): String = unicode.fold(Player.symbolTableUnicode(id), Player.symbolTable(id))
+
+  def toJapaneseNotationString(handicap: Boolean = false): String = handicap.fold(Player.japaneseNotationTableHandicap(id), Player.japaneseNotationTable(id))
 }
 
 object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
@@ -30,6 +32,10 @@ object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
   val symbolTable = Seq("▲", "△")
 
   val symbolTableUnicode = Seq("☗", "☖")
+
+  val japaneseNotationTable = Seq("先手", "後手")
+
+  val japaneseNotationTableHandicap = Seq("下手", "上手")
 
   val constructor: Seq[Player] = Seq(BLACK, WHITE)
 

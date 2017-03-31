@@ -2,7 +2,7 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.{Move => _, MoveBuilderCsa => _, _}
+import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -87,6 +87,16 @@ case class Game(initialState: State = State.HIRATE,
 
   def isPerpetualCheck: Boolean = currentState.isChecked &&
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
+
+  /**
+    * Moves for description. This includes an illegal move if it exists.
+    *
+    * @return vector of moves for description
+    */
+  def descriptiveMoves: Vector[Move] = finalAction match {
+    case Some(IllegalMove(mv)) => moves :+ mv
+    case _ => moves
+  }
 }
 
 object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
@@ -122,6 +132,7 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
     case object IllegallyMoved extends GameStatus
 
     case object Resigned extends GameStatus
+
   }
 
 }

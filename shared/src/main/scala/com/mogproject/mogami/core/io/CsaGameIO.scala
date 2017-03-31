@@ -17,14 +17,14 @@ trait CsaGameIO {
 trait CsaGameWriter extends CsaGameIO with CsaLike {
   def initialState: State
 
-  def moves: Vector[Move]
+  def descriptiveMoves: Vector[Move]
 
   def gameInfo: GameInfo
 
   def finalAction: Option[SpecialMove]
 
   override def toCsaString: String =
-    (gameInfo :: initialState :: (moves ++ finalAction).toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
+    (gameInfo :: initialState :: (descriptiveMoves ++ finalAction).toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
 
 }
 
@@ -35,7 +35,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
 
   private def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
 
-  private def isValidLine(s: String): Boolean = s.nonEmpty && !s.startsWith("'") && !s.startsWith("%CHUDAN")
+  private def isValidLine(s: String): Boolean = s.nonEmpty && !s.startsWith("'")
 
   private def concatMoveLines(lines: List[String]): List[String] = {
     @tailrec
@@ -59,6 +59,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
           (ss match {
             case Resign.csaKeyword => Some(Resign(tm))
             case TimeUp.csaKeyword => Some(TimeUp(tm))
+            case Pause.csaKeyword => Some(Pause)
             case _ => None // unknown command
           }).map(sm => g.copy(finalAction = Some(sm)))
         case None => None // format error
