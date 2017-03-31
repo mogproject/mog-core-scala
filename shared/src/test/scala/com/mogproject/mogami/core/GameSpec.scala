@@ -115,15 +115,18 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       |+---------------------------+
       |先手：
       |先手の持駒：なし
+      |
       |手数----指手----消費時間--""".stripMargin,
     """手合割：平手
       |先手：NAKAHARA
       |後手：YONENAGA
+      |
       |手数----指手----消費時間--
       |   1 ７六歩(77)""".stripMargin,
     """手合割：平手
       |先手：B
       |後手：W
+      |
       |手数----指手----消費時間--
       |   1 ７六歩(77) (00:50/)
       |   2 ３四歩(33) (00:01/)

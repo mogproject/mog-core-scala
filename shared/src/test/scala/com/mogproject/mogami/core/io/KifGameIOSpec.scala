@@ -16,6 +16,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     "手合割：平手",
     "先手：",
     "後手：",
+    "",
     "手数----指手----消費時間--"
   )
 

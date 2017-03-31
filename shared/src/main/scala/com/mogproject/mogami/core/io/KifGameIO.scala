@@ -35,7 +35,7 @@ trait KifGameIO {
 /**
   * Writes Kif-formatted game
   */
-trait KifGameWriter extends KifGameIO with KifLike {
+trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   def initialState: State
 
   def moves: Vector[Move]
@@ -46,24 +46,31 @@ trait KifGameWriter extends KifGameIO with KifLike {
 
   def finalAction: Option[SpecialMove]
 
-  override def toKifString: String = {
+  def toHeaderString: String = {
     // todo: add 上手/下手
     val blackName = s"先手：${gameInfo.tags.getOrElse('blackName, "")}"
     val whiteName = s"後手：${gameInfo.tags.getOrElse('whiteName, "")}"
 
-    val header = getPresetLabel(initialState).map { label =>
+    getPresetLabel(initialState).map { label =>
       Seq(s"手合割：${label}", blackName, whiteName)
     }.getOrElse {
       val ss = initialState.toKifString.split('\n').toSeq
       (whiteName +: ss.take(13)) ++ (blackName +: ss.drop(13))
-    }
+    }.mkString("\n")
+  }
 
+  override def toKifString: String = {
     val ms = moves.map(_.toKifString) ++ finalAction.toList.flatMap(_.toKifString.split('\n'))
-    val body = "手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
+    val body = ("手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
       f"${n + movesOffset + 1}%4d ${m}"
-    }
+    }).mkString("\n")
+    toHeaderString + "\n\n" + body
+  }
 
-    (header ++ body).mkString("\n")
+  override def toKi2String: String = {
+    val ms = moves.map(m => m.player.toSymbolString(false) + m.toJapaneseNotationString)
+    val body = ms.grouped(6).map(_.mkString(" ")).mkString("\n")
+    toHeaderString + "\n\n" + body
   }
 }
 
