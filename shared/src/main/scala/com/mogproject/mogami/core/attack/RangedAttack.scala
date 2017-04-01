@@ -38,7 +38,9 @@ trait RangedAttack extends DirectAttack {
       case LANCE => Seq((0, piece.owner.isBlack.fold(-1, 1)))
       case BISHOP => Seq((-1, -1), (-1, 1), (1, -1), (1, 1))
       case ROOK => Seq((-1, 0), (0, -1), (0, 1), (1, 0))
+      // $COVERAGE-OFF$
       case _ => throw new RuntimeException("Never happens.")
+      // $COVERAGE-ON$
     }
 
     f(BitBoard.empty, offsets) | piece.isPromoted.fold(getDirectAttack(Piece(BLACK, KING), square), BitBoard.empty)

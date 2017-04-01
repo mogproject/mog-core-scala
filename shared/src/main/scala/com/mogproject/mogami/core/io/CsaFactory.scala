@@ -2,6 +2,8 @@ package com.mogproject.mogami.core.io
 
 /**
   * Reads CSA-formatted string
+  *
+  * An exception can be thrown.
   */
 trait CsaFactory[T <: CsaLike] {
 
@@ -16,9 +18,6 @@ trait CsaFactory[T <: CsaLike] {
 
   final def parseCsaString(s: String): T = parseCsaString(normalize(s.split("\n")))
 
-  /**
-    * An exception can be thrown.
-    */
   final def parseCsaString(lines: Lines): T =
     if (lines.isEmpty) throw new RecordFormatException(0, "Empty input") else parseCsaString(NonEmptyLines(lines))
 

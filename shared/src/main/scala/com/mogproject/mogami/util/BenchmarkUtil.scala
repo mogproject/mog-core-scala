@@ -1,6 +1,7 @@
 package com.mogproject.mogami.util
 
 object BenchmarkUtil {
+  // $COVERAGE-OFF$
   def withTime[A](label: String)(thunk: => A): A = {
     val start = System.currentTimeMillis()
     val ret = thunk
@@ -8,5 +9,5 @@ object BenchmarkUtil {
     println(s"${label}: ${(end - start) / 1000.0}s")
     ret
   }
-
+  // $COVERAGE-ON$
 }
