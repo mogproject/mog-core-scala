@@ -86,7 +86,9 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   */
 trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
 
-  private[this] def isNormalMove(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
+  private[this] def isNormalMoveKif(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
+
+  private[this] def isNormalMoveKi2(s: String): Boolean = s.headOption.exists(Player.symbolTable.contains)
 
   private[this] def isInitialState(s: String): Boolean = s match {
     case "  ９ ８ ７ ６ ５ ４ ３ ２ １" => true
@@ -100,13 +102,13 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
   private[this] def splitMovesKif(lines: Lines): Lines = lines.flatMap { case (x, n) => {
     val chunks = x.trim.split(" ", 2)
     if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
-  }}
+  }
+  }
 
-  private[this] def splitMovesKi2(lines: Lines): Lines = lines.flatMap { case (x, n) => {
-    val chunks = x.trim.split(" ", 2)
-    if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
-    ???
-  }}
+  private[this] def splitMovesKi2(lines: Lines): Lines = lines.flatMap {
+    case (x, n) if isNormalMoveKi2(x) => x.split(" ").filter(_.nonEmpty).map((_, n))
+    case _ => Seq.empty
+  }
 
   private[this] def sectionSplitterCommon(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines) = {
     val (header, body) = nel.lines.span(!_._1.startsWith("手数"))
@@ -162,7 +164,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
   protected[io] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
     def f(ls: List[Line], illegal: Option[Move], sofar: Game): Game = (ls, illegal) match {
-      case ((x, n) :: Nil, None) if !isNormalMove(x) => // ends with a special move
+      case ((x, n) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Resign(tm)
           case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)

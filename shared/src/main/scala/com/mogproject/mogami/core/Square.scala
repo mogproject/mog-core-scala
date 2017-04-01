@@ -105,7 +105,7 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] with KifFactor
     } else {
       val (x, n) = nel.lines.head
       if (x.length != 2) {
-        throw new RecordFormatException(n, s"invalid square length: ${x}")
+        throw new RecordFormatException(n, s"invalid square: ${x}")
       } else {
         val f = "１２３４５６７８９".indexOf(x(0))
         val r = "一二三四五六七八九".indexOf(x(1))
