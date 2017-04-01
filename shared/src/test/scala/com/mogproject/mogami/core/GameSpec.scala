@@ -234,24 +234,24 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   "Game#parseSfenString" must "create games in normal cases" in {
     sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
-      Some(g.copy(gameInfo = GameInfo(), moves = g.moves.map(_.copy(elapsedTime = None))))
+      g.copy(gameInfo = GameInfo(), moves = g.moves.map(_.copy(elapsedTime = None)))
     ) foreach { case (a, b) =>
-      a must be(b)
+      a mustBe b
     }
   }
   it must "throw an exception in error cases" in {
-    Game.parseSfenString("") must be(None)
-    Game.parseSfenString(" ") must be(None)
-    Game.parseSfenString("x" * 1000) must be(None)
-    Game.parseSfenString("x\n" * 1000) must be(None)
-    Game.parseSfenString("$") must be(None)
+    assertThrows[RecordFormatException](Game.parseSfenString(""))
+    assertThrows[RecordFormatException](Game.parseSfenString(" "))
+    assertThrows[RecordFormatException](Game.parseSfenString("x" * 1000))
+    assertThrows[RecordFormatException](Game.parseSfenString("x\n" * 1000))
+    assertThrows[RecordFormatException](Game.parseSfenString("$"))
     assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -"))
-    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") mustBe None
-    Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
+    assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 B "))
+    assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx"))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val s = g.toSfenString
-    Game.parseSfenString(s).map(_.toSfenString) must be(Some(s))
+    Game.parseSfenString(s).toSfenString mustBe s
   }
 
   "Game#toKifString" must "describe some games" in {

@@ -44,19 +44,19 @@ class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   }
 
   "Player#parseSfenString" must "make player" in {
-    Player.parseSfenString("b") must be(Some(BLACK))
-    Player.parseSfenString("w") must be(Some(WHITE))
+    Player.parseSfenString("b") mustBe BLACK
+    Player.parseSfenString("w") mustBe WHITE
     assertThrows[RecordFormatException](Player.parseSfenString(""))
     assertThrows[RecordFormatException](Player.parseSfenString(" "))
     assertThrows[RecordFormatException](Player.parseSfenString("x" * 1000))
   }
 
   "Player#unary_!" must "change the player" in {
-    !BLACK must be(WHITE)
-    !WHITE must be(BLACK)
+    !BLACK mustBe WHITE
+    !WHITE mustBe BLACK
   }
 
   it must "cancel double negation" in forAll(PlayerGen.players) { pl =>
-    !(!pl) must be(pl)
+    !(!pl) mustBe pl
   }
 }

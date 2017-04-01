@@ -90,11 +90,11 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] with KifFactor
     }
   }
 
-  override def parseSfenString(s: String): Option[Square] = {
+  override def parseSfenString(s: String): Square = {
     val p: Regex = """([1-9])([a-i])""".r
     s match {
-      case p(file, rank) => Some(Square(file.toInt, rank(0) - 'a' + 1))
-      case _ => None
+      case p(file, rank) => Square(file.toInt, rank(0) - 'a' + 1)
+      case _ => throw new RecordFormatException(1, s"invalid square: ${s}")
     }
   }
 

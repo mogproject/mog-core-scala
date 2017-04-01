@@ -11,7 +11,7 @@ trait SfenTableFactory[T <: SfenLike] extends SfenFactory[T] {
 
   private[this] lazy val tableFactory = BaseTableFactory[T](typeName, sfenTable)
 
-  override def parseSfenString(s: String): Option[T] = Some(tableFactory.parse(NonEmptyLines(1, s))(apply))
+  override def parseSfenString(s: String): T = tableFactory.parse(NonEmptyLines(1, s))(apply)
 
   def apply(id: Int): T
 

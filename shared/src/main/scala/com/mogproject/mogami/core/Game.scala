@@ -5,8 +5,7 @@ import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
 
-import scala.annotation.tailrec
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Game
@@ -101,16 +100,21 @@ case class Game(initialState: State = State.HIRATE,
 
 object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
-  override def parseSfenString(s: String): Option[Game] = {
+  override def parseSfenString(s: String): Game = {
     val tokens = s.split(" ")
+    if (tokens.length < 4) throw new RecordFormatException(1, s"there must be four or more tokens: ${s}")
 
-    for {
-      st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
-      offset <- Try(tokens(3).toInt).toOption
-      gi = GameInfo() // initialize without information
-      moves = tokens.drop(4).flatMap(ss => move.MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
-      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
-    } yield game
+    val st = State.parseSfenString(tokens.take(3).mkString(" "))
+    val offset = Try(tokens(3).toInt) match {
+      case Success(n) => n
+      case Failure(e) => throw new RecordFormatException(1, s"offset must be number: ${tokens(3)}")
+    }
+    val gi = GameInfo()
+    // initialize without information
+    val moves = tokens.drop(4).map(move.MoveBuilderSfen.parseSfenString)
+    moves.foldLeft[Game](Game(st, Vector.empty, gi, offset)) { (g, m) =>
+      g.makeMove(m).getOrElse(throw new RecordFormatException(1, s"invalid move: ${m.toSfenString}"))
+    }
   }
 
   object GameStatus {

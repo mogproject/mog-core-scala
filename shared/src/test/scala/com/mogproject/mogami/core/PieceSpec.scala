@@ -31,17 +31,17 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     assertThrows[RecordFormatException](Piece.parseCsaString("-FU+"))
   }
   "Piece#toCsaString" must "describe in csa format" in {
-    allPieces map (_.toCsaString) must be(csaPieces)
+    allPieces map (_.toCsaString) mustBe csaPieces
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
     Piece.parseCsaString(p.toCsaString) mustBe p
   }
 
   "Piece#toSfenString" must "describe in SFEN format" in {
-    allPieces map (_.toSfenString) must be(sfenPieces)
+    allPieces map (_.toSfenString) mustBe sfenPieces
   }
   "Piece#parseSfenString" must "succeed in normal cases" in {
-    sfenPieces map { c => Piece.parseSfenString(c) } must be(allPieces map (Some(_)))
+    sfenPieces map { c => Piece.parseSfenString(c) } mustBe allPieces
   }
   it must "return None in error cases" in {
     assertThrows[RecordFormatException](Piece.parseSfenString(""))
@@ -52,7 +52,7 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     assertThrows[RecordFormatException](Piece.parseSfenString("-FU+"))
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
-    Piece.parseSfenString(p.toSfenString) must be(Some(p))
+    Piece.parseSfenString(p.toSfenString) mustBe p
   }
   "Piece#toKifString" must "describe pieces in KIF format" in {
     allPieces map (_.toKifString) mustBe kifPieces

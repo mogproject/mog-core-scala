@@ -245,7 +245,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     dataForTest(5).toSfenString mustBe "9/9/9/9/9/9/9/9/4K4 w 2r2b4g4s4n4l18p"
   }
   it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
-    State.parseSfenString(st.toSfenString) mustBe Some(st)
+    State.parseSfenString(st.toSfenString) mustBe st
   }
 
   "State#toKifString" must "describe the state" in {
@@ -730,7 +730,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P+00HI00KA00KI00GI00KE00KY00FU
         |P-00KI00KI00KI00KE00KE00KE00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
         |+""".stripMargin).legalMoves.size must be(593)
-    State.parseSfenString("ln1g4l/1ks1g4/1pp6/pg1P2pp1/2P2R2p/PP1NP1PP1/1KNg4P/1S+r6/L7L b 2B2SN4P").get.legalMoves.size mustBe 3
+    State.parseSfenString("ln1g4l/1ks1g4/1pp6/pg1P2pp1/2P2R2p/PP1NP1PP1/1KNg4P/1S+r6/L7L b 2B2SN4P").legalMoves.size mustBe 3
   }
 
   "State#isMated" must "return true when the state is mated" in {

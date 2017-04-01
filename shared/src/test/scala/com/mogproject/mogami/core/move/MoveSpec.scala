@@ -98,23 +98,23 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
 
   "Move#toSfenString" must "describe the move" in {
-    movesForTestSfen map (_.toSfenString) must be(sfenForTest)
+    movesForTestSfen map (_.toSfenString) mustBe sfenForTest
   }
   "Move#parseSfenString" must "succeed in normal cases" in {
-    sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } must be(movesForTestSfen map (Some(_)))
+    sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } mustBe movesForTestSfen
   }
-  it must "return None in error cases" in {
-    MoveBuilderSfen.parseSfenString("") must be(None)
-    MoveBuilderSfen.parseSfenString(" ") must be(None)
-    MoveBuilderSfen.parseSfenString("x" * 1000) must be(None)
-    MoveBuilderSfen.parseSfenString("7g76") must be(None)
-    MoveBuilderSfen.parseSfenString("7g7F") must be(None)
-    MoveBuilderSfen.parseSfenString("L*8b+") must be(None)
-    MoveBuilderSfen.parseSfenString("9i1a-") must be(None)
-    MoveBuilderSfen.parseSfenString("K*1a") must be(None)
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString(""))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString(" "))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("7g76"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("7g7F"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("L*8b+"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("9i1a-"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("K*1a"))
   }
   it must "restore moves" in forAll(MoveGen.movesSfenFormat) { m =>
-    MoveBuilderSfen.parseSfenString(m.toSfenString) must be(Some(m))
+    MoveBuilderSfen.parseSfenString(m.toSfenString) mustBe m
   }
 
   "Move#toKifString" must "describe the move" in {
@@ -484,7 +484,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       )
     ).map(xs => State.parseCsaString(xs.mkString("\n")))
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(State.HIRATE).get.toJapaneseNotationString mustBe "７六歩"
+    MoveBuilderSfen.parseSfenString("7g7f").toMove(State.HIRATE).get.toJapaneseNotationString mustBe "７六歩"
 
     MoveBuilderCsa.parseCsaString("+9382KI").toMove(states(0)).get.toJapaneseNotationString mustBe "８二金上"
     MoveBuilderCsa.parseCsaString("+7282KI").toMove(states(0)).get.toJapaneseNotationString mustBe "８二金寄"
@@ -596,7 +596,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+").mkString("\n"))
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, None))
+    MoveBuilderSfen.parseSfenString("7g7f").toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, None))
   }
 
   "MoveBuilderSfen#apply" must "create instances" in {

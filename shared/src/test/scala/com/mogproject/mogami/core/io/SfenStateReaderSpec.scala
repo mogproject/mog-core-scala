@@ -37,27 +37,27 @@ class SfenStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrive
   )
 
   "SfenStateReader#parseSfenString" must "parse states" in {
-    TestSfenStateReader.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b -") must be(Some(dataForTest(0)))
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b -") must be(Some(dataForTest(1)))
-    TestSfenStateReader.parseSfenString("lnsgk2nl/1r4gs1/ppp+Bpp1p1/6p1p/2P6/8P/PP2PPPP1/2S1G4/LN2KGSNL w BPrp") must be(Some(dataForTest(2)))
-    TestSfenStateReader.parseSfenString("+l+n+sgkg+s+n+l/1+r5+b1/+p+p+p+p+p+p+p+p+p/9/9/9/+P+P+P+P+P+P+P+P+P/1+B5+R1/+L+N+SGKG+S+N+L b -") must be(Some(dataForTest(3)))
-    TestSfenStateReader.parseSfenString("4k4/9/9/9/9/9/9/9/9 b 2R2B4G4S4N4L18P") must be(Some(dataForTest(4)))
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4K4 w 2r2b4g4s4n4l18p") must be(Some(dataForTest(5)))
+    TestSfenStateReader.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b -") mustBe dataForTest(0)
+    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b -") mustBe dataForTest(1)
+    TestSfenStateReader.parseSfenString("lnsgk2nl/1r4gs1/ppp+Bpp1p1/6p1p/2P6/8P/PP2PPPP1/2S1G4/LN2KGSNL w BPrp") mustBe dataForTest(2)
+    TestSfenStateReader.parseSfenString("+l+n+sgkg+s+n+l/1+r5+b1/+p+p+p+p+p+p+p+p+p/9/9/9/+P+P+P+P+P+P+P+P+P/1+B5+R1/+L+N+SGKG+S+N+L b -") mustBe dataForTest(3)
+    TestSfenStateReader.parseSfenString("4k4/9/9/9/9/9/9/9/9 b 2R2B4G4S4N4L18P") mustBe dataForTest(4)
+    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4K4 w 2r2b4g4s4n4l18p") mustBe dataForTest(5)
   }
   it must "throw an exception in error cases" in {
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b - -"))
-//
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("8/9/9/9/9/9/9/9/9 b -"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("4k5/9/9/9/9/9/9/9/9 b -"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4k5 b -"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b -"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/8+/9/9 B -"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b - -"))
+
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("8/9/9/9/9/9/9/9/9 b -"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("4k5/9/9/9/9/9/9/9/9 b -"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4k5 b -"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b -"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/8+/9/9 B -"))
 
     assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 B -"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b +"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b 3"))
-//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b x"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b +"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b 3"))
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b x"))
   }
 
 }
