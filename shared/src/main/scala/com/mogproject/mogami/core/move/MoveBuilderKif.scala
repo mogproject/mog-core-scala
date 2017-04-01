@@ -35,10 +35,10 @@ object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
       } yield {
         MoveBuilderKifHand(to, pt, t)
       }
-    case Some((pattern(toStr, ptStr, prStr, fromStr), t)) if prStr == "" || prStr == "成" =>
+    case Some((pattern(toStr, ptStr, prStr, fromStr), t)) if fromStr != null && (prStr == "" || prStr == "成") =>
       for {
         pt <- Ptype.parseKifString(ptStr)
-        from <- Square.parseCsaString(fromStr)
+        from = Square.parseCsaString(fromStr)
         toOpt = Square.parseKifString(toStr)
         if toOpt.isDefined || toStr == "同　"
       } yield {

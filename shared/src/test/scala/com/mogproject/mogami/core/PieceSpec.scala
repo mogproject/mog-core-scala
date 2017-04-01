@@ -2,8 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
-
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.io.RecordFormatException
 
 class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val allPieces: Seq[Piece] = for {p <- Player.constructor; pt <- Ptype.constructor} yield Piece(p, pt)
@@ -20,21 +20,21 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   )
 
   "Piece#parseCsaString" must "succeed in normal cases" in {
-    csaPieces map { c => Piece.parseCsaString(c) } must be(allPieces map (Some(_)))
+    csaPieces map { c => Piece.parseCsaString(c) } mustBe allPieces
   }
   it must "return None in error cases" in {
-    Piece.parseCsaString("") must be(None)
-    Piece.parseCsaString(" ") must be(None)
-    Piece.parseCsaString("x" * 1000) must be(None)
-    Piece.parseCsaString("=FU") must be(None)
-    Piece.parseCsaString("-Fu") must be(None)
-    Piece.parseCsaString("-FU+") must be(None)
+    assertThrows[RecordFormatException](Piece.parseCsaString(""))
+    assertThrows[RecordFormatException](Piece.parseCsaString(" "))
+    assertThrows[RecordFormatException](Piece.parseCsaString("x" * 1000))
+    assertThrows[RecordFormatException](Piece.parseCsaString("=FU"))
+    assertThrows[RecordFormatException](Piece.parseCsaString("-Fu"))
+    assertThrows[RecordFormatException](Piece.parseCsaString("-FU+"))
   }
   "Piece#toCsaString" must "describe in csa format" in {
     allPieces map (_.toCsaString) must be(csaPieces)
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
-    Piece.parseCsaString(p.toCsaString) must be(Some(p))
+    Piece.parseCsaString(p.toCsaString) mustBe p
   }
 
   "Piece#toSfenString" must "describe in SFEN format" in {

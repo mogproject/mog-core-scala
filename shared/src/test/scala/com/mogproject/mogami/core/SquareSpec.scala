@@ -1,11 +1,12 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
-import com.mogproject.mogami.core.Ptype.{PAWN, LANCE, KNIGHT, SILVER}
+import com.mogproject.mogami.core.Ptype.{KNIGHT, LANCE, PAWN, SILVER}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.Direction._
+import com.mogproject.mogami.core.io.RecordFormatException
 
 class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   private val csaSquare = for (r <- '1' to '9'; f <- '1' to '9') yield s"$f$r"
@@ -25,21 +26,21 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   }
 
   "Square#parseCsaString" must "return Some in normal cases" in {
-    csaSquare map { c => Square.parseCsaString(c) } mustBe Square.all.map(Some(_))
+    csaSquare map { c => Square.parseCsaString(c) } mustBe Square.all
   }
   it must "return None in error cases" in {
-    Square.parseCsaString("") mustBe None
-    Square.parseCsaString(" ") mustBe None
-    Square.parseCsaString("x" * 1000) mustBe None
-    Square.parseCsaString("01") mustBe None
-    Square.parseCsaString("90") mustBe None
-    Square.parseCsaString("123") mustBe None
+    assertThrows[RecordFormatException](Square.parseCsaString(""))
+    assertThrows[RecordFormatException](Square.parseCsaString(" "))
+    assertThrows[RecordFormatException](Square.parseCsaString("x" * 1000))
+    assertThrows[RecordFormatException](Square.parseCsaString("01"))
+    assertThrows[RecordFormatException](Square.parseCsaString("90"))
+    assertThrows[RecordFormatException](Square.parseCsaString("123"))
   }
   "Square#toCsaString" must "make CSA-formatted string" in {
     Square.all map (_.toCsaString) mustBe csaSquare
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
-    Square.parseCsaString(s.toCsaString) must be(Some(s))
+    Square.parseCsaString(s.toCsaString) mustBe s
   }
   "Square#parseSfenString" must "return Some in normal cases" in {
     sfenSquare map { c => Square.parseSfenString(c) } mustBe Square.all.map(Some(_))

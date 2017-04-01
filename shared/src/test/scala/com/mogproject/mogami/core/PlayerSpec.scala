@@ -2,8 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.io.RecordFormatException
 
 class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   "Player#equals" must "distinguish between black and white" in {
@@ -36,11 +36,11 @@ class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   }
 
   "Player#parseCsaString" must "make player" in {
-    Player.parseCsaString("+") must be(Some(BLACK))
-    Player.parseCsaString("-") must be(Some(WHITE))
-    Player.parseCsaString("") must be(None)
-    Player.parseCsaString(" ") must be(None)
-    Player.parseCsaString("x" * 1000) must be(None)
+    Player.parseCsaString("+") mustBe BLACK
+    Player.parseCsaString("-") mustBe WHITE
+    assertThrows[RecordFormatException](Player.parseCsaString(""))
+    assertThrows[RecordFormatException](Player.parseCsaString(" "))
+    assertThrows[RecordFormatException](Player.parseCsaString("x" * 1000))
   }
 
   "Player#parseSfenString" must "make player" in {

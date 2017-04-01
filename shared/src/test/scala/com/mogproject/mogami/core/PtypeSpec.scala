@@ -2,8 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.io.RecordFormatException
 
 class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
@@ -40,13 +40,13 @@ class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   }
 
   "Ptype#parseCsaString" must "make piece type" in {
-    csaPtypes.map(Ptype.parseCsaString) must be(allPtypes.map(Some(_)))
+    csaPtypes.map(Ptype.parseCsaString) mustBe allPtypes
   }
-  it must "return None" in {
-    Ptype.parseCsaString("") must be(None)
-    Ptype.parseCsaString("* ") must be(None)
-    Ptype.parseCsaString("OU ") must be(None)
-    Ptype.parseCsaString("x" * 100) must be(None)
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](Ptype.parseCsaString(""))
+    assertThrows[RecordFormatException](Ptype.parseCsaString("* "))
+    assertThrows[RecordFormatException](Ptype.parseCsaString("OU "))
+    assertThrows[RecordFormatException](Ptype.parseCsaString("x" * 100))
   }
 
   "Ptype#toEnglishSimpleName" must "describe all piece types" in {
@@ -58,7 +58,7 @@ class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   }
 
   it must "recover piece types" in forAll(PtypeGen.ptypes) { pt =>
-    Ptype.parseCsaString(pt.toCsaString) must be(Some(pt))
+    Ptype.parseCsaString(pt.toCsaString) mustBe pt
   }
 
   "Ptype#promoted" must "return promoted piece types" in {

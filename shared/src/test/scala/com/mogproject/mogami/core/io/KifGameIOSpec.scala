@@ -79,7 +79,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       "-0031KI",
       "+5847KA",
       "-6747HI"
-    )
-    Game.parseKifString(Game.parseCsaString(s1).get.toKifString).isDefined mustBe true
+    ).mkString("\n")
+    Game.parseKifString(Game.parseCsaString(s1).toKifString).isDefined mustBe true
   }
 }

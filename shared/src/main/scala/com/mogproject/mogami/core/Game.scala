@@ -171,20 +171,8 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
    */
 }
 
-object GameInfo extends CsaFactory[GameInfo] {
-  def parseCsaString(s: String): Option[GameInfo] = {
-    @tailrec
-    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
-      case (x :: xs, Some(gt)) =>
-        keys.filter { k => x.startsWith(k._2) } match {
-          case (k, c) :: _ => f(xs, Some(gt.updated(k, x.substring(c.length))))
-          case _ => None
-        }
-      case _ => sofar // (_, None) => None; (Nil, _) => sofar
-    }
+object GameInfo {
 
-    f(s.isEmpty.fold(List(), s.split('\n').toList), Some(GameInfo()))
-  }
 
   def parseKifString(s: String): Option[GameInfo] = {
     @tailrec

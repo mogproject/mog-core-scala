@@ -233,7 +233,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     dataForTest(5).toCsaString mustBe csaForTest(5)
   }
   it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
-    State.parseCsaString(st.toCsaString) mustBe Some(st)
+    State.parseCsaString(st.toCsaString) mustBe st
   }
 
   "State#toSfenString" must "describe the state" in {
@@ -411,7 +411,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
 
     s1.getAttackBB(BLACK) mustBe BitBoard(Seq(
       "---------",
@@ -451,7 +451,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     val s2: State = State.parseCsaString(Seq(
       "P1 *  *  *  * -KI *  *  *  * ",
       "P2 *  *  * +OU *  *  *  *  * ",
@@ -465,7 +465,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     val s3: State = State.parseCsaString(Seq(
       "P1 *  *  *  * -OU *  *  *  * ",
       "P2 *  *  * +KI *  *  *  *  * ",
@@ -479,7 +479,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
     val s4: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  * -OU * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -493,7 +493,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
     val s5: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  * -OU * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -507,7 +507,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+00FU",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
 
     s1.isChecked mustBe true
     s2.isChecked mustBe true
@@ -528,7 +528,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     val s2: State = State.parseCsaString(Seq(
       "P1-KY-KE-GI-KI * -KI-GI-KE-KY",
       "P2 * -HI *  *  *  *  * -KA * ",
@@ -542,7 +542,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
     val s3: State = State.parseCsaString(Seq(
       "P1-KY-KE-GI-KI * -KI-GI-KE-KY",
       "P2 * -HI *  *  *  *  * -KA * ",
@@ -556,7 +556,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
 
     s1.isChecked mustBe false
     s2.isChecked mustBe false
@@ -577,7 +577,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     val s2: State = State.parseCsaString(Seq(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
       "P2 * -HI *  *  *  *  * -KA * ",
@@ -591,7 +591,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     val s3: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  * -OU * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -605,7 +605,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
     val s4: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  * -OU * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -619,7 +619,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+00FU",
       "P-",
       "-"
-    )).get
+    ).mkString("\n"))
     val s5: State = State.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  * -OU * ",
       "P2 *  *  *  *  *  *  * -FU * ",
@@ -633,7 +633,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+00FU",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
 
     s1.attackers mustBe Set.empty
     s2.attackers mustBe Set.empty
@@ -656,7 +656,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get
+    ).mkString("\n"))
     s1.guards mustBe Map(
       P53 -> BitBoard(Seq(
         "---------",
@@ -729,7 +729,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 * +KY * +KY * +KY *  *  *.
         |P+00HI00KA00KI00GI00KE00KY00FU
         |P-00KI00KI00KI00KE00KE00KE00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
-        |+""".stripMargin).get.legalMoves.size must be(593)
+        |+""".stripMargin).legalMoves.size must be(593)
     State.parseSfenString("ln1g4l/1ks1g4/1pp6/pg1P2pp1/2P2R2p/PP1NP1PP1/1KNg4P/1S+r6/L7L b 2B2SN4P").get.legalMoves.size mustBe 3
   }
 
@@ -746,7 +746,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -759,7 +759,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  * +OU *  *  *  *.
         |P+00HI00KA
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -772,7 +772,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 * -HI *  * +OU+FU *  *  *.
         |P+00FU00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -785,7 +785,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 * -HI *  * +OU *  *  *  *.
         |P+00FU00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -798,7 +798,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  * +OU *  *  *  *.
         |P+
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -811,7 +811,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  * +KE+OU *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  * -KY *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -824,7 +824,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  * +KI *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  * -RY * +OU
         |P2 *  *  *  *  *  *  *  * +TO
@@ -837,7 +837,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1 *  *  *  *  *  * -GI-KE-OU
         |P2 *  *  *  *  *  * -KY-KA-KY
@@ -850,7 +850,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+
         |P-00HI00KA00KI00GI00KE00KY00FU
-        |-""".stripMargin).get.isMated mustBe true
+        |-""".stripMargin).isMated mustBe true
     State.parseCsaString(
       """P1+NG+HI+KI+GI+HI+KA+NY+GI+KA
         |P2+FU+FU+FU+FU+FU+FU+FU+FU+FU
@@ -863,7 +863,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe true
+        |+""".stripMargin).isMated mustBe true
   }
   it must "return false when the state is not mated" in {
     State.parseCsaString(
@@ -878,7 +878,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -891,7 +891,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  * +OU *  *  *  *.
         |P+00HI00KA
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -904,7 +904,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 * -HI *  * +OU+FU *  *  *.
         |P+00FU00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -917,7 +917,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 * -HI *  * +OU *  *  *  *.
         |P+00FU00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -930,7 +930,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  * +OU *  *  *  *.
         |P+00KA
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  *  *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -943,7 +943,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  * +KE+OU *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  * -KY *  *  *.
         |P2 *  *  *  *  *  *  *  *  *.
@@ -956,7 +956,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  * -KI *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  * -RY * +OU
         |P2 *  *  *  *  *  *  *  * +TO
@@ -969,7 +969,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  * -RY * +OU
         |P2 *  *  *  *  *  * -RY *  *.
@@ -982,7 +982,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+00FU
         |P-
-        |+""".stripMargin).get.isMated mustBe false
+        |+""".stripMargin).isMated mustBe false
     State.parseCsaString(
       """P1 *  *  *  *  *  * -GI-KE-OU
         |P2 *  *  *  *  *  * -KI-KA-KY
@@ -995,7 +995,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
         |P9 *  *  *  *  *  *  *  *  *.
         |P+
         |P-00HI00KA00KI00GI00KE00KY00FU
-        |-""".stripMargin).get.isMated mustBe false
+        |-""".stripMargin).isMated mustBe false
   }
 
   "State#hasHand" must "return if the in-hand piece exists" in {
@@ -1019,7 +1019,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get.getNonSuicidalMovesOnBoard mustBe Map(
+    ).mkString("\n")).getNonSuicidalMovesOnBoard mustBe Map(
       Square(3, 2) -> BitBoard("000.010.000.000.000.000.000.000.000"),
       Square(2, 2) -> BitBoard("007.001.007.000.000.000.000.000.000")
     )
@@ -1036,7 +1036,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get.getNonSuicidalMovesOnBoard mustBe Map(
+    ).mkString("\n")).getNonSuicidalMovesOnBoard mustBe Map(
       Square(3, 2) -> BitBoard("000.010.000.000.000.000.000.000.000"),
       Square(2, 2) -> BitBoard("007.000.001.000.000.000.000.000.000"),
       Square(3, 3) -> BitBoard("000.000.000.010.000.000.000.000.000")
@@ -1056,7 +1056,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "+"
-    )).get.getEscapeMoves mustBe Map(
+    ).mkString("\n")).getEscapeMoves mustBe Map(
       Left(P76) -> BitBoard("000.000.000.000.340.200.200.000.000"),
       Left(P66) -> BitBoard("000.000.000.000.000.000.000.000.000"),
       Left(P77) -> BitBoard("000.000.000.000.000.000.000.000.000")
@@ -1074,7 +1074,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
       "P+",
       "P-",
       "-"
-    )).get.getEscapeMoves mustBe Map(
+    ).mkString("\n")).getEscapeMoves mustBe Map(
       Left(P43) -> BitBoard("000.000.020.020.000.000.000.000.000")
     )
   }

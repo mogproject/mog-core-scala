@@ -4,6 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.Game.GameStatus._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.StateConstant._
+import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.{Pause, Resign, TimeUp}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -141,14 +142,14 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     dataForTest.map(_.toCsaString) zip csaForTest foreach { case (a, b) => a must be(b) }
   }
   "Game#parseCsaString" must "work in normal cases" in {
-    csaForTest.map(Game.parseCsaString) zip dataForTest.map(Some(_)) foreach { case (a, b) => a must be(b) }
-    Game.parseCsaString("+") must be(Some(Game(stateEmpty, Vector(), GameInfo())))
-    Game.parseCsaString("-") must be(Some(Game(stateEmptyInv, Vector(), GameInfo())))
+    csaForTest.map(Game.parseCsaString) zip dataForTest foreach { case (a, b) => a mustBe b }
+    Game.parseCsaString("+") mustBe Game(stateEmpty, Vector(), GameInfo())
+    Game.parseCsaString("-") mustBe Game(stateEmptyInv, Vector(), GameInfo())
 
-    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") mustBe Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
-    ), GameInfo())))
+    ), GameInfo())
     Game.parseCsaString("N-yyy\n" +
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n" +
       "P2 * -HI *  *  *  *  * -KA * \n" +
@@ -161,71 +162,71 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
-      "-\n-5152OU\nT2345\n+5958OU") must be(Some(Game(stateHirateInv, Vector(
+      "-\n-5152OU\nT2345\n+5958OU") mustBe Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
-    ), GameInfo(Map('whiteName -> "yyy")))))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") must be(Some(Game(stateEmpty, Vector(), GameInfo(
-      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") must be(Some(Game(State(
+    ), GameInfo(Map('whiteName -> "yyy")))
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") mustBe Game(stateEmpty, Vector(), GameInfo(
+      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe Game(State(
       WHITE, stateEmpty.board, stateEmpty.hand), Vector(), GameInfo(
-      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))))
-    Game.parseCsaString("V2.2\n-") must be(Some(Game(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))))
-    Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") must be(Some(Game(
+      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
+    Game.parseCsaString("V2.2\n-") mustBe Game(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))
+    Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") mustBe Game(
       stateHirateInv,
       Vector(
         Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
         Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
       ),
-      GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))))
+      GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))
   }
-  it must "return None when in error cases" in {
-    Game.parseCsaString("") must be(None)
-    Game.parseCsaString(" ") must be(None)
-    Game.parseCsaString("x" * 1000) must be(None)
-    Game.parseCsaString("x\n" * 1000) must be(None)
-    Game.parseCsaString("$") must be(None)
-    Game.parseCsaString("V\n") must be(None)
-    Game.parseCsaString("V1\nP+00OU\n+") must be(None)
-    Game.parseCsaString("PI\n+\nN+\n+7776FU") must be(None)
+  it must "throw an exception when in error cases" in {
+    assertThrows[RecordFormatException](Game.parseCsaString(""))
+    assertThrows[RecordFormatException](Game.parseCsaString(" "))
+    assertThrows[RecordFormatException](Game.parseCsaString("x" * 1000))
+    assertThrows[RecordFormatException](Game.parseCsaString("x\n" * 1000))
+    assertThrows[RecordFormatException](Game.parseCsaString("$"))
+    assertThrows[RecordFormatException](Game.parseCsaString("V\n"))
+    assertThrows[RecordFormatException](Game.parseCsaString("V1\nP+00OU\n+"))
+    assertThrows[RecordFormatException](Game.parseCsaString("PI\n+\nN+\n+7776FU"))
   }
-  it must "return None when game info is invalid" in {
-    Game.parseCsaString("$XXX:XXX\nPI\n-\n-5152OU,T2345\n+5958OU") must be(None)
-    Game.parseCsaString("N+xxx\nN=yyy\nPI\n-\n-5152OU,T2345\n+5958OU") must be(None)
+  it must "throw an exception when game info is invalid" in {
+    assertThrows[RecordFormatException](Game.parseCsaString("$XXX:XXX\nPI\n-\n-5152OU,T2345\n+5958OU"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN=yyy\nPI\n-\n-5152OU,T2345\n+5958OU"))
   }
-  it must "return None when initial state is invalid" in {
-    Game.parseCsaString("N+xxx\nN-yyy\nPI") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+7776FU") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\nPI\nPI") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\nP\nP") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\nP+00FU\n-\n-5152OU,T2345\n+5958OU") must be(None)
+  it must "throw an exception when initial state is invalid" in {
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+7776FU"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nPI\nPI"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nP\nP"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nP+00FU\n-\n-5152OU,T2345\n+5958OU"))
   }
-  it must "return None when moves are invalid" in {
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+1234AB") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n+7675FU") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI") must be(None)
-    Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU") must be(None)
+  it must "throw an exception when moves are invalid" in {
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+1234AB"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n+7675FU"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI"))
+    assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU"))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
-    Game.parseCsaString(g.toCsaString) must be(Some(g))
+    Game.parseCsaString(g.toCsaString) mustBe g
   }
   it must "ignore comments" in {
-    Game.parseCsaString("PI,-,'comment,-5152OU,T2345,'comment,+5958OU") must be(Some(Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe Game(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
-    ), GameInfo())))
+    ), GameInfo())
   }
   it must "parse special moves" in {
-    Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe Some(Game(HIRATE, Vector(
+    Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
-    ), finalAction = Some(Resign(Some(3)))))
-    Game.parseCsaString("PI,+,+7776FU,T2,%TIME_UP,T3") mustBe Some(Game(HIRATE, Vector(
+    ), finalAction = Some(Resign(Some(3))))
+    Game.parseCsaString("PI,+,+7776FU,T2,%TIME_UP,T3") mustBe Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
-    ), finalAction = Some(TimeUp(Some(3)))))
-    Game.parseCsaString("PI,+,+7776FU,T2,%CHUDAN") mustBe Some(Game(HIRATE, Vector(
+    ), finalAction = Some(TimeUp(Some(3))))
+    Game.parseCsaString("PI,+,+7776FU,T2,%CHUDAN") mustBe Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
-    ), finalAction = Some(Pause)))
+    ), finalAction = Some(Pause))
   }
 
   "Game#toSfenString" must "describe some games" in {
@@ -339,7 +340,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         |
     """.stripMargin
 
-    Game.parseKifString(s) mustBe Game.parseCsaString(Seq(
+    Game.parseKifString(s).get mustBe Game.parseCsaString(Seq(
       "N+black123",
       "N-why",
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
@@ -423,7 +424,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+3948OU,T12",
       "-6958NG,T5",
       "%TORYO,T32"
-    ))
+    ).mkString("\n"))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
@@ -436,7 +437,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
   "Game#status" must "return Playing when playing" in {
     Game().status mustBe Playing
-    Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").get.status mustBe Playing
+    Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").status mustBe Playing
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  * -FU * ",
@@ -450,7 +451,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0012FU"
-    ).mkString("\n")).get.status mustBe Playing
+    ).mkString("\n")).status mustBe Playing
   }
   it must "return Mated when mated" in {
     Game.parseCsaString(Seq(
@@ -464,7 +465,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P8 *  *  *  *  *  *  *  *  * ",
       "P9 *  *  *  *  *  *  *  *  * ",
       "-"
-    ).mkString("\n")).get.status mustBe Mated
+    ).mkString("\n")).status mustBe Mated
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  *  * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -477,7 +478,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9 *  *  *  *  *  *  *  * +OU",
       "-",
       "-2718NG"
-    ).mkString("\n")).get.status mustBe Mated
+    ).mkString("\n")).status mustBe Mated
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -490,7 +491,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9 *  *  *  *  *  *  *  *  * ",
       "+",
       "+1312FU"
-    ).mkString("\n")).get.status mustBe Mated
+    ).mkString("\n")).status mustBe Mated
 
     // dropping pawn but not a check
     Game.parseCsaString(Seq(
@@ -506,7 +507,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0013FU"
-    ).mkString("\n")).get.status mustBe Mated
+    ).mkString("\n")).status mustBe Mated
   }
   it must "return Illegal when perpetual check" in {
     Game.parseCsaString(Seq(
@@ -533,7 +534,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+1223GI",
       "-2211OU",
       "+2312GI"
-    )).get.status mustBe PerpetualCheck
+    ).mkString("\n")).status mustBe PerpetualCheck
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  *  * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -558,7 +559,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-1827GI",
       "+2819OU",
       "-2718GI"
-    )).get.status mustBe PerpetualCheck
+    ).mkString("\n")).status mustBe PerpetualCheck
   }
   it must "return Illegal when uchifuzume" in {
     Game.parseCsaString(Seq(
@@ -574,7 +575,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0012FU"
-    )).get.status mustBe Uchifuzume
+    ).mkString("\n")).status mustBe Uchifuzume
   }
   it must "return Drawn when repetition" in {
     Game.parseCsaString(Seq(
@@ -604,11 +605,11 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-1121OU",
       "+3423GI",
       "-2111OU"
-    )).get.status mustBe Drawn
+    ).mkString("\n")).status mustBe Drawn
   }
   it must "tell special moves" in {
-    Game.parseCsaString("PI,+,+7776FU,%TORYO").get.status mustBe Resigned
-    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").get.status mustBe TimedUp
-    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").get.status mustBe IllegallyMoved
+    Game.parseCsaString("PI,+,+7776FU,%TORYO").status mustBe Resigned
+    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").status mustBe TimedUp
+    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").status mustBe IllegallyMoved
   }
 }

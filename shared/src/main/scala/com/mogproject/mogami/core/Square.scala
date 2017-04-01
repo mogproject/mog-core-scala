@@ -77,11 +77,16 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
     apply((rank - 1) * 9 + file - 1)
   }
 
-  def parseCsaString(s: String): Option[Square] = {
-    val p: Regex = """([1-9])([1-9])""".r
-    s match {
-      case p(file, rank) => Some(Square(file.toInt, rank.toInt))
-      case _ => None
+  def parseCsaString(nel: NonEmptyLines): Square = {
+    if (nel.lines.length >= 2) {
+      val (x, n) = nel.lines(1)
+      throw new RecordFormatException(n, s"too long square expression: ${x}")
+    } else {
+      val p: Regex = """([1-9])([1-9])""".r
+      nel.lines.head match {
+        case (p(file, rank), _) => Square(file.toInt, rank.toInt)
+        case (x, n) => throw new RecordFormatException(n, s"invalid square: ${x}")
+      }
     }
   }
 
