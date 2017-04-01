@@ -121,27 +121,27 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestKif map (_.toKifString) mustBe kifForTest
   }
   "Move#parseKifString" must "succeed in normal cases" in {
-    kifForTest map { c => MoveBuilderKif.parseKifString(c) } mustBe (movesForTestKif map Some.apply)
+    kifForTest map { c => MoveBuilderKif.parseKifString(c) } mustBe movesForTestKif
 
-    MoveBuilderKif.parseKifString("６五桂打   ( 0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("６五桂打   ( 0: 3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("６五桂打 (0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("同　銀(43)   (00:00/00:00:00)") mustBe Some(MoveBuilderKifBoard(P43, None, SILVER, promote = false, Some(0)))
+    MoveBuilderKif.parseKifString("６五桂打   ( 0:3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("６五桂打   ( 0: 3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("６五桂打 (0:3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("同　銀(43)   (00:00/00:00:00)") mustBe MoveBuilderKifBoard(P43, None, SILVER, promote = false, Some(0))
   }
   it must "return None in error cases" in {
-    MoveBuilderKif.parseKifString("") must be(None)
-    MoveBuilderKif.parseKifString(" ") must be(None)
-    MoveBuilderKif.parseKifString("x" * 1000) must be(None)
-    MoveBuilderKif.parseKifString("３四歩") must be(None)
-    MoveBuilderKif.parseKifString("３四歩 (33)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0:a)") must be(None)
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString(""))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString(" "))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩 (33)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0:a)"))
   }
   it must "restore moves" in forAll(MoveGen.movesKifFormat) { m =>
-    MoveBuilderKif.parseKifString(m.toKifString) mustBe Some(m)
+    MoveBuilderKif.parseKifString(m.toKifString) mustBe m
   }
 
   "Move#toJapaneseNotationString" must "describe the move" in {
@@ -623,7 +623,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P-",
       "+").mkString("\n"))
 
-    MoveBuilderKif.parseKifString("７六歩(77) (0:03/)").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, Some(3)))
+    MoveBuilderKif.parseKifString("７六歩(77) (0:03/)").toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, Some(3)))
   }
 
 }

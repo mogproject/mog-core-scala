@@ -13,9 +13,9 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
 
   object TestCsaStateReader extends CsaStateReader
 
-  def makeNEL(xs: String*): NonEmptyLines = NonEmptyLines(TestCsaStateReader.normalize(xs))
+  def makeNEL(xs: String*): NonEmptyLines = NonEmptyLines(TestCsaStateReader.normalizeCsaString(xs))
 
-  def makeNEL(xs: List[String]): NonEmptyLines = NonEmptyLines(TestCsaStateReader.normalize(xs))
+  def makeNEL(xs: List[String]): NonEmptyLines = NonEmptyLines(TestCsaStateReader.normalizeCsaString(xs))
 
   val initResult: (BoardType, HandType, Map[Ptype, Int]) = (Map.empty, State.EMPTY_HANDS, State.capacity)
   val zeroCap: Map[Ptype, Int] = State.capacity.mapValues(_ => 0)

@@ -46,9 +46,9 @@ class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   "Player#parseSfenString" must "make player" in {
     Player.parseSfenString("b") must be(Some(BLACK))
     Player.parseSfenString("w") must be(Some(WHITE))
-    Player.parseSfenString("") must be(None)
-    Player.parseSfenString(" ") must be(None)
-    Player.parseSfenString("x" * 1000) must be(None)
+    assertThrows[RecordFormatException](Player.parseSfenString(""))
+    assertThrows[RecordFormatException](Player.parseSfenString(" "))
+    assertThrows[RecordFormatException](Player.parseSfenString("x" * 1000))
   }
 
   "Player#unary_!" must "change the player" in {

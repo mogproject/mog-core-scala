@@ -28,7 +28,7 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
   "Square#parseCsaString" must "return Some in normal cases" in {
     csaSquare map { c => Square.parseCsaString(c) } mustBe Square.all
   }
-  it must "return None in error cases" in {
+  it must "throw an exception in error cases" in {
     assertThrows[RecordFormatException](Square.parseCsaString(""))
     assertThrows[RecordFormatException](Square.parseCsaString(" "))
     assertThrows[RecordFormatException](Square.parseCsaString("x" * 1000))
@@ -63,15 +63,15 @@ class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Square.all map (_.toKifString) mustBe kifSquare
   }
   "Square#parseKifString" must "return Some in normal cases" in {
-    kifSquare map Square.parseKifString mustBe Square.all.map(Some.apply)
+    kifSquare map Square.parseKifString mustBe Square.all
   }
-  it must "return None in error cases" in {
-    Square.parseKifString("") mustBe None
-    Square.parseKifString(" ") mustBe None
-    Square.parseKifString("  ") mustBe None
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](Square.parseKifString(""))
+    assertThrows[RecordFormatException](Square.parseKifString(" "))
+    assertThrows[RecordFormatException](Square.parseKifString("  "))
   }
   it must "recover the original square" in forAll(SquareGen.squares) { s =>
-    Square.parseKifString(s.toKifString) mustBe Some(s)
+    Square.parseKifString(s.toKifString) mustBe s
   }
   "Square#isPromotionZone" must "return if a piece can promote" in {
     Square(1, 2).isPromotionZone(BLACK) must be(true)

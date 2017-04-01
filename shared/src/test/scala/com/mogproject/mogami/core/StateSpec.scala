@@ -257,7 +257,7 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     dataForTest(5).toKifString mustBe kifForTest(5)
   }
   it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
-    State.parseKifString(st.toKifString) mustBe Some(st)
+    State.parseKifString(st.toKifString) mustBe st
   }
 
   "State#makeMove" must "make next state" in {

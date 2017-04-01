@@ -9,17 +9,9 @@ trait CsaTableFactory[T <: CsaLike] extends CsaFactory[T] {
 
   val csaTable: Seq[String]
 
-  private[this] lazy val tableFactory = BaseTableFactory[T](csaTable)
+  private[this] lazy val tableFactory = BaseTableFactory[T](typeName, csaTable)
 
-  override def parseCsaString(nel: NonEmptyLines): T = {
-    if (nel.lines.length >= 2) {
-      val (ln, n) = nel.lines(1)
-      throw new RecordFormatException(n, s"too long ${typeName} expression: ${ln}")
-    } else {
-      val (ln, n) = nel.lines.head
-      tableFactory.get(ln)(apply).getOrElse(throw new RecordFormatException(n, s"invalid ${typeName}: ${ln}"))
-    }
-  }
+  override def parseCsaString(nel: NonEmptyLines): T = tableFactory.parse(nel)(apply)
 
   def apply(id: Int): T
 

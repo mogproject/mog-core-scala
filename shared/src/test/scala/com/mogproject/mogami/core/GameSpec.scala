@@ -239,14 +239,14 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       a must be(b)
     }
   }
-  it must "return None in error cases" in {
+  it must "throw an exception in error cases" in {
     Game.parseSfenString("") must be(None)
     Game.parseSfenString(" ") must be(None)
     Game.parseSfenString("x" * 1000) must be(None)
     Game.parseSfenString("x\n" * 1000) must be(None)
     Game.parseSfenString("$") must be(None)
-    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -") must be(None)
-    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") must be(None)
+    assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 B -"))
+    Game.parseSfenString("9/9/9/9/9/9/9/9/9 B ") mustBe None
     Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx") must be(None)
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
@@ -340,7 +340,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         |
     """.stripMargin
 
-    Game.parseKifString(s).get mustBe Game.parseCsaString(Seq(
+    Game.parseKifString(s) mustBe Game.parseCsaString(Seq(
       "N+black123",
       "N-why",
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
@@ -432,7 +432,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       'blackName -> ts.getOrElse('blackName, ""),
       'whiteName -> ts.getOrElse('whiteName, "")
     )))
-    Game.parseKifString(gg.toKifString) must be(Some(gg))
+    Game.parseKifString(gg.toKifString) mustBe gg
   }
 
   "Game#status" must "return Playing when playing" in {

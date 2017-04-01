@@ -34,26 +34,26 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   }
 
   "KifGameReader#parseMovesKif" must "parse normal moves" in {
-    TestKifGameReader.parseMovesKif(List(), None, Some(Game())) mustBe Some(Game())
+    TestKifGameReader.parseMovesKif(HIRATE, List(), None) mustBe Game()
 
-    TestKifGameReader.parseMovesKif(List(
-      "７六歩(77)   ( 0:12/)", "８四歩(83)   ( 0:13/)"
-    ), None, Some(Game())) mustBe Some(Game(HIRATE, Vector(
+    TestKifGameReader.parseMovesKif(HIRATE, List(
+      ("７六歩(77)   ( 0:12/)", 1), ("８四歩(83)   ( 0:13/)", 2)
+    ), None) mustBe Game(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
-    )))
+    ))
   }
   it must "parse special moves" in {
-    TestKifGameReader.parseMovesKif(List("投了"), None, Some(Game())) mustBe Some(Game(HIRATE, finalAction = Some(Resign())))
-    TestKifGameReader.parseMovesKif(List("投了   ( 2:03/)"), None, Some(Game())) mustBe Some(Game(HIRATE, finalAction = Some(Resign(Some(123)))))
-    TestKifGameReader.parseMovesKif(List("切れ負け"), None, Some(Game())) mustBe Some(Game(HIRATE, finalAction = Some(TimeUp())))
-    TestKifGameReader.parseMovesKif(List("切れ負け (2:3/1:2:3)"), None, Some(Game())) mustBe Some(Game(HIRATE, finalAction = Some(TimeUp(Some(123)))))
-    TestKifGameReader.parseMovesKif(List("５一玉(59)", "反則手"), None, Some(Game())) mustBe Some(Game(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("投了", 1)), None) mustBe Game(HIRATE, finalAction = Some(Resign()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("投了   ( 2:03/)", 1)), None) mustBe Game(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け", 1)), None) mustBe Game(HIRATE, finalAction = Some(TimeUp()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け (2:3/1:2:3)", 1)), None) mustBe Game(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)", 1), ("反則手", 1)), None) mustBe Game(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
-    ))
-    TestKifGameReader.parseMovesKif(List("５一玉(59)   ( 2:03/)", "反則手   ( 0:0/)"), None, Some(Game())) mustBe Some(Game(HIRATE,
+    )
+    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)   ( 2:03/)", 1), ("反則手   ( 0:0/)", 2)), None) mustBe Game(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
-    ))
+    )
   }
 
   "KifGameReader#parseKifString" must "create games" in {
@@ -80,6 +80,6 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       "+5847KA",
       "-6747HI"
     ).mkString("\n")
-    Game.parseKifString(Game.parseCsaString(s1).toKifString).isDefined mustBe true
+    Game.parseKifString(Game.parseCsaString(s1).toKifString).moves.length mustBe 6
   }
 }

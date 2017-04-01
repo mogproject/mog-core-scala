@@ -172,24 +172,6 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
 }
 
 object GameInfo {
-
-
-  def parseKifString(s: String): Option[GameInfo] = {
-    @tailrec
-    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
-      case (x :: xs, Some(gt)) =>
-        if (x.startsWith("先手：") || x.startsWith("下手："))
-          f(xs, Some(gt.updated('blackName, x.drop(3))))
-        else if (x.startsWith("後手：") || x.startsWith("上手："))
-          f(xs, Some(gt.updated('whiteName, x.drop(3))))
-        else // ignore other flags
-          f(xs, sofar)
-      case _ => sofar
-    }
-
-    f(s.split('\n').toList, Some(GameInfo()))
-  }
-
   /** pairs of a symbol name and its csa-formatted string */
   val keys: Seq[(Symbol, String)] = Seq(
     ('formatVersion, "V"),

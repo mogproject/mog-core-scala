@@ -43,14 +43,14 @@ class CsaGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     TestCsaGameReader.parseMoves(HIRATE, Nil, None) mustBe Game()
   }
   it must "parse special moves" in {
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("%TORYO")), None) mustBe Game(HIRATE, finalAction = Some(Resign()))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("%TORYO,T123")), None) mustBe Game(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("%TIME_UP")), None) mustBe Game(HIRATE, finalAction = Some(TimeUp()))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("%TIME_UP", "T123")), None) mustBe Game(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("+5951OU", "%ILLEGAL_MOVE")), None) mustBe Game(HIRATE,
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TORYO")), None) mustBe Game(HIRATE, finalAction = Some(Resign()))
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TORYO,T123")), None) mustBe Game(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TIME_UP")), None) mustBe Game(HIRATE, finalAction = Some(TimeUp()))
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TIME_UP", "T123")), None) mustBe Game(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("+5951OU", "%ILLEGAL_MOVE")), None) mustBe Game(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalize(List("+5951OU,T123", "%ILLEGAL_MOVE")), None) mustBe Game(HIRATE,
+    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("+5951OU,T123", "%ILLEGAL_MOVE")), None) mustBe Game(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
   }

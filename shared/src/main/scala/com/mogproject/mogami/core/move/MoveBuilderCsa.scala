@@ -11,13 +11,6 @@ import scala.util.Try
 sealed trait MoveBuilderCsa extends MoveBuilder with CsaLike
 
 object MoveBuilderCsa extends CsaFactory[MoveBuilderCsa] {
-//  private[this] val pattern: Regex = """([^,]+)(?:,T([0-9]+))?""".r
-
-  //  def parseTime(s: String): Option[(String, Option[Int])] = s match {
-  //    case pattern(mv, null) => Some((mv, None))
-  //    case pattern(mv, tm) => Try(tm.toInt).filter(_ >= 0).map(x => (mv, Some(x))).toOption
-  //    case _ => None
-  //  }
 
   def parseTime(nel: NonEmptyLines): (Line, Option[Int]) = nel.lines.toList match {
     case mv :: Nil => (mv, None)
@@ -25,13 +18,12 @@ object MoveBuilderCsa extends CsaFactory[MoveBuilderCsa] {
       Try(tm.tail.toInt).filter(_ >= 0).map(x => (mv, Some(x))).getOrElse {
         throw new RecordFormatException(n, s"invalid time expression: ${tm}")
       }
-    case _ :: (ln, n) :: Nil => throw new RecordFormatException(n, s"invalid format: ${ln}")
-    case _ :: _ :: (ln, n) :: _ => throw new RecordFormatException(n, s"too long expression: ${ln}")
+    case _ :: (ln, n) :: Nil => throw new RecordFormatException(n, s"invalid time format: ${ln}")
+    case _ :: _ :: (ln, n) :: _ => throw new RecordFormatException(n, s"too long move expression: ${ln}")
     // $COVERAGE-OFF$
     case Nil => throw new RuntimeException("never happens")
     // $COVERAGE-ON$
   }
-
 
   override def parseCsaString(nel: NonEmptyLines): MoveBuilderCsa = {
     val ((mv, n), t) = parseTime(nel)
@@ -54,19 +46,6 @@ object MoveBuilderCsa extends CsaFactory[MoveBuilderCsa] {
     }
   }
 
-
-  //  override def parseCsaString(s: String): Option[MoveBuilderCsa] = {
-  //    val isHand = s.slice(1, 3) == "00"
-  //    for {
-  //      (mv, t) <- parseTime(s)
-  //      pl <- Player.parseCsaString(mv.substring(0, 1))
-  //      from <- if (isHand) Some(Square(0)) else Square.parseCsaString(mv.substring(1, 3))
-  //      to <- Square.parseCsaString(mv.substring(3, 5)) if isHand || to != from
-  //      pt <- Ptype.parseCsaString(mv.substring(5)) if !isHand || pt.isHandType
-  //    } yield {
-  //      if (isHand) MoveBuilderCsaHand(pl, to, pt, t) else MoveBuilderCsaBoard(pl, from, to, pt, t)
-  //    }
-  //  }
 }
 
 case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderCsa {

@@ -44,20 +44,20 @@ class SfenStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrive
     TestSfenStateReader.parseSfenString("4k4/9/9/9/9/9/9/9/9 b 2R2B4G4S4N4L18P") must be(Some(dataForTest(4)))
     TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4K4 w 2r2b4g4s4n4l18p") must be(Some(dataForTest(5)))
   }
-  it must "return None in error cases" in {
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b - -") must be(None)
+  it must "throw an exception in error cases" in {
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b - -"))
+//
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("8/9/9/9/9/9/9/9/9 b -"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("4k5/9/9/9/9/9/9/9/9 b -"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4k5 b -"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b -"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/8+/9/9 B -"))
 
-    TestSfenStateReader.parseSfenString("8/9/9/9/9/9/9/9/9 b -") must be(None)
-    TestSfenStateReader.parseSfenString("4k5/9/9/9/9/9/9/9/9 b -") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/4k5 b -") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9/9 b -") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/8+/9/9 B -") must be(None)
-
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 B -") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b +") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b 3") must be(None)
-    TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b x") must be(None)
+    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 B -"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b +"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b 3"))
+//    assertThrows[RecordFormatException](TestSfenStateReader.parseSfenString("9/9/9/9/9/9/9/9/9 b x"))
   }
 
 }

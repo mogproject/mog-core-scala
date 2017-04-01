@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 import scala.util.Try
 
 /**
-  * Common interface for Kif format
+  * Common interface for Kif and KI2 format
   */
 trait KifGameIO {
   protected val presetStates: Map[String, State] = Map(
@@ -84,74 +84,122 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
 /**
   * Reads Kif-formatted game
   */
-trait KifGameReader extends KifGameIO with KifFactory[Game] {
+trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
 
-  private def isNormalMove(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
+  private[this] def isNormalMove(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
 
-  private def isValidLine(s: String): Boolean = s.nonEmpty && !s.startsWith("*") && !s.startsWith("#")
+  private[this] def isInitialState(s: String): Boolean = s match {
+    case "  ９ ８ ７ ６ ５ ４ ３ ２ １" => true
+    case _ if s.headOption.exists(List('+', '|').contains) => true
+    case _ if s.slice(1, 5) == "手の持駒" => true
+    case _ if s.slice(1, 3) == "手番" => true
+    case _ if s.startsWith("手合割：") => true
+    case _ => false
+  }
 
-  private def createChunks(xs: Seq[String]): Seq[String] = xs.flatMap { s => {
-    val chunks = s.trim.split(" ", 2)
-    if (chunks.length < 2 || Try(chunks(0).toInt).isFailure)
-      Seq.empty
-    else
-      Seq(chunks(1))
+  private[this] def splitMovesKif(lines: Lines): Lines = lines.flatMap { case (x, n) => {
+    val chunks = x.trim.split(" ", 2)
+    if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
   }}
 
-  @tailrec
-  final protected[io] def parseMovesKif(chunks: List[String], pending: Option[Move], sofar: Option[Game]): Option[Game] = (chunks, pending, sofar) match {
-    case (x :: Nil, None, Some(g)) if !isNormalMove(x) => // ends with a special move
-      MoveBuilderKif.parseTime(x) match {
-        case Some((ss, tm)) =>
-          (ss match {
-            case Resign.kifKeyword => Some(Resign(tm))
-            case TimeUp.kifKeyword => Some(TimeUp(tm))
-            case Pause.kifKeyword => Some(Pause)
-            case _ => None // unknown command
-          }).map(sm => g.copy(finalAction = Some(sm)))
-        case None => None // format error
-      }
-    case (x :: Nil, Some(mv), Some(g)) if x.startsWith(IllegalMove.kifKeyword) => // ends with an explicit illegal move
-      Some(g.copy(finalAction = Some(IllegalMove(mv))))
-    case (Nil, Some(mv), Some(g)) => // ends with implicit illegal move
-      Some(g.copy(finalAction = Some(IllegalMove(mv))))
-    case (Nil, None, Some(g)) => sofar // ends without errors
-    case (x :: xs, None, Some(g)) => MoveBuilderKif.parseKifString(x) match {
-      case Some(bldr) => bldr.toMove(g.currentState, isStrict = false) match {
-        case Some(mv) => mv.verify.flatMap(g.makeMove) match {
-          case Some(gg) => parseMovesKif(xs, None, Some(gg)) // read the next line
-          case None => parseMovesKif(xs, Some(mv), sofar)
-        }
-        case None =>
-          None // failed to create Move
-      }
-      case None =>
-        None // failed to parse Move string
+  private[this] def splitMovesKi2(lines: Lines): Lines = lines.flatMap { case (x, n) => {
+    val chunks = x.trim.split(" ", 2)
+    if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
+    ???
+  }}
+
+  private[this] def sectionSplitterCommon(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines) = {
+    val (header, body) = nel.lines.span(!_._1.startsWith("手数"))
+    val (st, gi) = header.partition(ln => isInitialState(ln._1))
+
+    if (st.isEmpty) throw new RecordFormatException(header.lastOption.map(_._2).getOrElse(0), "initial state must be defined")
+    (gi, NonEmptyLines(st), body.drop(1))
+  }
+
+  private[this] def sectionSplitterKif(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
+    val (gi, st, body) = sectionSplitterCommon(nel)
+    (gi, st, splitMovesKif(body), None)
+  }
+
+  private[this] def sectionSplitterKi2(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
+    val (gi, st, body) = sectionSplitterCommon(nel)
+    (gi, st, splitMovesKi2(body), body.lastOption.find(_._1.startsWith("まで")))
+  }
+
+  // todo: implement more traits
+  private[this] def parseGameInfo(lines: Lines): GameInfo = {
+    @tailrec
+    def f(ls: List[Line], sofar: GameInfo): GameInfo = ls match {
+      case (x, n) :: xs =>
+        if (x.startsWith("先手：") || x.startsWith("下手："))
+          f(xs, sofar.updated('blackName, x.drop(3)))
+        else if (x.startsWith("後手：") || x.startsWith("上手："))
+          f(xs, sofar.updated('whiteName, x.drop(3)))
+        else // ignore other flags
+          f(xs, sofar)
+      case _ => sofar
     }
-    case _ =>
-      None
+
+    f(lines.toList, GameInfo())
   }
 
-
-  override def parseKifString(s: String): Option[Game] = {
-    def getPresetState(ls: Seq[String]): Option[State] =
-      ls.withFilter(_.startsWith("手合割：")).flatMap(ss => presetStates.get(ss.drop(4))).headOption
-
-    def getDefinedState(ls: Seq[String]): Option[State] = State.parseKifString(ls.filter {
-      case "  ９ ８ ７ ６ ５ ４ ３ ２ １" => true
-      case ss if ss.headOption.exists(List('+', '|').contains) => true
-      case ss if ss.slice(1, 5) == "手の持駒" => true
-      case ss if ss.slice(1, 3) == "手番" => true
-      case _ => false
-    }.mkString("\n"))
-
-    for {
-      xs <- Some(s.split('\n').filter(isValidLine))
-      (header, body) = xs.span(!_.startsWith("手数"))
-      gi <- GameInfo.parseKifString(header.mkString("\n"))
-      st <- (getPresetState(header) #:: getDefinedState(header) #:: Stream.empty).flatten.headOption
-      chunks = createChunks(body.drop(1))
-      game <- parseMovesKif(chunks.toList, None, Some(Game(st, Vector.empty, gi)))
-    } yield game
+  private[this] def parseInitialState(nel: NonEmptyLines): State = {
+    if (nel.lines.last._1.startsWith("手合割：")) {
+      // preset state
+      val (x, n) = nel.lines.last
+      presetStates.getOrElse(x.drop(4), throw new RecordFormatException(n, s"unknown preset state: ${x.drop(4)}"))
+    } else {
+      State.parseKifString(nel)
+    }
   }
+
+  /**
+    * @param initialState initial state
+    * @param lines        sequence of line expressions
+    * @param footer       not used
+    * @return Game instance
+    */
+  protected[io] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+    @tailrec
+    def f(ls: List[Line], illegal: Option[Move], sofar: Game): Game = (ls, illegal) match {
+      case ((x, n) :: Nil, None) if !isNormalMove(x) => // ends with a special move
+        val special = MoveBuilderKif.parseTime((x, n)) match {
+          case ((Resign.kifKeyword, _), tm) => Resign(tm)
+          case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
+          case ((Pause.kifKeyword, _), _) => Pause
+          case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
+        }
+        sofar.copy(finalAction = Some(special))
+      case ((x, _) :: Nil, Some(mv)) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
+        sofar.copy(finalAction = Some(IllegalMove(mv)))
+      case (Nil, Some(mv)) => // ends with implicit illegal move
+        sofar.copy(finalAction = Some(IllegalMove(mv)))
+      case (Nil, None) => sofar // ends without errors
+      case ((x, n) :: xs, None) =>
+        val bldr = MoveBuilderKif.parseKifString(x)
+        bldr.toMove(sofar.currentState, isStrict = false) match {
+          case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
+            case Some(g) => f(xs, None, g) // legal move
+            case None => f(xs, Some(mv), sofar) // illegal move
+          }
+          case None => throw new RecordFormatException(n, s"invalid move: ${x}")
+        }
+      case ((x, n) :: _, _) => throw new RecordFormatException(n, s"unexpected move expression: ${x}")
+    }
+
+    f(lines.toList, None, Game(initialState))
+  }
+
+  protected[io] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+    ???
+  }
+
+  private[this] val parserKif = new RecordParser(sectionSplitterKif, parseGameInfo, parseInitialState, parseMovesKif)
+
+  private[this] val parserKi2 = new RecordParser(sectionSplitterKi2, parseGameInfo, parseInitialState, parseMovesKi2)
+
+  override def parseKifString(nel: NonEmptyLines): Game = parserKif.parse(nel)
+
+  override def parseKi2String(nel: NonEmptyLines): Game = parserKi2.parse(nel)
+
 }

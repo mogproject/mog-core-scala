@@ -33,7 +33,7 @@ trait CsaGameWriter extends CsaGameIO with CsaLike {
   */
 trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
 
-  private def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
+  private[this] def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
 
   private[this] def sectionSplitter(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
     val (a, ss) = nel.lines.span(ln => !isStateText(ln._1))
