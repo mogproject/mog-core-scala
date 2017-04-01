@@ -23,6 +23,8 @@ sealed abstract class Player(val id: Int) extends CsaLike with SfenLike {
 }
 
 object Player extends CsaTableFactory[Player] with SfenTableFactory[Player] {
+  override val typeName: String = "player"
+
   implicit def ordering[A <: Player]: Ordering[A] = Ordering.by(_.id)
 
   override val csaTable: Seq[String] = Seq("+", "-")
