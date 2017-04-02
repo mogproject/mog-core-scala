@@ -28,7 +28,7 @@ case class MoveBuilderKi2(player: Player,
     case None =>
       // calculate the from position from the state
       val boardCandidate = state.attackBBOnBoard(player).filter { case (sq, bb) => state.board.get(sq).exists(_.ptype == oldPtype) && bb.get(moveTo) }
-      val canDrop = state.attackBBInHand.get(Hand(player, oldPtype)).exists(_.get(moveTo))
+      val canDrop = oldPtype.isHandType && state.attackBBInHand.get(Hand(player, oldPtype)).exists(_.get(moveTo))
 
       (boardCandidate.size, canDrop) match {
         case (0, true) => Some(None) // drop

@@ -82,4 +82,43 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ).mkString("\n")
     Game.parseKifString(Game.parseCsaString(s1).toKifString).moves.length mustBe 6
   }
+
+  "KifGameReader#parseKi2String" must "create games" in {
+    val s1 = Seq(
+      "N+",
+      "N-",
+      "P1 *  * -FU-FU * -FU *  * +TO",
+      "P2 *  *  * +KY-FU+KI *  * -GI",
+      "P3 * +NK * -KE+KA+KI *  *  * ",
+      "P4+KY *  *  *  *  * +TO+FU * ",
+      "P5 *  * -NK+FU *  * +OU-TO * ",
+      "P6+FU+FU-TO-TO+FU * +NK * +FU",
+      "P7 * +KY * -HI *  * -NY+TO * ",
+      "P8-FU+KI-GI * +KA * -OU-GI * ",
+      "P9 *  * -GI-RY-KI *  *  *  * ",
+      "P+00FU",
+      "P-",
+      "+",
+      "+3546OU",
+      "-4142FU",
+      "T4377",
+      "+3423TO",
+      "-0031KI",
+      "+5847KA",
+      "-6747HI"
+    ).mkString("\n")
+    Game.parseKi2String(Game.parseCsaString(s1).toKi2String).moves.length mustBe 6
+  }
+  "KifGameReader#splitMovesKi2" must "create games" in {
+    TestKifGameReader.splitMovesKi2(Seq(
+      ("▲４六玉 △４二歩 ▲２三と △３一金 ▲４七角 △同飛不成", 1),
+      ("▲４六玉 △４二歩 ▲２三と △３一金 ▲４七角 △同飛不成", 2),
+      ("▲４六玉", 3)
+    )) mustBe List(
+      ("▲４六玉", 1), ("△４二歩", 1), ("▲２三と", 1), ("△３一金", 1), ("▲４七角", 1), ("△同飛不成", 1),
+      ("▲４六玉", 2), ("△４二歩", 2), ("▲２三と", 2), ("△３一金", 2), ("▲４七角", 2), ("△同飛不成", 2),
+      ("▲４六玉", 3)
+    )
+
+  }
 }

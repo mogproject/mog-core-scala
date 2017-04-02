@@ -28,12 +28,13 @@ case class IllegalMove(move: Move) extends SpecialMove {
   override def toWesternNotationString: String = "Illegal Move"
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
-    makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の反則勝ち")
+    makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の${IllegalMove.ki2Keyword}勝ち")
 }
 
 object IllegalMove {
   val csaKeyword = "%ILLEGAL_MOVE"
   val kifKeyword = "反則手"
+  val ki2Keyword = "反則"
 }
 
 /**
@@ -74,12 +75,13 @@ case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
   override def toWesternNotationString: String = "Time Up"
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
-    makeKi2String(numMoves, s"時間切れにより${(!currentPlayer).toJapaneseNotationString()}の勝ち")
+    makeKi2String(numMoves, s"${TimeUp.ki2Keyword}により${(!currentPlayer).toJapaneseNotationString()}の勝ち")
 }
 
 object TimeUp {
   val csaKeyword = "%TIME_UP"
   val kifKeyword = "切れ負け"
+  val ki2Keyword = "時間切れ"
 }
 
 /**
@@ -88,6 +90,7 @@ object TimeUp {
 case object Pause extends SpecialMove {
   val csaKeyword = "%CHUDAN"
   val kifKeyword = "中断"
+  val ki2Keyword = kifKeyword
 
   override def toCsaString: String = csaKeyword
 
@@ -97,7 +100,7 @@ case object Pause extends SpecialMove {
 
   override def toWesternNotationString: String = "Pause"
 
-  override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, kifKeyword)
+  override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, ki2Keyword)
 }
 
 // todo: impl KACHI, [+-]ILLEGAL_ACTION
