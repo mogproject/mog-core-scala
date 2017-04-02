@@ -32,7 +32,7 @@ case class MoveBuilderKi2(player: Player,
 
       (boardCandidate.size, canDrop) match {
         case (0, true) => Some(None) // drop
-        case (1, false) => Some(Some(boardCandidate.head._1)) // move
+        case (1, _) => Some(Some(boardCandidate.head._1)) // move
         case _ => None // ambiguous
       }
     case Some(Dropped) => Some(None)

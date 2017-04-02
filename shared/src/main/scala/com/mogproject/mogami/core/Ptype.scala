@@ -74,6 +74,10 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
     "玉", "金", "歩", "香", "桂", "銀", "角", "飛"
   )
 
+  override def parseKifString(nel: NonEmptyLines): Ptype = {
+    super.parseKifString(NonEmptyLines(nel.lines.map { case (s, n) => (s.replace("竜", "龍"), n) }))
+  }
+
   // 龍 -> 竜
   val japaneseNotationTable: Seq[String] = Seq(
     "N/A", "N/A", "と", "成香", "成桂", "成銀", "馬", "竜",

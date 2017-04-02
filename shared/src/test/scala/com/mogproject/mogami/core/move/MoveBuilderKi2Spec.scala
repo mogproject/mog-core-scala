@@ -20,6 +20,7 @@ class MoveBuilderKi2Spec extends FlatSpec with MustMatchers with GeneratorDriven
     MoveBuilderKi2.parseKi2String("△７六銀右引不成") mustBe MoveBuilderKi2(WHITE, Some(P76), SILVER, Some(LeftDownward), Some(false))
     MoveBuilderKi2.parseKi2String("△７六銀右引成") mustBe MoveBuilderKi2(WHITE, Some(P76), SILVER, Some(LeftDownward), Some(true))
     MoveBuilderKi2.parseKi2String("△同龍上") mustBe MoveBuilderKi2(WHITE, None, PROOK, Some(Upward), None)
+    MoveBuilderKi2.parseKi2String("△同竜上") mustBe MoveBuilderKi2(WHITE, None, PROOK, Some(Upward), None)
   }
   it must "throw an exception in error cases" in {
     assertThrows[RecordFormatException](MoveBuilderKi2.parseKi2String(""))
@@ -28,7 +29,6 @@ class MoveBuilderKi2Spec extends FlatSpec with MustMatchers with GeneratorDriven
     assertThrows[RecordFormatException](MoveBuilderKi2.parseKi2String("７六歩"))
     assertThrows[RecordFormatException](MoveBuilderKi2.parseKi2String("▲▲７六歩"))
     assertThrows[RecordFormatException](MoveBuilderKi2.parseKi2String("▲７７歩"))
-    assertThrows[RecordFormatException](MoveBuilderKi2.parseKi2String("▲７六竜"))
   }
   it must "restore moves" in forAll(MoveGen.movesKi2Format) { m =>
     MoveBuilderKi2.parseKi2String(m.toKi2String) mustBe m
@@ -69,6 +69,7 @@ class MoveBuilderKi2Spec extends FlatSpec with MustMatchers with GeneratorDriven
     MoveBuilderKi2(BLACK, None, SILVER, Some(RightUpward), Some(true)).findMoveFrom(st1, P28) mustBe Some(Some(P39))
     MoveBuilderKi2(BLACK, None, SILVER, None, None).findMoveFrom(st2, P11) mustBe Some(None)
     MoveBuilderKi2(BLACK, None, SILVER, Some(Dropped), None).findMoveFrom(st2, P11) mustBe Some(None)
+    MoveBuilderKi2(BLACK, None, SILVER, None, None).findMoveFrom(st2, P16) mustBe Some(Some(P17))
     MoveBuilderKi2(BLACK, None, SILVER, Some(Dropped), None).findMoveFrom(st2, P16) mustBe Some(None)
   }
   it must "return None in error cases" in {
@@ -104,6 +105,5 @@ class MoveBuilderKi2Spec extends FlatSpec with MustMatchers with GeneratorDriven
     MoveBuilderKi2(BLACK, None, SILVER, None, None).findMoveFrom(st1, P26) mustBe None
     MoveBuilderKi2(BLACK, None, SILVER, None, None).findMoveFrom(st1, P28) mustBe None
     MoveBuilderKi2(BLACK, None, SILVER, Some(Rightwards), Some(true)).findMoveFrom(st1, P28) mustBe None
-    MoveBuilderKi2(BLACK, None, SILVER, None, None).findMoveFrom(st2, P16) mustBe None
   }
 }

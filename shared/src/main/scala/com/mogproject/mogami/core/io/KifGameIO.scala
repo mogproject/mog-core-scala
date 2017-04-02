@@ -69,7 +69,7 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
     val body = ("手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
       f"${n + movesOffset + 1}%4d ${m}"
     }).mkString("\n")
-    getHeader + "\n\n" + body
+    getHeader + "\n\n" + body + "\n"
   }
 
   override def toKi2String: String = {
@@ -77,7 +77,7 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
     val ms = descriptiveMoves.map(_.toKi2String)
     val lst = finalAction.map(_.toKi2String(turn, descriptiveMoves.length))
     val body = (ms.grouped(movesPerLine).map(_.mkString(" ")) ++ lst).mkString("\n")
-    getHeader + "\n\n" + body
+    getHeader + "\n\n" + body + "\n"
   }
 }
 
@@ -164,7 +164,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
   // todo: refactor these functions
   protected[io] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
-    def f(ls: List[Line], illegal: Option[Move], sofar: Game): Game = (ls, illegal) match {
+    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Game): Game = (ls, illegal) match {
       case ((x, n) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Resign(tm)
@@ -173,21 +173,21 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
         sofar.copy(finalAction = Some(special))
-      case ((x, _) :: Nil, Some(mv)) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
+      case ((x, _) :: Nil, Some((_, mv))) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
-      case (Nil, Some(mv)) => // ends with implicit illegal move
+      case (Nil, Some((_, mv))) => // ends with implicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, None) => sofar // ends without errors
       case ((x, n) :: xs, None) =>
-        val bldr = MoveBuilderKif.parseKifString(x)
+        val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
         bldr.toMove(sofar.currentState, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
-            case None => f(xs, Some(mv), sofar) // illegal move
+            case None => f(xs, Some((x, n), mv), sofar) // illegal move
           }
           case None => throw new RecordFormatException(n, s"invalid move: ${x}")
         }
-      case ((x, n) :: _, _) => throw new RecordFormatException(n, s"unexpected move expression: ${x}")
+      case (_ :: _, Some(((x, n), _))) => throw new RecordFormatException(n, s"invalide move expression: ${x}")
     }
 
     f(lines.toList, None, Game(initialState))
@@ -195,10 +195,10 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
 
   protected[io] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
-    def f(ls: List[Line], illegal: Option[Move], sofar: Game): Game = (ls, illegal, footer) match {
-      case (Nil, Some(mv), Some((x, n))) if x.contains(IllegalMove.ki2Keyword) => // ends with explicit illegal move
+    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Game): Game = (ls, illegal, footer) match {
+      case (Nil, Some((_, mv)), Some((x, n))) if x.contains(IllegalMove.ki2Keyword) => // ends with explicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
-      case (Nil, Some(mv), None) => // ends with implicit illegal move
+      case (Nil, Some((_, mv)), None) => // ends with implicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, None, Some((x, n))) => // ends with a special move except illegal move
         val special = if (x.contains(TimeUp.ki2Keyword)) {
@@ -215,15 +215,15 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
         sofar.copy(finalAction = Some(special))
       case (Nil, None, None) => sofar // ends without errors
       case ((x, n) :: xs, None, _) =>
-        val bldr = MoveBuilderKi2.parseKi2String(x)
+        val bldr = MoveBuilderKi2.parseKi2String(NonEmptyLines(n, x))
         bldr.toMove(sofar.currentState, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
-            case None => f(xs, Some(mv), sofar) // illegal move
+            case None => f(xs, Some((x, n), mv), sofar) // illegal move
           }
           case None => throw new RecordFormatException(n, s"invalid or ambiguous move: ${x}")
         }
-      case ((x, n) :: _, _, _) => throw new RecordFormatException(n, s"unexpected move expression: ${x}")
+      case (_ :: _, Some(((x, n), _)), _) => throw new RecordFormatException(n, s"invalid move expression: ${x}")
     }
 
     f(lines.toList, None, Game(initialState))

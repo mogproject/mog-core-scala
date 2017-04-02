@@ -117,13 +117,15 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       |先手：
       |先手の持駒：なし
       |
-      |手数----指手----消費時間--""".stripMargin,
+      |手数----指手----消費時間--
+      |""".stripMargin,
     """手合割：平手
       |先手：NAKAHARA
       |後手：YONENAGA
       |
       |手数----指手----消費時間--
-      |   1 ７六歩(77)""".stripMargin,
+      |   1 ７六歩(77)
+      |""".stripMargin,
     """手合割：平手
       |先手：B
       |後手：W
@@ -135,7 +137,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       |   4 同　銀(31) (01:40/)
       |   5 ３三角打 (00:10/)
       |   6 ６二玉(51) (00:02/)
-      |   7 ５五角成(33) (00:03/)""".stripMargin
+      |   7 ５五角成(33) (00:03/)
+      |""".stripMargin
   )
 
   "Game#toCsaString" must "describe some games" in {
