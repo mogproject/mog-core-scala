@@ -22,7 +22,7 @@ case class Move(player: Player,
                 isCheck: Boolean,
                 elapsedTime: Option[Int] = None,
                 isStrict: Boolean = true // enable strict requirement check
-               ) extends CsaLike with SfenLike with KifLike {
+               ) extends CsaLike with SfenLike with KifLike with Ki2Like {
   if (isStrict) checkRequirement()
 
   def checkRequirement(): Unit = {
@@ -80,6 +80,8 @@ case class Move(player: Player,
   override def toKifString: String =
     from.map(fr => MoveBuilderKifBoard(fr, (!isSameSquare).option(to), oldPtype, promote, elapsedTime))
       .getOrElse(MoveBuilderKifHand(to, oldPtype, elapsedTime)).toKifString
+
+  override def toKi2String: String = player.toSymbolString(unicode = false) + toJapaneseNotationString
 
   def toJapaneseNotationString: String =
     isSameSquare.fold("同", to.toKifString) + oldPtype.toJapaneseNotationString + movement.map(_.kifString).getOrElse("") + promote.fold("成", couldPromote.fold("不成", ""))

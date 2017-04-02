@@ -2,11 +2,10 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.{Move => _, MoveBuilderCsa => _, _}
+import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
 
-import scala.annotation.tailrec
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Game
@@ -87,20 +86,35 @@ case class Game(initialState: State = State.HIRATE,
 
   def isPerpetualCheck: Boolean = currentState.isChecked &&
     (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
+
+  /**
+    * Moves for description. This includes an illegal move if it exists.
+    *
+    * @return vector of moves for description
+    */
+  def descriptiveMoves: Vector[Move] = finalAction match {
+    case Some(IllegalMove(mv)) => moves :+ mv
+    case _ => moves
+  }
 }
 
 object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
-  override def parseSfenString(s: String): Option[Game] = {
+  override def parseSfenString(s: String): Game = {
     val tokens = s.split(" ")
+    if (tokens.length < 4) throw new RecordFormatException(1, s"there must be four or more tokens: ${s}")
 
-    for {
-      st <- State.parseSfenString(tokens.take(3).mkString(" ")) if tokens.length >= 4
-      offset <- Try(tokens(3).toInt).toOption
-      gi = GameInfo() // initialize without information
-      moves = tokens.drop(4).flatMap(ss => move.MoveBuilderSfen.parseSfenString(ss)) if moves.length == tokens.length - 4
-      game <- moves.foldLeft(Some(Game(st, Vector.empty, gi, offset)): Option[Game])((g, m) => g.flatMap(_.makeMove(m)))
-    } yield game
+    val st = State.parseSfenString(tokens.take(3).mkString(" "))
+    val offset = Try(tokens(3).toInt) match {
+      case Success(n) => n
+      case Failure(e) => throw new RecordFormatException(1, s"offset must be number: ${tokens(3)}")
+    }
+    val gi = GameInfo()
+    // initialize without information
+    val moves = tokens.drop(4).map(move.MoveBuilderSfen.parseSfenString)
+    moves.foldLeft[Game](Game(st, Vector.empty, gi, offset)) { (g, m) =>
+      g.makeMove(m).getOrElse(throw new RecordFormatException(1, s"invalid move: ${m.toSfenString}"))
+    }
   }
 
   object GameStatus {
@@ -122,6 +136,7 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
     case object IllegallyMoved extends GameStatus
 
     case object Resigned extends GameStatus
+
   }
 
 }
@@ -160,37 +175,7 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
    */
 }
 
-object GameInfo extends CsaFactory[GameInfo] {
-  def parseCsaString(s: String): Option[GameInfo] = {
-    @tailrec
-    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
-      case (x :: xs, Some(gt)) =>
-        keys.filter { k => x.startsWith(k._2) } match {
-          case (k, c) :: _ => f(xs, Some(gt.updated(k, x.substring(c.length))))
-          case _ => None
-        }
-      case _ => sofar // (_, None) => None; (Nil, _) => sofar
-    }
-
-    f(s.isEmpty.fold(List(), s.split('\n').toList), Some(GameInfo()))
-  }
-
-  def parseKifString(s: String): Option[GameInfo] = {
-    @tailrec
-    def f(ss: List[String], sofar: Option[GameInfo]): Option[GameInfo] = (ss, sofar) match {
-      case (x :: xs, Some(gt)) =>
-        if (x.startsWith("先手：") || x.startsWith("下手："))
-          f(xs, Some(gt.updated('blackName, x.drop(3))))
-        else if (x.startsWith("後手：") || x.startsWith("上手："))
-          f(xs, Some(gt.updated('whiteName, x.drop(3))))
-        else // ignore other flags
-          f(xs, sofar)
-      case _ => sofar
-    }
-
-    f(s.split('\n').toList, Some(GameInfo()))
-  }
-
+object GameInfo {
   /** pairs of a symbol name and its csa-formatted string */
   val keys: Seq[(Symbol, String)] = Seq(
     ('formatVersion, "V"),

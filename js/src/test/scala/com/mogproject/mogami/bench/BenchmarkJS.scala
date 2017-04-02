@@ -1,7 +1,6 @@
 package com.mogproject.mogami.bench
 
 import com.mogproject.mogami.core.BitBoard
-import com.mogproject.mogami.core.Ptype.{PROOK, ROOK}
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 

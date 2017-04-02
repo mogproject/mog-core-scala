@@ -33,4 +33,23 @@ object Movement {
 
   case object RightUpward extends Movement("左上")
 
+  lazy val all = Seq(Dropped,
+    Downward,
+    Horizontally,
+    Upward,
+    Leftwards,
+    Rightwards,
+    Vertical,
+    LeftDownward,
+    LeftHorizontally,
+    LeftUpward,
+    RightDownward,
+    RightHorizontally,
+    RightUpward
+  )
+
+  private[this] lazy val findTable: Map[String, Movement] = all.map(m => m.kifString -> m).toMap ++ Map("行" -> Upward, "入" -> Upward)
+
+  def find(s: String): Option[Movement] = findTable.get(s)
+
 }

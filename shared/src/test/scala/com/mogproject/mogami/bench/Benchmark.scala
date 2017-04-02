@@ -38,7 +38,6 @@ trait Benchmark {
 
     withBenchmark {
       val g = Game.parseSfenString(sfen)
-      assert(g.isDefined)
     }.print()
   }
 

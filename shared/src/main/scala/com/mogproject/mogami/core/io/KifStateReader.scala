@@ -4,97 +4,92 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
-  * Reads Kif-formatted state
+  * Reads Kif(Ki2)-formatted state
   */
 trait KifStateReader extends KifFactory[State] {
 
-  private[this] def parseNumber(s: String, default: Int): Option[Int] = {
+  private[this] def parseNumber(lineNo: LineNo, s: String, default: Int): Int = {
     def f(c: Char): Option[Int] = "一二三四五六七八九".indexOf(c) match {
       case n if n >= 0 => Some(n + 1)
       case _ => None
     }
 
-    s.toList match {
+    (s.toList match {
       case Nil => Some(default)
       case '十' :: Nil => Some(10)
       case '十' :: c :: Nil => f(c).map(_ + 10)
       case c :: Nil => f(c)
       case _ => None
-    }
+    }).getOrElse(throw new RecordFormatException(lineNo, s"number format error: ${s}"))
   }
 
-  protected[io] def parseHandExpression(s: String, player: Player): Option[HandType] = {
-    def f(h: String): Option[(Hand, Int)] = {
-      (Ptype.parseKifString(h.take(1)), parseNumber(h.drop(1), 1)) match {
-        case (Some(pt), Some(n)) => Some(Hand(player, pt) -> n)
-        case _ => None
-      }
+  protected[io] def parseHandExpression(lineNo: LineNo, s: String, player: Player): HandType = {
+    def f(h: String): (Hand, Int) = {
+      val pt = Ptype.parseKifString(NonEmptyLines(lineNo, h.take(1)))
+      val n = parseNumber(lineNo, h.drop(1), 1)
+      (Hand(player, pt), n)
     }
 
     if (s == "なし") {
-      Some(Map.empty)
+      Map.empty
     } else {
-      s.split('　').map(f).foldLeft[Option[HandType]](Some(Map.empty)) {
-        case (Some(a), Some(b)) => Some(a + b)
-        case _ => None
-      }
+      s.split('　').map(f).foldLeft[HandType](Map.empty)(_ + _)
     }
   }
 
-  protected[io] def parseBoardExpression(lines: List[String]): Option[BoardType] = {
+  protected[io] def parseBoardExpression(nel: NonEmptyLines): BoardType = {
     @tailrec
-    def f(sofar: Option[BoardType], ls: List[String], rank: Int): Option[BoardType] = (sofar, ls, rank) match {
-      case (Some(_), x :: xs, _) if x.length == 3 + 2 * 9 =>
-        f(parseOneLine(sofar, x.slice(1, 1 + 2 * 9).grouped(2).toList, 9, rank), xs, rank + 1)
-      case (_, Nil, 10) => sofar
-      case _ =>
-        // println(s"Invalid board expression/: lines=${ls}, rank=${rank}")
-        None
+    def f(sofar: BoardType, ls: List[Line], rank: Int): BoardType = (ls, rank) match {
+      case ((x, n) :: xs, _) if x.length == 3 + 2 * 9 =>
+        f(parseOneLine(sofar, n, x.slice(1, 1 + 2 * 9).grouped(2).toList, 9, rank), xs, rank + 1)
+      case (Nil, 10) => sofar
+      case _ => throw new RecordFormatException(nel.lines.last._2, s"incomplete board expression (rank=${rank})")
     }
 
-    def parseOneLine(sofar: Option[BoardType], ls: List[String], file: Int, rank: Int): Option[BoardType] = (sofar, ls, file) match {
-      case (Some(_), x :: xs, _) if x == " ・" => // no piece
-        parseOneLine(sofar, xs, file - 1, rank)
-      case (Some(b), x :: xs, _) => // add one piece
+    def parseOneLine(sofar: BoardType, lineNo: LineNo, ls: List[String], file: Int, rank: Int): BoardType = ls match {
+      case x :: xs if x == " ・" => // no piece
+        parseOneLine(sofar, lineNo, xs, file - 1, rank)
+      case x :: xs => // add one piece
         val pos = Square(file, rank)
-        Piece.parseKifString(x) match {
-          case Some(p) => parseOneLine(Some(b.updated(pos, p)), xs, file - 1, rank)
-          case _ => None // invalid piece string
-        }
-      case (_, Nil, 0) => sofar
-      case _ => None
+        val p = Piece.parseKifString(NonEmptyLines(lineNo, x))
+
+        parseOneLine(sofar.updated(pos, p), lineNo, xs, file - 1, rank)
+      case Nil => sofar
     }
 
-    f(Some(Map.empty), lines.slice(2, 11), 1)
+    f(Map.empty, nel.lines.slice(2, 11).toList, 1)
   }
 
-  override def parseKifString(s: String): Option[State] = {
+  override def parseKifString(nel: NonEmptyLines): State = {
     @tailrec
-    def f(ss: List[String], sofar: Option[(BoardType, HandType)]): Option[State] = {
-      (ss, sofar) match {
-        case (x :: xs, Some((b, h))) if x.slice(1, 6) == "手の持駒：" =>
-          // todo: more strict check?
-          parseHandExpression(x.drop(6), x.headOption.exists(Seq('先', '下').contains).fold(BLACK, WHITE)) match {
-            case Some(hh) => f(xs, Some((b, h ++ hh)))
-            case None => None
+    def f(ls: List[Line], sofar: (BoardType, HandType)): State = {
+      ls match {
+        case (x, n) :: xs if x.slice(1, 6) == "手の持駒：" =>
+          f(xs, (
+            sofar._1,
+            sofar._2 ++ parseHandExpression(n, x.drop(6), x.headOption.exists(Seq('先', '下').contains).fold(BLACK, WHITE))
+          ))
+        case _ if ls.length <= 1 => // Turn to move should be written in the last line
+          val s = ls.map(_._1).mkString
+          val t = Map("" -> BLACK, "後手番" -> WHITE, "上手番" -> WHITE).getOrElse(
+            s, throw new RecordFormatException(ls.head._2, s"unknown turn expression: ${ls.head._1}")
+          )
+          Try(State(t, sofar._1, sofar._2)) match {
+            case Success(st) => st
+            case Failure(e) => throw new RecordFormatException(nel.lines.last._2, s"invalid state: ${e}")
           }
-        case (xs, Some((b, h))) if xs.length <= 1 => // Turn to move should be written in the last line
-          Map("" -> BLACK, "後手番" -> WHITE, "上手番" -> WHITE).get(xs.mkString) flatMap { t =>
-            Try(State(t, b, h)).toOption
-          }
-        case (x :: _, Some((_, h))) if x == "  ９ ８ ７ ６ ５ ４ ３ ２ １" =>
-          parseBoardExpression(ss.take(12)) match {
-            case Some(b) => f(ss.drop(12), Some(b, h))
-            case None => None
-          }
-        case _ => None
+        case (x, _) :: _ if x == "  ９ ８ ７ ６ ５ ４ ３ ２ １" =>
+          val b = parseBoardExpression(NonEmptyLines(ls.take(12)))
+          f(ls.drop(12), (b, sofar._2))
+        case (x, n) :: _ => throw new RecordFormatException(n, s"invalid state format: ${x}")
+        case Nil => throw new RecordFormatException(nel.lines.last._2, "incomplete state expression")
       }
     }
 
-    f(s.split('\n').toList, Some((Map.empty, State.EMPTY_HANDS)))
+    f(nel.lines.toList, (Map.empty, State.EMPTY_HANDS))
   }
 
 }

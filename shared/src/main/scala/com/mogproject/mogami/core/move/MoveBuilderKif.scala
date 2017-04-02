@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.io.{KifFactory, KifLike}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.Implicits._
 
 import scala.util.matching.Regex
@@ -17,34 +17,34 @@ object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
   private[this] val patternTime: Regex = """([^ ]+)(?:[ ]+[(][ ]*(\d+):[ ]*(\d+)[/](?:[ ]*(\d+):[ ]*(\d+):[ ]*(\d+))?[)])?""".r
   private[this] val pattern: Regex = """(..)([成]?.)([成打]?)(?:[(]([1-9]{2})[)])?""".r
 
-  def parseTime(s: String): Option[(String, Option[Int])] = s match {
-    case patternTime(mv, null, null, null, null, null) => Some(mv, None)
-    case patternTime(mv, mm, ss, _, _, _) => (Try(mm.toInt), Try(ss.toInt)) match {
-      case (Success(mx), Success(sx)) if mx <= Int.MaxValue / 60 && sx < 60 => Some(mv, Some(mx * 60 + sx))
-      case _ => None
+  def parseTime(line: Line): (Line, Option[Int]) = line match {
+    case (patternTime(mv, null, null, null, null, null), n) => ((mv, n), None)
+    case (patternTime(mv, mm, ss, _, _, _), n) => (Try(mm.toInt), Try(ss.toInt)) match {
+      case (Success(mx), Success(sx)) if mx <= Int.MaxValue / 60 && sx < 60 => ((mv, n), Some(mx * 60 + sx))
+      case _ => throw new RecordFormatException(n, s"invalid time expression: mm=${mm}, ss=${ss}")
     }
-    case _ => None
+    case (x, n) => throw new RecordFormatException(n, s"invalid move format: ${x}")
   }
 
-  override def parseKifString(s: String): Option[MoveBuilderKif] = parseTime(s) match {
-    case Some((pattern(toStr, ptStr, "打", null), t)) =>
-      for {
-        to <- Square.parseKifString(toStr)
-        pt <- Ptype.parseKifString(ptStr)
-        if !pt.isPromoted
-      } yield {
-        MoveBuilderKifHand(to, pt, t)
+  override def parseKifString(nel: NonEmptyLines): MoveBuilderKif = {
+    if (nel.lines.length >= 2) {
+      throw new RecordFormatException(nel.lines(1)._2, s"too long move expression: ${nel.lines(1)._1}")
+    } else {
+      val ((mv, n), t) = parseTime(nel.lines.head)
+       mv match {
+        case pattern(toStr, ptStr, "打", null) =>
+          val to = Square.parseKifString(NonEmptyLines(n, toStr))
+          val pt = Ptype.parseKifString(NonEmptyLines(n, ptStr))
+          if (!pt.isHandType) throw new RecordFormatException(n, s"invalid piece type for hand: ${mv}")
+          MoveBuilderKifHand(to, pt, t)
+        case pattern(toStr, ptStr, prStr, fromStr) if fromStr != null && (prStr == "" || prStr == "成") =>
+          val pt = Ptype.parseKifString(ptStr)
+          val from = Square.parseCsaString(fromStr)
+          val toOpt = if (toStr == "同　") None else Some(Square.parseKifString(toStr))
+          MoveBuilderKifBoard(from, toOpt, pt, prStr == "成", t)
+        case _ => throw new RecordFormatException(n, s"invalid move string${mv}")
       }
-    case Some((pattern(toStr, ptStr, prStr, fromStr), t)) if prStr == "" || prStr == "成" =>
-      for {
-        pt <- Ptype.parseKifString(ptStr)
-        from <- Square.parseCsaString(fromStr)
-        toOpt = Square.parseKifString(toStr)
-        if toOpt.isDefined || toStr == "同　"
-      } yield {
-        MoveBuilderKifBoard(from, toOpt, pt, prStr == "成", t)
-      }
-    case _ => None
+    }
   }
 }
 

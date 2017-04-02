@@ -21,19 +21,19 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] {
   private[this] val patternOnBoard: Regex = """([1-9][a-i])([1-9][a-i])([+]?)""".r
   private[this] val patternInHand: Regex = """([PLNSGBR])[*]([1-9][a-i])""".r
 
-  override def parseSfenString(s: String): Option[MoveBuilderSfen] = {
+  override def parseSfenString(s: String): MoveBuilderSfen = {
     s match {
       case patternOnBoard(from, to, promote) =>
-        for {
-          f <- Square.parseSfenString(from)
-          t <- Square.parseSfenString(to) if to != from
-        } yield MoveBuilderSfenBoard(f, t, promote == "+")
+        val f = Square.parseSfenString(from)
+        val t = Square.parseSfenString(to)
+        if (f == t) throw new RecordFormatException(1, s"move_to must not be the same as move_from: ${s}")
+        MoveBuilderSfenBoard(f, t, promote == "+")
       case patternInHand(ptype, to) =>
-        for {
-          p <- Piece.parseSfenString(ptype) // already assured that ptype is in-hand type
-          t <- Square.parseSfenString(to)
-        } yield MoveBuilderSfenHand(p.ptype, t)
-      case _ => None
+        val p = Piece.parseSfenString(ptype)
+        // already assured that ptype is in-hand type
+        val t = Square.parseSfenString(to)
+        MoveBuilderSfenHand(p.ptype, t)
+      case _ => throw new RecordFormatException(1, s"invalid move format: ${s}")
     }
   }
 

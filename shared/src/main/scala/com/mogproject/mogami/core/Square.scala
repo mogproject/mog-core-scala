@@ -68,7 +68,7 @@ case class Square(index: Int) extends CsaLike with SfenLike with KifLike {
   }
 }
 
-object Square extends CsaFactory[Square] with SfenFactory[Square] {
+object Square extends CsaFactory[Square] with SfenFactory[Square] with KifFactory[Square] {
 
   implicit def ordering[A <: Square]: Ordering[A] = Ordering.by(_.index)
 
@@ -77,32 +77,44 @@ object Square extends CsaFactory[Square] with SfenFactory[Square] {
     apply((rank - 1) * 9 + file - 1)
   }
 
-  def parseCsaString(s: String): Option[Square] = {
-    val p: Regex = """([1-9])([1-9])""".r
-    s match {
-      case p(file, rank) => Some(Square(file.toInt, rank.toInt))
-      case _ => None
+  override def parseCsaString(nel: NonEmptyLines): Square = {
+    if (nel.lines.length >= 2) {
+      val (x, n) = nel.lines(1)
+      throw new RecordFormatException(n, s"too long square expression: ${x}")
+    } else {
+      val p: Regex = """([1-9])([1-9])""".r
+      nel.lines.head match {
+        case (p(file, rank), _) => Square(file.toInt, rank.toInt)
+        case (x, n) => throw new RecordFormatException(n, s"invalid square: ${x}")
+      }
     }
   }
 
-  def parseSfenString(s: String): Option[Square] = {
+  override def parseSfenString(s: String): Square = {
     val p: Regex = """([1-9])([a-i])""".r
     s match {
-      case p(file, rank) => Some(Square(file.toInt, rank(0) - 'a' + 1))
-      case _ => None
+      case p(file, rank) => Square(file.toInt, rank(0) - 'a' + 1)
+      case _ => throw new RecordFormatException(1, s"invalid square: ${s}")
     }
   }
 
-  def parseKifString(s: String): Option[Square] = {
-    if (s.length == 2) {
-      val f = "１２３４５６７８９".indexOf(s(0))
-      val r = "一二三四五六七八九".indexOf(s(1))
-      if (f >= 0 && r >= 0)
-        Some(Square(f + 1, r + 1))
-      else
-        None
+  override def parseKifString(nel: NonEmptyLines): Square = {
+    if (nel.lines.length >= 2) {
+      val (x, n) = nel.lines(1)
+      throw new RecordFormatException(n, s"too long square expression: ${x}")
     } else {
-      None
+      val (x, n) = nel.lines.head
+      if (x.length != 2) {
+        throw new RecordFormatException(n, s"invalid square: ${x}")
+      } else {
+        val f = "１２３４５６７８９".indexOf(x(0))
+        val r = "一二三四五六七八九".indexOf(x(1))
+        if (f >= 0 && r >= 0) {
+          Square(f + 1, r + 1)
+        } else {
+          throw new RecordFormatException(n, s"invalid square format: ${x}")
+        }
+      }
     }
   }
 

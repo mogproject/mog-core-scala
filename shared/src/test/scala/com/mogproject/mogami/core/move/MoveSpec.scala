@@ -4,6 +4,7 @@ import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.{Hand, Ptype, Square, State}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -70,80 +71,77 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     movesForTestCsa map (_.toCsaString) must be(csaForTest)
   }
   "Move#parseCsaString" must "succeed in normal cases" in {
-    csaForTest map { c => MoveBuilderCsa.parseCsaString(c) } must be(movesForTestCsa map (Some(_)))
+    csaForTest map { c => MoveBuilderCsa.parseCsaString(c) } mustBe movesForTestCsa
   }
-  it must "return None in error cases" in {
-    MoveBuilderCsa.parseCsaString("") must be(None)
-    MoveBuilderCsa.parseCsaString(" ") must be(None)
-    MoveBuilderCsa.parseCsaString("x" * 1000) must be(None)
-    MoveBuilderCsa.parseCsaString("=7776FU") must be(None)
-    MoveBuilderCsa.parseCsaString("+0176FU") must be(None)
-    MoveBuilderCsa.parseCsaString("+7770FU") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FO") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FUU") must be(None)
-    MoveBuilderCsa.parseCsaString("+0000FU") must be(None)
-    MoveBuilderCsa.parseCsaString("+7777FU") must be(None)
-    MoveBuilderCsa.parseCsaString("+7700FU") must be(None)
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString(""))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString(" "))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("=7776FU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+0176FU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7770FU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FO"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FUU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+0000FU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7777FU"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7700FU"))
 
-    MoveBuilderCsa.parseCsaString("+7776FU,") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,T") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,t1") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,Ta") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,T10000000000") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,T100000000000000000000") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,T-1") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,,") must be(None)
-    MoveBuilderCsa.parseCsaString("+7776FU,T01,") must be(None)
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,T"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,t1"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,Ta"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,T10000000000"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,T100000000000000000000"))
+    assertThrows[RecordFormatException](MoveBuilderCsa.parseCsaString("+7776FU,T-1"))
   }
   it must "restore moves" in forAll(MoveGen.movesCsaFormat) { m =>
-    MoveBuilderCsa.parseCsaString(m.toCsaString) must be(Some(m))
+    MoveBuilderCsa.parseCsaString(m.toCsaString) mustBe m
   }
 
   "Move#toSfenString" must "describe the move" in {
-    movesForTestSfen map (_.toSfenString) must be(sfenForTest)
+    movesForTestSfen map (_.toSfenString) mustBe sfenForTest
   }
   "Move#parseSfenString" must "succeed in normal cases" in {
-    sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } must be(movesForTestSfen map (Some(_)))
+    sfenForTest map { c => MoveBuilderSfen.parseSfenString(c) } mustBe movesForTestSfen
   }
-  it must "return None in error cases" in {
-    MoveBuilderSfen.parseSfenString("") must be(None)
-    MoveBuilderSfen.parseSfenString(" ") must be(None)
-    MoveBuilderSfen.parseSfenString("x" * 1000) must be(None)
-    MoveBuilderSfen.parseSfenString("7g76") must be(None)
-    MoveBuilderSfen.parseSfenString("7g7F") must be(None)
-    MoveBuilderSfen.parseSfenString("L*8b+") must be(None)
-    MoveBuilderSfen.parseSfenString("9i1a-") must be(None)
-    MoveBuilderSfen.parseSfenString("K*1a") must be(None)
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString(""))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString(" "))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("7g76"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("7g7F"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("L*8b+"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("9i1a-"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseSfenString("K*1a"))
   }
   it must "restore moves" in forAll(MoveGen.movesSfenFormat) { m =>
-    MoveBuilderSfen.parseSfenString(m.toSfenString) must be(Some(m))
+    MoveBuilderSfen.parseSfenString(m.toSfenString) mustBe m
   }
 
   "Move#toKifString" must "describe the move" in {
     movesForTestKif map (_.toKifString) mustBe kifForTest
   }
   "Move#parseKifString" must "succeed in normal cases" in {
-    kifForTest map { c => MoveBuilderKif.parseKifString(c) } mustBe (movesForTestKif map Some.apply)
+    kifForTest map { c => MoveBuilderKif.parseKifString(c) } mustBe movesForTestKif
 
-    MoveBuilderKif.parseKifString("６五桂打   ( 0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("６五桂打   ( 0: 3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("６五桂打 (0:3/)") mustBe Some(MoveBuilderKifHand(P65, KNIGHT, Some(3)))
-    MoveBuilderKif.parseKifString("同　銀(43)   (00:00/00:00:00)") mustBe Some(MoveBuilderKifBoard(P43, None, SILVER, promote = false, Some(0)))
+    MoveBuilderKif.parseKifString("６五桂打   ( 0:3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("６五桂打   ( 0: 3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("６五桂打 (0:3/)") mustBe MoveBuilderKifHand(P65, KNIGHT, Some(3))
+    MoveBuilderKif.parseKifString("同　銀(43)   (00:00/00:00:00)") mustBe MoveBuilderKifBoard(P43, None, SILVER, promote = false, Some(0))
   }
   it must "return None in error cases" in {
-    MoveBuilderKif.parseKifString("") must be(None)
-    MoveBuilderKif.parseKifString(" ") must be(None)
-    MoveBuilderKif.parseKifString("x" * 1000) must be(None)
-    MoveBuilderKif.parseKifString("３四歩") must be(None)
-    MoveBuilderKif.parseKifString("３四歩 (33)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0)") must be(None)
-    MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0:a)") must be(None)
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString(""))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString(" "))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩 (33)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0)"))
+    assertThrows[RecordFormatException](MoveBuilderKif.parseKifString("３四歩(33) (0:0/0:0:a)"))
   }
   it must "restore moves" in forAll(MoveGen.movesKifFormat) { m =>
-    MoveBuilderKif.parseKifString(m.toKifString) mustBe Some(m)
+    MoveBuilderKif.parseKifString(m.toKifString) mustBe m
   }
 
   "Move#toJapaneseNotationString" must "describe the move" in {
@@ -484,72 +482,72 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P-00KY",
         "-"
       )
-    ).map(State.parseCsaString(_).get)
+    ).map(xs => State.parseCsaString(xs.mkString("\n")))
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(State.HIRATE).get.toJapaneseNotationString mustBe "７六歩"
+    MoveBuilderSfen.parseSfenString("7g7f").toMove(State.HIRATE).get.toJapaneseNotationString mustBe "７六歩"
 
-    MoveBuilderCsa.parseCsaString("+9382KI").get.toMove(states(0)).get.toJapaneseNotationString mustBe "８二金上"
-    MoveBuilderCsa.parseCsaString("+7282KI").get.toMove(states(0)).get.toJapaneseNotationString mustBe "８二金寄"
-    MoveBuilderCsa.parseCsaString("+4332KI").get.toMove(states(1)).get.toJapaneseNotationString mustBe "３二金上"
-    MoveBuilderCsa.parseCsaString("+3132KI").get.toMove(states(1)).get.toJapaneseNotationString mustBe "３二金引"
-    MoveBuilderCsa.parseCsaString("+5655KI").get.toMove(states(2)).get.toJapaneseNotationString mustBe "５五金上"
-    MoveBuilderCsa.parseCsaString("+4555KI").get.toMove(states(2)).get.toJapaneseNotationString mustBe "５五金寄"
-    MoveBuilderCsa.parseCsaString("+8988GI").get.toMove(states(3)).get.toJapaneseNotationString mustBe "８八銀上"
-    MoveBuilderCsa.parseCsaString("+7788GI").get.toMove(states(3)).get.toJapaneseNotationString mustBe "８八銀引"
-    MoveBuilderCsa.parseCsaString("+4938GI").get.toMove(states(4)).get.toJapaneseNotationString mustBe "３八銀上"
-    MoveBuilderCsa.parseCsaString("+2738GI").get.toMove(states(4)).get.toJapaneseNotationString mustBe "３八銀引"
+    MoveBuilderCsa.parseCsaString("+9382KI").toMove(states(0)).get.toJapaneseNotationString mustBe "８二金上"
+    MoveBuilderCsa.parseCsaString("+7282KI").toMove(states(0)).get.toJapaneseNotationString mustBe "８二金寄"
+    MoveBuilderCsa.parseCsaString("+4332KI").toMove(states(1)).get.toJapaneseNotationString mustBe "３二金上"
+    MoveBuilderCsa.parseCsaString("+3132KI").toMove(states(1)).get.toJapaneseNotationString mustBe "３二金引"
+    MoveBuilderCsa.parseCsaString("+5655KI").toMove(states(2)).get.toJapaneseNotationString mustBe "５五金上"
+    MoveBuilderCsa.parseCsaString("+4555KI").toMove(states(2)).get.toJapaneseNotationString mustBe "５五金寄"
+    MoveBuilderCsa.parseCsaString("+8988GI").toMove(states(3)).get.toJapaneseNotationString mustBe "８八銀上"
+    MoveBuilderCsa.parseCsaString("+7788GI").toMove(states(3)).get.toJapaneseNotationString mustBe "８八銀引"
+    MoveBuilderCsa.parseCsaString("+4938GI").toMove(states(4)).get.toJapaneseNotationString mustBe "３八銀上"
+    MoveBuilderCsa.parseCsaString("+2738GI").toMove(states(4)).get.toJapaneseNotationString mustBe "３八銀引"
 
-    MoveBuilderCsa.parseCsaString("+9281KI").get.toMove(states(5)).get.toJapaneseNotationString mustBe "８一金左"
-    MoveBuilderCsa.parseCsaString("+7281KI").get.toMove(states(5)).get.toJapaneseNotationString mustBe "８一金右"
-    MoveBuilderCsa.parseCsaString("+3222KI").get.toMove(states(6)).get.toJapaneseNotationString mustBe "２二金左"
-    MoveBuilderCsa.parseCsaString("+1222KI").get.toMove(states(6)).get.toJapaneseNotationString mustBe "２二金右"
-    MoveBuilderCsa.parseCsaString("+6556GI").get.toMove(states(7)).get.toJapaneseNotationString mustBe "５六銀左"
-    MoveBuilderCsa.parseCsaString("+4556GI").get.toMove(states(7)).get.toJapaneseNotationString mustBe "５六銀右"
-    MoveBuilderCsa.parseCsaString("+8978KI").get.toMove(states(8)).get.toJapaneseNotationString mustBe "７八金左"
-    MoveBuilderCsa.parseCsaString("+7978KI").get.toMove(states(8)).get.toJapaneseNotationString mustBe "７八金直"
-    MoveBuilderCsa.parseCsaString("+3938GI").get.toMove(states(9)).get.toJapaneseNotationString mustBe "３八銀直"
-    MoveBuilderCsa.parseCsaString("+2938GI").get.toMove(states(9)).get.toJapaneseNotationString mustBe "３八銀右"
+    MoveBuilderCsa.parseCsaString("+9281KI").toMove(states(5)).get.toJapaneseNotationString mustBe "８一金左"
+    MoveBuilderCsa.parseCsaString("+7281KI").toMove(states(5)).get.toJapaneseNotationString mustBe "８一金右"
+    MoveBuilderCsa.parseCsaString("+3222KI").toMove(states(6)).get.toJapaneseNotationString mustBe "２二金左"
+    MoveBuilderCsa.parseCsaString("+1222KI").toMove(states(6)).get.toJapaneseNotationString mustBe "２二金右"
+    MoveBuilderCsa.parseCsaString("+6556GI").toMove(states(7)).get.toJapaneseNotationString mustBe "５六銀左"
+    MoveBuilderCsa.parseCsaString("+4556GI").toMove(states(7)).get.toJapaneseNotationString mustBe "５六銀右"
+    MoveBuilderCsa.parseCsaString("+8978KI").toMove(states(8)).get.toJapaneseNotationString mustBe "７八金左"
+    MoveBuilderCsa.parseCsaString("+7978KI").toMove(states(8)).get.toJapaneseNotationString mustBe "７八金直"
+    MoveBuilderCsa.parseCsaString("+3938GI").toMove(states(9)).get.toJapaneseNotationString mustBe "３八銀直"
+    MoveBuilderCsa.parseCsaString("+2938GI").toMove(states(9)).get.toJapaneseNotationString mustBe "３八銀右"
 
-    MoveBuilderCsa.parseCsaString("+6352KI").get.toMove(states(10)).get.toJapaneseNotationString mustBe "５二金左"
-    MoveBuilderCsa.parseCsaString("+5352KI").get.toMove(states(10)).get.toJapaneseNotationString mustBe "５二金直"
-    MoveBuilderCsa.parseCsaString("+4352KI").get.toMove(states(10)).get.toJapaneseNotationString mustBe "５二金右"
-    MoveBuilderCsa.parseCsaString("+7988TO").get.toMove(states(11)).get.toJapaneseNotationString mustBe "８八と右"
-    MoveBuilderCsa.parseCsaString("+8988TO").get.toMove(states(11)).get.toJapaneseNotationString mustBe "８八と直"
-    MoveBuilderCsa.parseCsaString("+9988TO").get.toMove(states(11)).get.toJapaneseNotationString mustBe "８八と左上"
-    MoveBuilderCsa.parseCsaString("+9888TO").get.toMove(states(11)).get.toJapaneseNotationString mustBe "８八と寄"
-    MoveBuilderCsa.parseCsaString("+8788TO").get.toMove(states(11)).get.toJapaneseNotationString mustBe "８八と引"
-    MoveBuilderCsa.parseCsaString("+2928GI").get.toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀直"
-    MoveBuilderCsa.parseCsaString("+1728GI").get.toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀右"
-    MoveBuilderCsa.parseCsaString("+3928GI").get.toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀左上"
-    MoveBuilderCsa.parseCsaString("+3728GI").get.toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀左引"
+    MoveBuilderCsa.parseCsaString("+6352KI").toMove(states(10)).get.toJapaneseNotationString mustBe "５二金左"
+    MoveBuilderCsa.parseCsaString("+5352KI").toMove(states(10)).get.toJapaneseNotationString mustBe "５二金直"
+    MoveBuilderCsa.parseCsaString("+4352KI").toMove(states(10)).get.toJapaneseNotationString mustBe "５二金右"
+    MoveBuilderCsa.parseCsaString("+7988TO").toMove(states(11)).get.toJapaneseNotationString mustBe "８八と右"
+    MoveBuilderCsa.parseCsaString("+8988TO").toMove(states(11)).get.toJapaneseNotationString mustBe "８八と直"
+    MoveBuilderCsa.parseCsaString("+9988TO").toMove(states(11)).get.toJapaneseNotationString mustBe "８八と左上"
+    MoveBuilderCsa.parseCsaString("+9888TO").toMove(states(11)).get.toJapaneseNotationString mustBe "８八と寄"
+    MoveBuilderCsa.parseCsaString("+8788TO").toMove(states(11)).get.toJapaneseNotationString mustBe "８八と引"
+    MoveBuilderCsa.parseCsaString("+2928GI").toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀直"
+    MoveBuilderCsa.parseCsaString("+1728GI").toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀右"
+    MoveBuilderCsa.parseCsaString("+3928GI").toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀左上"
+    MoveBuilderCsa.parseCsaString("+3728GI").toMove(states(12)).get.toJapaneseNotationString mustBe "２八銀左引"
 
-    MoveBuilderCsa.parseCsaString("+9182RY").get.toMove(states(13)).get.toJapaneseNotationString mustBe "８二竜引"
-    MoveBuilderCsa.parseCsaString("+8482RY").get.toMove(states(13)).get.toJapaneseNotationString mustBe "８二竜上"
-    MoveBuilderCsa.parseCsaString("+2343RY").get.toMove(states(14)).get.toJapaneseNotationString mustBe "４三竜寄"
-    MoveBuilderCsa.parseCsaString("+5243RY").get.toMove(states(14)).get.toJapaneseNotationString mustBe "４三竜引"
-    MoveBuilderCsa.parseCsaString("+5535RY").get.toMove(states(15)).get.toJapaneseNotationString mustBe "３五竜左"
-    MoveBuilderCsa.parseCsaString("+1535RY").get.toMove(states(15)).get.toJapaneseNotationString mustBe "３五竜右"
-    MoveBuilderCsa.parseCsaString("+9988RY").get.toMove(states(16)).get.toJapaneseNotationString mustBe "８八竜左"
-    MoveBuilderCsa.parseCsaString("+8988RY").get.toMove(states(16)).get.toJapaneseNotationString mustBe "８八竜右"
-    MoveBuilderCsa.parseCsaString("+2817RY").get.toMove(states(17)).get.toJapaneseNotationString mustBe "１七竜左"
-    MoveBuilderCsa.parseCsaString("+1917RY").get.toMove(states(17)).get.toJapaneseNotationString mustBe "１七竜右"
+    MoveBuilderCsa.parseCsaString("+9182RY").toMove(states(13)).get.toJapaneseNotationString mustBe "８二竜引"
+    MoveBuilderCsa.parseCsaString("+8482RY").toMove(states(13)).get.toJapaneseNotationString mustBe "８二竜上"
+    MoveBuilderCsa.parseCsaString("+2343RY").toMove(states(14)).get.toJapaneseNotationString mustBe "４三竜寄"
+    MoveBuilderCsa.parseCsaString("+5243RY").toMove(states(14)).get.toJapaneseNotationString mustBe "４三竜引"
+    MoveBuilderCsa.parseCsaString("+5535RY").toMove(states(15)).get.toJapaneseNotationString mustBe "３五竜左"
+    MoveBuilderCsa.parseCsaString("+1535RY").toMove(states(15)).get.toJapaneseNotationString mustBe "３五竜右"
+    MoveBuilderCsa.parseCsaString("+9988RY").toMove(states(16)).get.toJapaneseNotationString mustBe "８八竜左"
+    MoveBuilderCsa.parseCsaString("+8988RY").toMove(states(16)).get.toJapaneseNotationString mustBe "８八竜右"
+    MoveBuilderCsa.parseCsaString("+2817RY").toMove(states(17)).get.toJapaneseNotationString mustBe "１七竜左"
+    MoveBuilderCsa.parseCsaString("+1917RY").toMove(states(17)).get.toJapaneseNotationString mustBe "１七竜右"
 
-    MoveBuilderCsa.parseCsaString("+9182UM").get.toMove(states(18)).get.toJapaneseNotationString mustBe "８二馬左"
-    MoveBuilderCsa.parseCsaString("+8182UM").get.toMove(states(18)).get.toJapaneseNotationString mustBe "８二馬右"
-    MoveBuilderCsa.parseCsaString("+9585UM").get.toMove(states(19)).get.toJapaneseNotationString mustBe "８五馬寄"
-    MoveBuilderCsa.parseCsaString("+6385UM").get.toMove(states(19)).get.toJapaneseNotationString mustBe "８五馬引"
-    MoveBuilderCsa.parseCsaString("+1112UM").get.toMove(states(20)).get.toJapaneseNotationString mustBe "１二馬引"
-    MoveBuilderCsa.parseCsaString("+3412UM").get.toMove(states(20)).get.toJapaneseNotationString mustBe "１二馬上"
-    MoveBuilderCsa.parseCsaString("+9977UM").get.toMove(states(21)).get.toJapaneseNotationString mustBe "７七馬左"
-    MoveBuilderCsa.parseCsaString("+5977UM").get.toMove(states(21)).get.toJapaneseNotationString mustBe "７七馬右"
-    MoveBuilderCsa.parseCsaString("+4729UM").get.toMove(states(22)).get.toJapaneseNotationString mustBe "２九馬左"
-    MoveBuilderCsa.parseCsaString("+1829UM").get.toMove(states(22)).get.toJapaneseNotationString mustBe "２九馬右"
+    MoveBuilderCsa.parseCsaString("+9182UM").toMove(states(18)).get.toJapaneseNotationString mustBe "８二馬左"
+    MoveBuilderCsa.parseCsaString("+8182UM").toMove(states(18)).get.toJapaneseNotationString mustBe "８二馬右"
+    MoveBuilderCsa.parseCsaString("+9585UM").toMove(states(19)).get.toJapaneseNotationString mustBe "８五馬寄"
+    MoveBuilderCsa.parseCsaString("+6385UM").toMove(states(19)).get.toJapaneseNotationString mustBe "８五馬引"
+    MoveBuilderCsa.parseCsaString("+1112UM").toMove(states(20)).get.toJapaneseNotationString mustBe "１二馬引"
+    MoveBuilderCsa.parseCsaString("+3412UM").toMove(states(20)).get.toJapaneseNotationString mustBe "１二馬上"
+    MoveBuilderCsa.parseCsaString("+9977UM").toMove(states(21)).get.toJapaneseNotationString mustBe "７七馬左"
+    MoveBuilderCsa.parseCsaString("+5977UM").toMove(states(21)).get.toJapaneseNotationString mustBe "７七馬右"
+    MoveBuilderCsa.parseCsaString("+4729UM").toMove(states(22)).get.toJapaneseNotationString mustBe "２九馬左"
+    MoveBuilderCsa.parseCsaString("+1829UM").toMove(states(22)).get.toJapaneseNotationString mustBe "２九馬右"
 
-    MoveBuilderCsa.parseCsaString("-5766KA").get.toMove(states(23)).get.toJapaneseNotationString mustBe "６六角引不成"
-    MoveBuilderCsa.parseCsaString("-5766UM").get.toMove(states(23)).get.toJapaneseNotationString mustBe "６六角引成"
-    MoveBuilderCsa.parseCsaString("-6168KY").get.toMove(states(23)).get.toJapaneseNotationString mustBe "６八香不成"
-    MoveBuilderCsa.parseCsaString("-6168NY").get.toMove(states(23)).get.toJapaneseNotationString mustBe "６八香成"
-    MoveBuilderCsa.parseCsaString("-0068KY").get.toMove(states(23)).get.toJapaneseNotationString mustBe "６八香打"
+    MoveBuilderCsa.parseCsaString("-5766KA").toMove(states(23)).get.toJapaneseNotationString mustBe "６六角引不成"
+    MoveBuilderCsa.parseCsaString("-5766UM").toMove(states(23)).get.toJapaneseNotationString mustBe "６六角引成"
+    MoveBuilderCsa.parseCsaString("-6168KY").toMove(states(23)).get.toJapaneseNotationString mustBe "６八香不成"
+    MoveBuilderCsa.parseCsaString("-6168NY").toMove(states(23)).get.toJapaneseNotationString mustBe "６八香成"
+    MoveBuilderCsa.parseCsaString("-0068KY").toMove(states(23)).get.toJapaneseNotationString mustBe "６八香打"
   }
   "Move#toWesternNotationString" must "describes the move" in {
     val states = Seq(
@@ -566,21 +564,21 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         "P+00KY",
         "P-",
         "+"
-      )
-    ).map(State.parseCsaString(_).get)
+      ).mkString("\n")
+    ).map(State.parseCsaString)
 
-    MoveBuilderCsa.parseCsaString("+7776FU").get.toMove(State.HIRATE).get.toWesternNotationString mustBe "P-7f"
-    MoveBuilderCsa.parseCsaString("-3334FU").get.toMove(State.HIRATE.copy(turn = WHITE)).get.toWesternNotationString mustBe "P-3d"
-    MoveBuilderCsa.parseCsaString("+5352UM").get.toMove(states(0)).get.toWesternNotationString mustBe "+B-5b"
-    MoveBuilderCsa.parseCsaString("+0033KY").get.toMove(states(0)).get.toWesternNotationString mustBe "L*3c"
-    MoveBuilderCsa.parseCsaString("+5563KE").get.toMove(states(0)).get.toWesternNotationString mustBe "N-6c="
-    MoveBuilderCsa.parseCsaString("+5563NK").get.toMove(states(0)).get.toWesternNotationString mustBe "N-6c+"
-    MoveBuilderCsa.parseCsaString("+5543KE").get.toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c="
-    MoveBuilderCsa.parseCsaString("+5543NK").get.toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c+"
-    MoveBuilderCsa.parseCsaString("+9283GI").get.toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c="
-    MoveBuilderCsa.parseCsaString("+9283NG").get.toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c+"
-    MoveBuilderCsa.parseCsaString("+9483GI").get.toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c="
-    MoveBuilderCsa.parseCsaString("+9483NG").get.toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c+"
+    MoveBuilderCsa.parseCsaString("+7776FU").toMove(State.HIRATE).get.toWesternNotationString mustBe "P-7f"
+    MoveBuilderCsa.parseCsaString("-3334FU").toMove(State.HIRATE.copy(turn = WHITE)).get.toWesternNotationString mustBe "P-3d"
+    MoveBuilderCsa.parseCsaString("+5352UM").toMove(states(0)).get.toWesternNotationString mustBe "+B-5b"
+    MoveBuilderCsa.parseCsaString("+0033KY").toMove(states(0)).get.toWesternNotationString mustBe "L*3c"
+    MoveBuilderCsa.parseCsaString("+5563KE").toMove(states(0)).get.toWesternNotationString mustBe "N-6c="
+    MoveBuilderCsa.parseCsaString("+5563NK").toMove(states(0)).get.toWesternNotationString mustBe "N-6c+"
+    MoveBuilderCsa.parseCsaString("+5543KE").toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c="
+    MoveBuilderCsa.parseCsaString("+5543NK").toMove(states(0)).get.toWesternNotationString mustBe "N5e-4c+"
+    MoveBuilderCsa.parseCsaString("+9283GI").toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c="
+    MoveBuilderCsa.parseCsaString("+9283NG").toMove(states(0)).get.toWesternNotationString mustBe "S9bx8c+"
+    MoveBuilderCsa.parseCsaString("+9483GI").toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c="
+    MoveBuilderCsa.parseCsaString("+9483NG").toMove(states(0)).get.toWesternNotationString mustBe "S9dx8c+"
   }
 
   "MoveBuilderSfen#toMove" must "return move" in {
@@ -596,9 +594,9 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KA *  *  *  *  *  *  *  * ",
       "P+00FU",
       "P-",
-      "+")).get
+      "+").mkString("\n"))
 
-    MoveBuilderSfen.parseSfenString("7g7f").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, None))
+    MoveBuilderSfen.parseSfenString("7g7f").toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, None))
   }
 
   "MoveBuilderSfen#apply" must "create instances" in {
@@ -623,9 +621,9 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KA *  *  *  *  *  *  *  * ",
       "P+00FU",
       "P-",
-      "+")).get
+      "+").mkString("\n"))
 
-    MoveBuilderKif.parseKifString("７六歩(77) (0:03/)").get.toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, Some(3)))
+    MoveBuilderKif.parseKifString("７六歩(77) (0:03/)").toMove(s1) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, true, Some(3)))
   }
 
 }

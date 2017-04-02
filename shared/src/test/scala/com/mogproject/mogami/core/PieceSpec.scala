@@ -2,8 +2,8 @@ package com.mogproject.mogami.core
 
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
-
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.io.RecordFormatException
 
 class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
   val allPieces: Seq[Piece] = for {p <- Player.constructor; pt <- Ptype.constructor} yield Piece(p, pt)
@@ -20,56 +20,56 @@ class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
   )
 
   "Piece#parseCsaString" must "succeed in normal cases" in {
-    csaPieces map { c => Piece.parseCsaString(c) } must be(allPieces map (Some(_)))
+    csaPieces map { c => Piece.parseCsaString(c) } mustBe allPieces
   }
   it must "return None in error cases" in {
-    Piece.parseCsaString("") must be(None)
-    Piece.parseCsaString(" ") must be(None)
-    Piece.parseCsaString("x" * 1000) must be(None)
-    Piece.parseCsaString("=FU") must be(None)
-    Piece.parseCsaString("-Fu") must be(None)
-    Piece.parseCsaString("-FU+") must be(None)
+    assertThrows[RecordFormatException](Piece.parseCsaString(""))
+    assertThrows[RecordFormatException](Piece.parseCsaString(" "))
+    assertThrows[RecordFormatException](Piece.parseCsaString("x" * 1000))
+    assertThrows[RecordFormatException](Piece.parseCsaString("=FU"))
+    assertThrows[RecordFormatException](Piece.parseCsaString("-Fu"))
+    assertThrows[RecordFormatException](Piece.parseCsaString("-FU+"))
   }
   "Piece#toCsaString" must "describe in csa format" in {
-    allPieces map (_.toCsaString) must be(csaPieces)
+    allPieces map (_.toCsaString) mustBe csaPieces
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
-    Piece.parseCsaString(p.toCsaString) must be(Some(p))
+    Piece.parseCsaString(p.toCsaString) mustBe p
   }
 
   "Piece#toSfenString" must "describe in SFEN format" in {
-    allPieces map (_.toSfenString) must be(sfenPieces)
+    allPieces map (_.toSfenString) mustBe sfenPieces
   }
   "Piece#parseSfenString" must "succeed in normal cases" in {
-    sfenPieces map { c => Piece.parseSfenString(c) } must be(allPieces map (Some(_)))
+    sfenPieces map { c => Piece.parseSfenString(c) } mustBe allPieces
   }
   it must "return None in error cases" in {
-    Piece.parseSfenString("") must be(None)
-    Piece.parseSfenString(" ") must be(None)
-    Piece.parseSfenString("x" * 1000) must be(None)
-    Piece.parseSfenString("=FU") must be(None)
-    Piece.parseSfenString("-Fu") must be(None)
-    Piece.parseSfenString("-FU+") must be(None)
+    assertThrows[RecordFormatException](Piece.parseSfenString(""))
+    assertThrows[RecordFormatException](Piece.parseSfenString(" "))
+    assertThrows[RecordFormatException](Piece.parseSfenString("x" * 1000))
+    assertThrows[RecordFormatException](Piece.parseSfenString("=FU"))
+    assertThrows[RecordFormatException](Piece.parseSfenString("-Fu"))
+    assertThrows[RecordFormatException](Piece.parseSfenString("-FU+"))
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
-    Piece.parseSfenString(p.toSfenString) must be(Some(p))
+    Piece.parseSfenString(p.toSfenString) mustBe p
   }
   "Piece#toKifString" must "describe pieces in KIF format" in {
     allPieces map (_.toKifString) mustBe kifPieces
   }
   "Piece#parseKifString" must "succeed in normal cases" in {
-    kifPieces map { c => Piece.parseKifString(c) } must be(allPieces map (Some(_)))
+    kifPieces map { c => Piece.parseKifString(c) } mustBe allPieces
   }
-  it must "return None in error cases" in {
-    Piece.parseKifString("") must be(None)
-    Piece.parseKifString(" ") must be(None)
-    Piece.parseKifString("x" * 1000) must be(None)
-    Piece.parseKifString("=FU") must be(None)
-    Piece.parseKifString("-Fu") must be(None)
-    Piece.parseKifString("-FU+") must be(None)
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](Piece.parseKifString(""))
+    assertThrows[RecordFormatException](Piece.parseKifString(" "))
+    assertThrows[RecordFormatException](Piece.parseKifString("x" * 1000))
+    assertThrows[RecordFormatException](Piece.parseKifString("=FU"))
+    assertThrows[RecordFormatException](Piece.parseKifString("-Fu"))
+    assertThrows[RecordFormatException](Piece.parseKifString("-FU+"))
   }
   it must "recover the original piece" in forAll(PieceGen.pieces) { p =>
-    Piece.parseKifString(p.toKifString) must be(Some(p))
+    Piece.parseKifString(p.toKifString) mustBe p
   }
 
   "Piece#unary_!" must "flip the owner" in {

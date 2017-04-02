@@ -56,6 +56,9 @@ package object mogami {
   type MoveBuilderKif = com.mogproject.mogami.core.move.MoveBuilderKif
   val MoveBuilderKif = com.mogproject.mogami.core.move.MoveBuilderKif
 
+  type MoveBuilderKi2 = com.mogproject.mogami.core.move.MoveBuilderKi2
+  val MoveBuilderKi2 = com.mogproject.mogami.core.move.MoveBuilderKi2
+
   type Move = com.mogproject.mogami.core.move.Move
   val Move = com.mogproject.mogami.core.move.Move
 

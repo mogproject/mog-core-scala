@@ -27,6 +27,7 @@ case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike with
 }
 
 object Piece extends CsaTableFactory[Piece] with SfenTableFactory[Piece] with KifTableFactory[Piece] {
+  override val typeName: String = "piece"
 
   implicit def ordering[A <: Piece]: Ordering[A] = Ordering.by(p => (p.owner, p.ptype))
 

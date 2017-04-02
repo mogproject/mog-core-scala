@@ -34,5 +34,15 @@ object MoveGen {
     t <- Gen.option(Gen.choose(0, 1000000000))
   } yield isHand.fold(MoveBuilderKifHand(to, pt, t), MoveBuilderKifBoard(from, Some(to), pt, pr, t))
 
+  val movesKi2Format: Gen[MoveBuilderKi2] = for {
+    pl <- PlayerGen.players
+    isHand <- Gen.oneOf(true, false, false, false)
+    to <- SquareGen.squares
+    pt <- if (isHand) PtypeGen.ptypesInHand else PtypeGen.ptypes
+    canPromote = pt.canPromote && !isHand
+    pr <- Gen.oneOf(None, canPromote.fold(Some(true), None), canPromote.fold(Some(false), None))
+    mvmt <- Gen.option(Gen.oneOf(Movement.all))
+  } yield MoveBuilderKi2(pl, isHand.fold(None, Some(to)), pt, mvmt, pr)
+
 }
 

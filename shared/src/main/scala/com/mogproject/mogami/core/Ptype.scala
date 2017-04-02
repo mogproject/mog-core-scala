@@ -55,6 +55,8 @@ sealed abstract class Ptype(val id: Int) extends CsaLike with KifLike {
 }
 
 object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
+  override val typeName: String = "ptype"
+
   implicit def ordering[A <: Ptype]: Ordering[A] = Ordering.by(_.sortId)
 
   val sortIdTable: Seq[Int] = Seq(
