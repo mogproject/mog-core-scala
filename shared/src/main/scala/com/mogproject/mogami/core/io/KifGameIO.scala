@@ -187,7 +187,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
           }
           case None => throw new RecordFormatException(n, s"invalid move: ${x}")
         }
-      case (_ :: _, Some(((x, n), _))) => throw new RecordFormatException(n, s"invalide move expression: ${x}")
+      case (_ :: _, Some(((x, n), _))) => throw new RecordFormatException(n, s"invalid move expression: ${x}")
     }
 
     f(lines.toList, None, Game(initialState))
