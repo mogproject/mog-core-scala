@@ -33,7 +33,7 @@ case class Move(player: Player,
     require(to.isLegalZone(newPiece), "to must be legal for the new piece")
     require(elapsedTime.forall(_ >= 0), "elapsedTime must be positive or zero")
     require(!captured.contains(KING), "king cannot be captured")
-    require(oldPtype != PAWN || movement.isEmpty, "pawn cannot be ambiguous")
+    require(oldPtype != PAWN || movement.isEmpty || movement.contains(Dropped), "pawn cannot be ambiguous") // but allow Dropped
   }
 
   override def equals(obj: scala.Any): Boolean = obj match {

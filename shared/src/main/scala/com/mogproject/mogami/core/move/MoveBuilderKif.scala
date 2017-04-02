@@ -15,7 +15,7 @@ sealed trait MoveBuilderKif extends MoveBuilder with KifLike
 
 object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
   private[this] val patternTime: Regex = """([^ ]+)(?:[ ]+[(][ ]*(\d+):[ ]*(\d+)[/](?:[ ]*(\d+):[ ]*(\d+):[ ]*(\d+))?[)])?""".r
-  private[this] val pattern: Regex = """(..)([成]?.)([成打]?)(?:[(]([1-9]{2})[)])?""".r
+  private[this] val pattern: Regex = """(.[　一二三四五六七八九]?)([成]?.)([成打]?)(?:[(]([1-9]{2})[)])?""".r
 
   def parseTime(line: Line): (Line, Option[Int]) = line match {
     case (patternTime(mv, null, null, null, null, null), n) => ((mv, n), None)
@@ -38,11 +38,11 @@ object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
           if (!pt.isHandType) throw new RecordFormatException(n, s"invalid piece type for hand: ${mv}")
           MoveBuilderKifHand(to, pt, t)
         case pattern(toStr, ptStr, prStr, fromStr) if fromStr != null && (prStr == "" || prStr == "成") =>
-          val pt = Ptype.parseKifString(ptStr)
-          val from = Square.parseCsaString(fromStr)
-          val toOpt = if (toStr == "同　") None else Some(Square.parseKifString(toStr))
+          val pt = Ptype.parseKifString(NonEmptyLines(n, ptStr))
+          val from = Square.parseCsaString(NonEmptyLines(n, fromStr))
+          val toOpt = if (toStr.startsWith("同")) None else Some(Square.parseKifString(NonEmptyLines(n, toStr)))
           MoveBuilderKifBoard(from, toOpt, pt, prStr == "成", t)
-        case _ => throw new RecordFormatException(n, s"invalid move string${mv}")
+        case _ => throw new RecordFormatException(n, s"invalid move string: ${mv}")
       }
     }
   }

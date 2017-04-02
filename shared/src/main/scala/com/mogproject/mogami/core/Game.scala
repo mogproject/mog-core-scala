@@ -183,6 +183,7 @@ object GameInfo {
     ('whiteName, "N-"),
     ('event, "$EVENT:"),
     ('site, "$SITE:"),
+    ('start, "$START:"),
     ('startTime, "$START_TIME:"),
     ('endTime, "$END_TIME:"),
     ('timeLimit, "$TIME_LIMIT:"),
