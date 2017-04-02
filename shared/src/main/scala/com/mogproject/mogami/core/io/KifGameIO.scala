@@ -100,7 +100,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
   }
 
   private[this] def splitMovesKif(lines: Lines): Lines = lines.flatMap { case (x, n) => {
-    val chunks = x.trim.split(" ", 2)
+    val chunks = x.trim.split("[ ]+", 2)
     if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
   }
   }
@@ -120,7 +120,8 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
 
   private[this] def sectionSplitterKif(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
     val (gi, st, body) = sectionSplitterCommon(nel, { s => !s.startsWith("手数") })
-    (gi, st, splitMovesKif(body.drop(1)), None)
+    val b = body.drop(1).span { case (x, _) => !x.startsWith("変化：")}._1 // ignore branches (todo)
+    (gi, st, splitMovesKif(b), None)
   }
 
   private[this] def sectionSplitterKi2(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
@@ -169,6 +170,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Resign(tm)
           case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
+          case ((TimeUp.kifKeyword2, _), tm) => TimeUp(tm)
           case ((Pause.kifKeyword, _), _) => Pause
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
