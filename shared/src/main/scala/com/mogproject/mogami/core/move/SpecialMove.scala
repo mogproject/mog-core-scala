@@ -81,6 +81,7 @@ case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
 object TimeUp {
   val csaKeyword = "%TIME_UP"
   val kifKeyword = "切れ負け"
+  val kifKeyword2 = "Time-up" // Used on 81Dojo
   val ki2Keyword = "時間切れ"
 }
 

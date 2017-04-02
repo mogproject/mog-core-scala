@@ -1,0 +1,314 @@
+#KIF version=2.0 encoding=Shift_JIS
+# ---- Kifu for Windows V7 V7.08 棋譜ファイル ----
+開始日時：2017/01/21
+終了日時：2017/01/22 12:50:17
+持ち時間：30分+30秒
+場所：81Dojo (ver.2016/03/20)
+手合割：二枚落ち
+下手：Archon
+上手：Taichi_NAKAMURA
+手数----指手---------消費時間--
+*Game took place 2017/01/21 on internet server 81Dojo.
+*Oza challenger Taichi Nakamura played against Dion Paull from Australia in a 2 piece handicap game. 
+*It was the first teaching game of all WSL division winners organized by the JSA and 81Dojo.
+*
+*Comments by Taichi Nakamura 6 dan
+*Translation by Hidetchi
+*
+*Additional explanations by oneye
+   1 ６二銀(71)   ( 0:21/00:00:21)
+   2 ７六歩(77)   ( 0:12/00:00:12)
+   3 ５四歩(53)   ( 0:04/00:00:25)
+   4 ６八銀(79)   ( 0:07/00:00:19)
+   5 ５三銀(62)   ( 0:06/00:00:31)
+   6 ７七銀(68)   ( 0:09/00:00:28)
+   7 ４四歩(43)   ( 0:07/00:00:38)
+   8 ９六歩(97)   ( 0:07/00:00:35)
+   9 ７二金(61)   ( 0:09/00:00:47)
+  10 ６六歩(67)   ( 0:33/00:01:08)
+  11 ４二銀(31)   ( 0:14/00:01:01)
+  12 ６八飛(28)   ( 0:07/00:01:15)
+  13 ４三銀(42)   ( 0:06/00:01:07)
+  14 ４八玉(59)   ( 0:03/00:01:18)
+  15 ４二玉(51)   ( 0:07/00:01:14)
+  16 ５八金(69)   ( 0:12/00:01:30)
+  17 ５二金(41)   ( 0:07/00:01:21)
+  18 ３八玉(48)   ( 0:13/00:01:43)
+  19 ４五歩(44)   ( 0:19/00:01:40)
+  20 １六歩(17)   ( 0:07/00:01:50)
+  21 １四歩(13)   ( 0:04/00:01:44)
+  22 ６五歩(66)   ( 0:26/00:02:16)
+  23 ３四歩(33)   ( 0:10/00:01:54)
+  24 ６六銀(77)   ( 0:25/00:02:41)
+  25 ３三桂(21)   ( 0:22/00:02:16)
+  26 ７五銀(66)   ( 1:14/00:03:55)
+  27 ４四銀(53)   ( 3:06/00:05:22)
+  28 ９七角(88)   ( 1:35/00:05:30)
+  29 ３二玉(42)   ( 0:50/00:06:12)
+  30 ２八玉(38)   ( 1:44/00:07:14)
+  31 ９四歩(93)   ( 0:06/00:06:18)
+  32 ３八銀(39)   ( 0:45/00:07:59)
+*[Taichi_NAKAMURA] 序盤32手目は86角の方が良かったと思います。
+*"At Move #32, Bishop-86 would be better."
+  33 ９五歩(94)   ( 0:30/00:06:48)
+*[Taichi_NAKAMURA] これは考えましたか？
+*"Did you think about this?"
+*(P64 variation)
+  34 ８八角(97)   ( 0:02/00:08:01)+
+  35 ９六歩(95)   ( 0:08/00:06:56)
+  36 ４四角(88)   ( 0:41/00:08:42)
+  37 同　銀(43)   ( 0:08/00:07:04)
+  38 ６一銀打     ( 0:04/00:08:46)
+  39 ６二金(72)   ( 2:12/00:09:16)
+  40 ５二銀成(61) ( 0:06/00:08:52)
+  41 同　金(62)   ( 0:05/00:09:21)
+  42 ６四歩(65)   ( 0:13/00:09:05)
+  43 同　歩(63)   ( 0:02/00:09:23)
+  44 同　銀(75)   ( 0:14/00:09:19)
+  45 ６五歩打     ( 2:02/00:11:25)
+  46 ７七桂(89)   ( 4:47/00:14:06)
+*[Taichi_NAKAMURA] 77桂は本筋の素晴らしい手です。
+*"Knight-77 is a very good, and the right 
+*move."
+  47 ３五歩(34)   ( 2:33/00:13:58)
+  48 ３四金打     ( 2:51/00:16:57)
+  49 ４三銀打     ( 0:43/00:14:41)
+*[Taichi_NAKAMURA] I think this is better move
+*(Gx44 variation)
+  50 同　金(34)   ( 0:06/00:17:03)+
+  51 同　玉(32)   ( 1:21/00:16:02)
+  52 ６三銀打     ( 2:00/00:19:03)
+  53 ４二金(52)   ( 0:58/00:17:00)
+  54 ６五桂(77)   ( 8:32/00:27:35)
+  55 １五歩(14)   ( 0:34/00:17:34)
+  56 ６二銀(63)   ( 1:03/00:28:38)
+*[Taichi_NAKAMURA] 56手目も良い手でした。
+*"This move at Move #56 was also a good 
+*one."
+  57 １六歩(15)   ( 6:16/00:23:50)
+  58 ５三桂成(65) ( 0:57/00:29:35)
+  59 同　銀(44)   ( 0:21/00:24:11)
+  60 同　銀成(62) ( 0:29/00:30:04)
+  61 同　金(42)   ( 0:03/00:24:14)
+  62 同　銀成(64) ( 0:14/00:30:18)
+  63 同　玉(43)   ( 0:03/00:24:17)
+  64 ６一飛成(68) ( 0:25/00:30:43)
+*[Taichi_NAKAMURA] 秒読みで大変だったかと思いますが、終盤はほとんど完璧でした。
+*
+* "I believe it was difficult under the 
+*byoyomi, but you played almost perfect in the edgame!"
+*
+*[Taichi_NAKAMURA] 中段玉はプロでも間違えるので詰みを逃してしまってもそんなに気にする
+*必要はないです。
+*"A king in the middle rank is very 
+*difficult to mate, even professional players make 
+*mistakes there. So you don't need to worry too much even 
+*if you didn't see the mate."
+*
+*[Archon] Yes, I wanted to try and force the king 
+*right, to cut off escape
+*( "とにかく玉を右側に追い込み、スペースを狭くしようとは考えました")
+*
+*[Taichi_NAKAMURA] スペースを狭くするというのは良い考えだと思います。
+* "It is a good idea that you tried to cut 
+*off space."
+  65 １七歩成(16) ( 0:20/00:24:37)
+  66 同　桂(29)   ( 0:28/00:31:11)
+  67 同　香成(11) ( 1:24/00:26:01)
+  68 同　香(19)   ( 0:05/00:31:16)
+  69 ２五桂(33)   ( 0:03/00:26:04)
+*[Archon] I thouht about tryin to block here, but I 
+*think I don't have enough pieces
+*( "こうやって逃げ道を塞ごうと考えましたが、駒が足りないかなと思いました")
+*
+*(G34 variation)
+  70 ５一龍(61)   ( 0:28/00:31:44)+
+  71 ５二桂打     ( 0:05/00:26:09)
+  72 ６二銀打     ( 0:27/00:32:11)
+*[Taichi_NAKAMURA] 72手目62銀～の手順が素晴らしかったです！
+*"The moves starting from this Silver-62 
+*were splendid"
+*
+*[Taichi_NAKAMURA] 合駒を使わせられてしまって、厳しいと思いました。
+* "It was severe, as I was forced to use my 
+*pieces"
+  73 ４三玉(53)   ( 0:15/00:26:24)
+  74 ４一龍(51)   ( 0:27/00:32:38)
+  75 ３四玉(43)   ( 0:04/00:26:28)
+  76 ３二龍(41)   ( 0:27/00:33:05)
+*[Taichi_NAKAMURA] 76手目にもし52竜とすると下手に詰みがあります。
+*"If you played Dragon-52 on Move #76, there 
+*is a mate on your king."
+*
+*(mating line starts with N*36 Px S*37 Sx Nx+ Kx P36)
+  77 ３三銀打     ( 2:15/00:28:43)
+  78 ５二龍(32)   ( 0:30/00:33:35)
+  79 １七桂成(25) ( 0:14/00:28:57)
+  80 ３九玉(28)   ( 0:21/00:33:56)
+  81 ７七角打     ( 0:37/00:29:34)
+  82 ２六桂打     ( 0:28/00:34:24)
+  83 ２五玉(34)   ( 0:26/00:30:00)
+*[Taichi_NAKAMURA] 84手目に詰みがありました。
+*"Here you had a mate at Move 84"
+*
+*(the sequence is G*15 Kx +R12 K25 +R14 mate)
+  84 ６八歩打     ( 0:29/00:34:53)
+  85 ２四銀(33)   ( 0:28/00:30:28)
+  86 ５四龍(52)   ( 0:28/00:35:21)
+  87 １六玉(25)   ( 0:27/00:30:55)
+  88 １八歩打     ( 0:28/00:35:49)
+  89 同　成桂(17) ( 0:22/00:31:17)
+  90 １四金打     ( 0:26/00:36:15)
+  91 ２五銀(24)   ( 0:24/00:31:41)
+  92 ５六龍(54)   ( 0:29/00:36:44)
+  93 ３六歩(35)   ( 0:22/00:32:03)
+  94 ２九香打     ( 0:28/00:37:12)
+  95 ３一香打     ( 0:13/00:32:16)
+  96 ３六歩(37)   ( 0:23/00:37:35)
+  97 ４四桂打     ( 0:05/00:32:21)
+  98 ４五龍(56)   ( 0:28/00:38:03)
+  99 ３六桂(44)   ( 0:12/00:32:33)
+ 100 ４八金(49)   ( 0:27/00:38:30)
+*(making escaping route)
+ 101 同　桂成(36) ( 0:25/00:32:58)
+ 102 同　金(58)   ( 0:13/00:38:43)
+ 103 ３六銀打     ( 0:26/00:33:24)
+ 104 ６五龍(45)   ( 0:26/00:39:09)
+ 105 ３七歩打     ( 0:21/00:33:45)
+*(Sx Sx+ Gx Lx+ hisshi)
+ 106 ２八桂打     ( 0:26/00:39:35)
+ 107 同　成桂(18) ( 0:12/00:33:57)
+ 108 同　玉(39)   ( 0:27/00:40:02)
+ 109 ３八歩成(37) ( 0:21/00:34:18)
+*(Gx G*37... mating sequence)
+ 110 同　玉(28)   ( 0:27/00:40:29)
+ 111 ４六桂打     ( 0:05/00:34:23)
+*(Px G*37 K49 Gx48 Kx G*47 K59 G*58 checkmate)
+ 112 ４九玉(38)   ( 0:19/00:40:48)
+ 113 ３八金打     ( 0:05/00:34:28)
+*(K59 Gx48 K69 G*88 hisshi)
+ 114 同　金(48)   ( 0:17/00:41:05)
+ 115 ５八金打     ( 0:06/00:34:34)
+ 116 ３九玉(49)   ( 0:11/00:41:16)
+ 117 ３八桂成(46) ( 0:09/00:34:43)
+*(checkmate after Kx S37+ K39 +S38)
+*
+*[Taichi_NAKAMURA] バランスが大事ですよね。これからますます将棋を楽しんで、上達されることを祈っています。
+*"So balance is important. I hope you will 
+*keep enjoying shogi and improve a lot more."
+*
+*[Archon] Thank you, I am hoping to play much more 
+*Shogi this year.
+*("ありがとうこざいます。今年はもっと将棋を指したいと思います")
+*
+*[Taichi_NAKAMURA] Thank you for giving such a great 
+*oppotunity. I look forward to play shogi with you 
+*again.
+*
+*[Archon] Thank you for such a great opportunity, I  really apprecite the game and will be following your professional matches.
+*[Archon] Thank you Peter and Hidetchi for you 
+*assistance, team Australia is looking forward to the 
+*WSL in 2017
+*( "このような機会を頂き有難うございます。対局をして頂き大変感謝しています。先生の公式戦も観戦して応援していきます。")
+ 118 投了         ( 0:03/00:41:19)
+まで117手で上手の勝ち
+
+変化：70手
+  70 ３四金打     ( 0:01/00:31:17)
+*[Taichi_NAKAMURA] How about this?
+*(B55 variation)
+  71 ５五角打     ( 0:21/00:26:25)
+*[Archon] This is a dangerous move for me
+*[Archon] Must be careful
+*
+*[Taichi_NAKAMURA] But there is a good move
+*[Taichi_NAKAMURA] これもあります。
+* "That is an option"
+*(S*44 variation)
+*
+*and (S*42 variation)
+  72 ４四銀打     ( 0:34/00:31:51)+
+  73 同　角(55)   ( 0:09/00:26:34)
+  74 ５一龍(61)   ( 0:07/00:31:58)
+  75 ５二桂打     ( 0:03/00:26:37)
+  76 ４四金(34)   ( 0:00/00:31:58)
+  77 同　玉(53)   ( 0:01/00:26:38)
+  78 ５二龍(51)   ( 0:01/00:31:59)
+*[Taichi_NAKAMURA] 下手が勝てそうです。
+*"I think your side can win."
+*
+*[Taichi_NAKAMURA] この方がより良いかと思います。
+* "This is better, I believe."
+*(move 72, S*42 variation)
+
+
+変化：72手
+  72 ４二銀打     ( 0:15/00:31:32)
+*[Taichi_NAKAMURA] この方がより良いかと思います。
+* "This is better, I believe."
+*(better than S*44 variation)
+  73 同　玉(53)   ( 0:01/00:26:26)
+  74 ４四香打     ( 0:01/00:31:33)
+  75 ５三玉(42)   ( 0:02/00:26:28)
+  76 ４三金(34)   ( 0:00/00:31:33)
+*[Archon] I see!
+*
+*[Taichi_NAKAMURA] So, G34 is good move !
+
+
+変化：50手
+  50 ４四金(34)   ( 0:01/00:16:58)
+  51 同　銀(43)   ( 0:03/00:14:44)
+  52 ６五桂(77)   ( 0:13/00:17:11)
+*[Taichi_NAKAMURA] 次に53銀打の狙いがあります。
+*"You are threatening Silver drop to 53 
+*here"
+  53 ７七角打     ( 0:29/00:15:13)
+*[Archon] I was worried about bishop drop 77
+  54 ５三銀打     ( 0:01/00:17:12)
+*[Archon] I see, and without king to defend from 
+*earliermove
+*( "なるほど、本譜のように玉が守っていないので。 ")
+*
+*[Taichi_NAKAMURA] そうですね。実戦の進行は上手の駒の連結が良くなってしまいました。
+*"Yes. In the game, my pieces were connected 
+*tighter."
+*
+  55 ４二金打     ( 0:02/00:15:15)
+  56 同　銀成(53) ( 0:10/00:17:22)
+  57 同　金(52)   ( 0:01/00:15:16)
+  58 ５三桂成(65) ( 0:06/00:17:28)
+  59 同　銀(44)   ( 0:01/00:15:17)
+  60 同　銀成(64) ( 0:02/00:17:30)
+  61 同　金(42)   ( 0:00/00:15:17)
+  62 ６二飛成(68) ( 0:01/00:17:31)
+*[Taichi_NAKAMURA] 駒の働きや連結を意識するともっと上達すると思います。
+*"You will improve a lot more, if you think 
+*more about pieces' connection and their efficiencies."
+
+
+変化：34手
+  34 ６四歩(65)   ( 0:01/00:08:00)
+  35 同　歩(63)   ( 0:00/00:06:48)
+  36 同　銀(75)   ( 0:01/00:08:01)
+  37 ６三歩打     ( 0:01/00:06:49)
+  38 同　銀成(64) ( 0:01/00:08:02)
+  39 同　金(52)   ( 0:01/00:06:50)
+  40 同　飛成(68) ( 0:02/00:08:04)
+  41 同　金(72)   ( 0:01/00:06:51)
+  42 ４二金打     ( 0:01/00:08:05)
+*[Archon] Yes, but I think attack fails?
+*
+*[Hidetchi] "はい。でも上手くいかないと思いましたが"
+*
+*[Taichi_NAKAMURA] 攻めが好きならこれもありました。リスクはありますが。
+*"If you prefer to attack, this was also an 
+*option, although it's risky."
+*
+*[Taichi_NAKAMURA] こうなると下手優勢です。
+*"In this position, your side is better."
+*
+*[Archon] Thank you. White King would be vulnerable
+*("なるほど。上手玉が薄いですね")
+  43 中断         ( 0:09/00:07:00)
+まで42手で中断
