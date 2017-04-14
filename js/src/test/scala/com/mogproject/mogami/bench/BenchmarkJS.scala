@@ -28,6 +28,7 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     val m = MoveBuilderSfen(Left(P77), P76, false).toMove(s).get
 
     benchMakeMove(s, m)
+    benchLegalMoves(s, m)
     benchToSfenString(s)
   }
 }
