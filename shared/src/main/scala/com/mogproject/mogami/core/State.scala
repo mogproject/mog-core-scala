@@ -6,6 +6,7 @@ import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHan
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
 
+import scala.collection.mutable
 import scala.util.Try
 
 
@@ -255,13 +256,16 @@ case class State(turn: Player = BLACK,
     State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(move.to))
   }
 
-  def getPieceCount: Map[Piece, Int] = MapUtil.mergeMaps(board.groupBy(_._2).mapValues(_.size), hand.map { case (k, v) => k.toPiece -> v })(_ + _, 0)
+  lazy val getUsedPtypeCount: Map[Ptype, Int] = {
+    val a = board.values.map(_.ptype.demoted).foldLeft(Map.empty[Ptype, Int]) { case (m, pt) => MapUtil.incrementMap(m, pt) }
+    MapUtil.mergeMaps(a, hand.map { case (k, v) => k.ptype -> v })(_ + _, 0)
+  }
 
-  def getUsedPtypeCount: Map[Ptype, Int] = getPieceCount.groupBy(_._1.ptype.demoted).mapValues(_.values.sum)
+  lazy val getUnusedPtypeCount: Map[Ptype, Int] = MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0)
 
-  def getUnusedPtypeCount: Map[Ptype, Int] = MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0)
-
-  def checkCapacity: Boolean = getPieceCount.filterKeys(_.ptype == KING).forall(_._2 <= 1) && getUnusedPtypeCount.values.forall(_ >= 0)
+  lazy val checkCapacity: Boolean = {
+    occupancy(Piece(BLACK, KING)).count <= 1 && occupancy(Piece(WHITE, KING)).count <= 1 && getUnusedPtypeCount.values.forall(_ >= 0)
+  }
 
   def canAttack(from: Square, to: Square): Boolean = canAttack(Left(from), to)
 
