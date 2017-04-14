@@ -53,4 +53,39 @@ trait Benchmark {
     }.print()
   }
 
+  def benchCheckCapacity(state: State): Unit = {
+    println(s"benchCheckCapacity")
+
+    withBenchmark {
+      var i = 0
+      while (i < 10000) {
+        state.checkCapacity
+        i += 1
+      }
+    }.print()
+  }
+
+  def benchMakeMove(state: State, move: Move): Unit = {
+    println("benchMakeMove")
+
+    withBenchmark {
+      var i = 0
+      while (i < 10000) {
+        state.makeMove(move)
+        i += 1
+      }
+    }.print()
+  }
+
+  def benchToSfenString(state: State): Unit = {
+    println("benchToSfenString")
+
+    withBenchmark {
+      var i = 0
+      while (i < 10000) {
+        state.toSfenString
+        i += 1
+      }
+    }.print()
+  }
 }
