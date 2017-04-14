@@ -6,7 +6,6 @@ import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHan
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
 
-import scala.collection.mutable
 import scala.util.Try
 
 
@@ -16,17 +15,25 @@ import scala.util.Try
 case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
-                 lastMoveTo: Option[Square] = None
+                 lastMoveTo: Option[Square] = None,
+                 hint: Option[StateHint] = None
                 ) extends CsaLike with SfenLike with KifLike {
 
-  require(checkCapacity, "the number of pieces must be within the capacity")
-  require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
-  require(board.forall { case (s, p) => s.isLegalZone(p) }, "all board pieces must be placed in their legal zones")
-  require(!getKing(!turn).exists(getAttackBB(turn).get), "player must not be able to attack the opponent's king")
-  require(!isNifu, "two pawns cannot be in the same file")
+  // if a hint is given, skip requirement checks
+  if (hint.isEmpty) {
+    require(checkCapacity, "the number of pieces must be within the capacity")
+    require(hand.keySet == State.EMPTY_HANDS.keySet, "hand pieces must be in-hand type")
+    require(board.forall { case (s, p) => s.isLegalZone(p) }, "all board pieces must be placed in their legal zones")
+    require(!getKing(!turn).exists(getAttackBB(turn).get), "player must not be able to attack the opponent's king")
+    require(!isNifu, "two pawns cannot be in the same file")
+  }
 
   import com.mogproject.mogami.core.State.MoveFrom
   import com.mogproject.mogami.core.State.PromotionFlag.{CanPromote, CannotPromote, MustPromote, PromotionFlag}
+
+  private[this] def checkCapacity: Boolean = {
+    occupancy(Piece(BLACK, KING)).count <= 1 && occupancy(Piece(WHITE, KING)).count <= 1 && unusedPtypeCount.values.forall(_ >= 0)
+  }
 
   /**
     * Test if the board is Nifu.
@@ -37,6 +44,18 @@ case class State(turn: Player = BLACK,
     val files = board.withFilter(_._2 == Piece(pl, PAWN)).map(_._1.file).toSeq
     files.length != files.distinct.length
   }
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that: State =>
+      // ignore hint
+      turn == that.turn &&
+        board == that.board &&
+        hand == that.hand &&
+        lastMoveTo == that.lastMoveTo
+    case _ => false
+  }
+
+  override def hashCode(): Int = ((turn.hashCode * 31 + board.hashCode) * 31 + hand.hashCode) * 31 + lastMoveTo.hashCode
 
   override def toCsaString: String = {
     val boardString = (1 to 9).map { rank =>
@@ -106,19 +125,52 @@ case class State(turn: Player = BLACK,
   /**
     * Occupancy bitboards
     */
-  private[this] def aggregateSquares(boardMap: BoardType): BitBoard = boardMap.keys.view.map(BitBoard.ident).fold(BitBoard.empty)(_ | _)
+  private[this] lazy val occupancyAll: BitBoard = hint.map(_.occupancyAll).getOrElse(calculatedOccupancy._1)
 
-  private[this] lazy val occupancyAll: BitBoard = aggregateSquares(board)
+  private[this] lazy val occupancyByOwner: Vector[BitBoard] = hint.map(_.occupancyByOwner).getOrElse(calculatedOccupancy._2)
 
-  private[this] lazy val occupancyByOwner: Map[Player, BitBoard] = board.groupBy(_._2.owner).mapValues(aggregateSquares)
+  private[this] lazy val occupancyByPiece: Vector[BitBoard] = hint.map(_.occupancyByPiece).getOrElse(calculatedOccupancy._3)
 
-  private[this] lazy val occupancyByPiece: Map[Piece, BitBoard] = board.groupBy(_._2).mapValues(aggregateSquares)
+  private[this] lazy val calculatedOccupancy: (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {
+    var occAll = BitBoard.empty
+    val occOwn = Array.fill(2)(BitBoard.empty)
+    val occPce = Array.fill(32)(BitBoard.empty)
+
+    board.foreach { case (sq, p) =>
+        occAll = occAll.set(sq)
+        occOwn(p.owner.id) = occOwn(p.owner.id).set(sq)
+        occPce(p.id) = occPce(p.id).set(sq)
+    }
+    (occAll, occOwn.toVector, occPce.toVector)
+  }
+
+  private[this] def getUpdatedOccupancy(move: Move): (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {
+    var occAll = occupancyAll
+    val occOwn = occupancyByOwner.toArray
+    val occPce = occupancyByPiece.toArray
+
+    move.from.foreach { fr =>
+      occAll = occAll.reset(fr)
+      occOwn(move.player.id) = occOwn(move.player.id).reset(fr)
+      occPce(move.oldPiece.id) = occPce(move.oldPiece.id).reset(fr)
+    }
+
+    occAll = occAll.set(move.to)
+    occOwn(move.player.id) = occOwn(move.player.id).set(move.to)
+    occPce(move.newPiece.id) = occPce(move.newPiece.id).set(move.to)
+
+    move.capturedPiece.foreach { cp =>
+      occOwn(cp.owner.id) = occOwn(cp.owner.id).reset(move.to)
+      occPce(cp.id) = occPce(cp.id).reset(move.to)
+    }
+    (occAll, occOwn.toVector, occPce.toVector)
+  }
 
   def occupancy: BitBoard = occupancyAll
 
-  def occupancy(player: Player): BitBoard = occupancyByOwner.getOrElse(player, BitBoard.empty)
+  def occupancy(player: Player): BitBoard = occupancyByOwner(player.id)
 
-  def occupancy(piece: Piece): BitBoard = occupancyByPiece.getOrElse(piece, BitBoard.empty)
+  def occupancy(piece: Piece): BitBoard = occupancyByPiece(piece.id)
 
   def getSquares(piece: Piece): Set[Square] = occupancy(piece).toSet
 
@@ -253,19 +305,24 @@ case class State(turn: Player = BLACK,
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
     val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(move.to))
+
+    val newOccs = getUpdatedOccupancy(move)
+
+    val hint = StateHint(
+      newOccs._1,
+      newOccs._2,
+      newOccs._3,
+      unusedPtypeCount
+    )
+    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(move.to), Some(hint))
   }
 
-  lazy val getUsedPtypeCount: Map[Ptype, Int] = {
+  private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
     val a = board.values.map(_.ptype.demoted).foldLeft(Map.empty[Ptype, Int]) { case (m, pt) => MapUtil.incrementMap(m, pt) }
     MapUtil.mergeMaps(a, hand.map { case (k, v) => k.ptype -> v })(_ + _, 0)
   }
 
-  lazy val getUnusedPtypeCount: Map[Ptype, Int] = MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0)
-
-  lazy val checkCapacity: Boolean = {
-    occupancy(Piece(BLACK, KING)).count <= 1 && occupancy(Piece(WHITE, KING)).count <= 1 && getUnusedPtypeCount.values.forall(_ >= 0)
-  }
+  lazy val unusedPtypeCount: Map[Ptype, Int] = hint.map(_.unusedPtypeCount).getOrElse(MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0))
 
   def canAttack(from: Square, to: Square): Boolean = canAttack(Left(from), to)
 
@@ -356,3 +413,11 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
   lazy val HANDICAP_NAKED_KING = StateConstant.HANDICAP_NAKED_KING
 
 }
+
+/**
+  * Inherits calculated information from the previous state so that computation time will be reduced.
+  */
+case class StateHint(occupancyAll: BitBoard,
+                     occupancyByOwner: Vector[BitBoard],
+                     occupancyByPiece: Vector[BitBoard],
+                     unusedPtypeCount: Map[Ptype, Int])

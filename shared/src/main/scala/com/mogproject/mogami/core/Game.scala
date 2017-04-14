@@ -33,6 +33,8 @@ case class Game(initialState: State = State.HIRATE,
     case _ => false
   }
 
+  override def hashCode(): Int = (((initialState.hashCode * 31 + moves.hashCode) * 31 + gameInfo.hashCode) * 31 + movesOffset.hashCode) * 31 + finalAction.hashCode
+
   /** history of states */
   lazy val history: Vector[State] = {
     givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten)

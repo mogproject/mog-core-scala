@@ -7,6 +7,8 @@ import com.mogproject.mogami.util.Implicits._
   * Piece describing its owner and piece type
   */
 case class Piece(owner: Player, ptype: Ptype) extends CsaLike with SfenLike with KifLike {
+  def id: Int = owner.id * 16 + ptype.id
+
   override def toCsaString: String = Piece.csaTable(Piece.argsToId(owner, ptype))
 
   override def toSfenString: String = Piece.sfenTable(Piece.argsToId(owner, ptype))

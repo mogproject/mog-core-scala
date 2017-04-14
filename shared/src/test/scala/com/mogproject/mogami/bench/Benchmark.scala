@@ -53,18 +53,6 @@ trait Benchmark {
     }.print()
   }
 
-  def benchCheckCapacity(state: State): Unit = {
-    println(s"benchCheckCapacity")
-
-    withBenchmark {
-      var i = 0
-      while (i < 10000) {
-        state.checkCapacity
-        i += 1
-      }
-    }.print()
-  }
-
   def benchMakeMove(state: State, move: Move): Unit = {
     println("benchMakeMove")
 
@@ -72,6 +60,18 @@ trait Benchmark {
       var i = 0
       while (i < 10000) {
         state.makeMove(move)
+        i += 1
+      }
+    }.print()
+  }
+
+  def benchLegalMoves(state: State, move: Move): Unit = {
+    println("benchLegalMoves")
+
+    withBenchmark {
+      var i = 0
+      while (i < 1000) {
+        state.makeMove(move).get.legalMoves
         i += 1
       }
     }.print()
