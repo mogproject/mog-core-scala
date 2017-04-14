@@ -55,6 +55,8 @@ case class State(turn: Player = BLACK,
     case _ => false
   }
 
+  override def hashCode(): Int = ((turn.hashCode * 31 + board.hashCode) * 31 + hand.hashCode) * 31 + lastMoveTo.hashCode
+
   override def toCsaString: String = {
     val boardString = (1 to 9).map { rank =>
       (9 to 1 by -1).map { file => board.get(Square(file, rank)).map(_.toCsaString).getOrElse(" * ") }.mkString(s"P$rank", "", "")
