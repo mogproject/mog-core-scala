@@ -615,4 +615,19 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString("PI,+,+7776FU,%TIME_UP").status mustBe TimedUp
     Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").status mustBe IllegallyMoved
   }
+  it must "tell resigned even though the state is mated" in {
+    Game.parseCsaString(Seq(
+      "P1 *  *  *  *  *  *  *  * -OU",
+      "P2 *  *  *  *  *  *  *  * +KI",
+      "P3 *  *  *  *  *  *  *  * +FU",
+      "P4 *  *  *  *  *  *  *  *  * ",
+      "P5 *  *  *  *  *  *  *  *  * ",
+      "P6 *  *  *  *  *  *  *  *  * ",
+      "P7 *  *  *  *  *  *  *  *  * ",
+      "P8 *  *  *  *  *  *  *  *  * ",
+      "P9 *  *  *  *  *  *  *  *  * ",
+      "-",
+      "%TORYO"
+    ).mkString("\n")).status mustBe Resigned
+  }
 }
