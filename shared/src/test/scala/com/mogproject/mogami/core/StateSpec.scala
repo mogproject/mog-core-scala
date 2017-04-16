@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.State.PromotionFlag._
 import com.mogproject.mogami.util.Implicits._
+import com.mogproject.mogami.util.MapUtil
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -1077,5 +1078,12 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     ).mkString("\n")).getEscapeMoves mustBe Map(
       Left(P43) -> BitBoard("000.000.020.020.000.000.000.000.000")
     )
+  }
+
+  "State#unusedPtypeCount" must "return numbers of unused pieces" in {
+    State.MATING_BLACK.unusedPtypeCount mustBe State.capacity.keys.map(_ -> 0).toMap ++ Map(KING -> 1)
+    State.MATING_WHITE.unusedPtypeCount mustBe State.capacity.keys.map(_ -> 0).toMap ++ Map(KING -> 1)
+    State.HANDICAP_3_PIECE.unusedPtypeCount mustBe State.capacity.keys.map(_ -> 0).toMap ++ Map(ROOK -> 1, BISHOP -> 1, LANCE -> 1)
+    State.HANDICAP_THREE_PAWNS.unusedPtypeCount mustBe Map(KING -> 0, ROOK -> 1, BISHOP -> 1, GOLD -> 2, SILVER -> 2, KNIGHT -> 2, LANCE -> 2, PAWN -> 6)
   }
 }
