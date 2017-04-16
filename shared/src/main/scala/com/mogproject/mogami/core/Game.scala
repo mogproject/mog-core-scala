@@ -43,22 +43,23 @@ case class Game(initialState: State = State.HIRATE,
   lazy val hashCodes: Vector[Int] = history.map(_.hashCode())
 
   lazy val status: GameStatus = {
-    if (currentState.isMated) {
-      if (lastMove.exists(m => m.isCheck && m.isDrop && m.oldPtype == PAWN))
-        Uchifuzume
-      else
-        Mated
-    } else if (isPerpetualCheck) {
-      PerpetualCheck
-    } else if (isRepetition) {
-      Drawn // Sennichite
-    } else {
-      finalAction match {
-        case Some(IllegalMove(_)) => IllegallyMoved
-        case Some(Resign(_)) => Resigned
-        case Some(TimeUp(_)) => TimedUp
-        case _ => Playing
-      }
+    finalAction match {
+      case Some(IllegalMove(_)) => IllegallyMoved
+      case Some(Resign(_)) => Resigned
+      case Some(TimeUp(_)) => TimedUp
+      case _ =>
+        if (currentState.isMated) {
+          if (lastMove.exists(m => m.isCheck && m.isDrop && m.oldPtype == PAWN))
+            Uchifuzume
+          else
+            Mated
+        } else if (isPerpetualCheck) {
+          PerpetualCheck
+        } else if (isRepetition) {
+          Drawn // Sennichite
+        } else {
+          Playing
+        }
     }
   }
 
