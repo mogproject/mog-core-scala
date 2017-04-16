@@ -319,7 +319,7 @@ case class State(turn: Player = BLACK,
 
   private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
     val a = board.values.map(_.ptype.demoted).foldLeft(Map.empty[Ptype, Int]) { case (m, pt) => MapUtil.incrementMap(m, pt) }
-    MapUtil.mergeMaps(a, hand.map { case (k, v) => k.ptype -> v })(_ + _, 0)
+    hand.foldLeft(a) { case (m, (h, n)) => m.updated(h.ptype, m.getOrElse(h.ptype, 0) + n) }
   }
 
   lazy val unusedPtypeCount: Map[Ptype, Int] = hint.map(_.unusedPtypeCount).getOrElse(MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0))
