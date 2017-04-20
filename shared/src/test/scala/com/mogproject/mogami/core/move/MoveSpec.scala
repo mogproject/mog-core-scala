@@ -46,7 +46,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   object TestMoveBuilder extends MoveBuilder {
     override def isCheckMove(state: State, from: Option[Square], to: Square, newPtype: Ptype): Boolean = super.isCheckMove(state, from, to, newPtype)
 
-    override def toMove(state: State, isStrict: Boolean = true) = ???
+    override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true) = ???
   }
 
   "MoveBuilder#isCheckMove" must "return true is the move is check" in {

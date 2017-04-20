@@ -42,10 +42,10 @@ case class MoveBuilderKi2(player: Player,
       }.map { case (sq, _) => Some(sq) }
   }
 
-  override def toMove(state: State, isStrict: Boolean): Option[Move] = for {
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean): Option[Move] = for {
     moveTo <- to match {
       case Some(t) => Some(t)
-      case None => state.lastMoveTo
+      case None => lastMoveTo
     }
     from <- findMoveFrom(state, moveTo)
     pr = promote.contains(true)

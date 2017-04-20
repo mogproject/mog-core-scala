@@ -182,7 +182,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (Nil, None) => sofar // ends without errors
       case ((x, n) :: xs, None) =>
         val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
-        bldr.toMove(sofar.currentState, isStrict = false) match {
+        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
             case None => f(xs, Some((x, n), mv), sofar) // illegal move
@@ -218,7 +218,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (Nil, None, None) => sofar // ends without errors
       case ((x, n) :: xs, None, _) =>
         val bldr = MoveBuilderKi2.parseKi2String(NonEmptyLines(n, x))
-        bldr.toMove(sofar.currentState, isStrict = false) match {
+        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
             case None => f(xs, Some((x, n), mv), sofar) // illegal move

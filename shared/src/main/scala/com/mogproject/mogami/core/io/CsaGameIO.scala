@@ -84,7 +84,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
         sofar
       case (_, _, None) if pending.nonEmpty => // evaluate the pending move
         val bldr = MoveBuilderCsa.parseCsaString(NonEmptyLines(pending))
-        bldr.toMove(sofar.currentState, isStrict = false) match {
+        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(ls, Nil, None, g) // legal move
             case None => f(ls, Nil, Some(mv), sofar) // illegal move

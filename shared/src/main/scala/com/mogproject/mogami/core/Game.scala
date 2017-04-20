@@ -70,13 +70,15 @@ case class Game(initialState: State = State.HIRATE,
 
   def lastMove: Option[Move] = moves.lastOption
 
+  def lastMoveTo: Option[Square] = moves.lastOption.map(_.to)
+
   def turn: Player = currentState.turn
 
   def makeMove(move: Move): Option[Game] = {
     (status == Playing && currentState.isValidMove(move)).option(this.copy(moves = moves :+ move, givenHistory = currentState.makeMove(move).map(history :+ _)))
   }
 
-  def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState).flatMap(makeMove)
+  def makeMove(move: MoveBuilder): Option[Game] = move.toMove(currentState, lastMoveTo).flatMap(makeMove)
 
   override def toSfenString: String = (initialState.toSfenString :: movesOffset.toString :: moves.map(_.toSfenString).toList).mkString(" ")
 

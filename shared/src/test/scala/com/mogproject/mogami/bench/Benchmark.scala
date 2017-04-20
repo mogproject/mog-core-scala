@@ -71,7 +71,7 @@ trait Benchmark {
     withBenchmark {
       var i = 0
       while (i < 1000) {
-        state.makeMove(move).get.legalMoves
+        state.makeMove(move).get.legalMoves(None)
         i += 1
       }
     }.print()

@@ -20,24 +20,27 @@ object GameGen {
   }
 
   private[this] def movesStream(initState: State): Stream[Move] = {
-    type Item = (Option[Move], Option[State])
-    val initItem: Item = (None, Some(initState))
+    type Item = (Option[Move], Option[State], Option[Square])
+    val initItem: Item = (None, Some(initState), None)
     lazy val xs: Stream[Item] = initItem #:: xs.flatMap {
-      case (_, Some(s)) =>
+      case (_, Some(s), lastMoveTo) =>
         (for {
-          m <- randomMove(s)
+          m <- randomMove(s, lastMoveTo)
           ss <- s.makeMove(m)
         } yield {
-          Stream((Some(m.copy(elapsedTime = randomTime)), Some(ss)))
-        }).getOrElse(Stream((None, None)))
-      case (_, None) => Stream.empty
+          Stream((Some(m.copy(elapsedTime = randomTime)), Some(ss), Some(m.to)))
+        }).getOrElse(Stream((None, None, None)))
+      case (_, None, _) => Stream.empty
     }
     xs.tail.takeWhile(_._2.isDefined).map(_._1.get)
   }
 
   private[this] def randomTime: Option[Int] = Gen.option(Gen.choose(1, 10000)).sample.get
 
-  private[this] def randomMove(s: State): Option[Move] = if (s.legalMoves.isEmpty) None else Gen.oneOf(s.legalMoves).sample
+  private[this] def randomMove(s: State, lastMoveTo: Option[Square]): Option[Move] = {
+    val moves = s.legalMoves(lastMoveTo)
+    if (moves.isEmpty) None else Gen.oneOf(moves).sample
+  }
 
 }
 

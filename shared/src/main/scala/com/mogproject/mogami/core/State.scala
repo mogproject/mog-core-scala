@@ -15,7 +15,6 @@ import scala.util.Try
 case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
-                 lastMoveTo: Option[Square] = None,
                  hint: Option[StateHint] = None
                 ) extends CsaLike with SfenLike with KifLike {
 
@@ -50,12 +49,11 @@ case class State(turn: Player = BLACK,
       // ignore hint
       turn == that.turn &&
         board == that.board &&
-        hand == that.hand &&
-        lastMoveTo == that.lastMoveTo
+        hand == that.hand
     case _ => false
   }
 
-  override def hashCode(): Int = ((turn.hashCode * 31 + board.hashCode) * 31 + hand.hashCode) * 31 + lastMoveTo.hashCode
+  override def hashCode(): Int = (turn.hashCode * 31 + board.hashCode) * 31 + hand.hashCode
 
   override def toCsaString: String = {
     val boardString = (1 to 9).map { rank =>
@@ -277,15 +275,17 @@ case class State(turn: Player = BLACK,
   /**
     * Get all legal moves.
     *
+    * @param lastMoveTo last move to
+    *
     * @note This method can be relatively expensive.
     * @return list of legal moves
     */
-  def legalMoves: Seq[move.Move] = (
+  def legalMoves(lastMoveTo: Option[Square]): Seq[Move] = (
     for {
       (from, bb) <- legalMovesBB
       to <- bb.toList
       promote <- getPromotionList(from, to)
-      mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this)
+      mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this, lastMoveTo)
     } yield mv).toSeq
 
   /** *
@@ -314,7 +314,7 @@ case class State(turn: Player = BLACK,
       newOccs._3,
       unusedPtypeCount
     )
-    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(move.to), Some(hint))
+    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(hint))
   }
 
   private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
