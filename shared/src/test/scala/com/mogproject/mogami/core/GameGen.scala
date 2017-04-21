@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
+import com.mogproject.mogami.core.state.{State, StateGen}
 import org.scalacheck.Gen
 
 /**

@@ -6,7 +6,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.core.State.HIRATE
+import com.mogproject.mogami.core.state.State.HIRATE
 import com.mogproject.mogami.util.Implicits._
 
 class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {

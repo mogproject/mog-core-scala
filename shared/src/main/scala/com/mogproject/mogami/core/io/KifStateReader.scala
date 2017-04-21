@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.state
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -9,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Reads Kif(Ki2)-formatted state
   */
-trait KifStateReader extends KifFactory[State] {
+trait KifStateReader extends KifFactory[state.State] {
 
   private[this] def parseNumber(lineNo: LineNo, s: String, default: Int): Int = {
     def f(c: Char): Option[Int] = "一二三四五六七八九".indexOf(c) match {
@@ -63,9 +64,9 @@ trait KifStateReader extends KifFactory[State] {
     f(Map.empty, nel.lines.slice(2, 11).toList, 1)
   }
 
-  override def parseKifString(nel: NonEmptyLines): State = {
+  override def parseKifString(nel: NonEmptyLines): state.State = {
     @tailrec
-    def f(ls: List[Line], sofar: (BoardType, HandType)): State = {
+    def f(ls: List[Line], sofar: (BoardType, HandType)): state.State = {
       ls match {
         case (x, n) :: xs if x.slice(1, 6) == "手の持駒：" =>
           f(xs, (

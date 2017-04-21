@@ -1,13 +1,13 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.state
 
+import com.mogproject.mogami._
+import com.mogproject.mogami.core.PlayerGen
+import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.util.Implicits._
+import com.mogproject.mogami.util.MapUtil
 import org.scalacheck.Gen
 
 import scala.annotation.tailrec
-import com.mogproject.mogami._
-import com.mogproject.mogami.core.PieceConstant._
-import com.mogproject.mogami.util.MapUtil
-import com.mogproject.mogami.util.Implicits._
-
 import scala.util.Try
 
 

@@ -2,14 +2,15 @@ package com.mogproject.mogami.core.io
 
 import scala.annotation.tailrec
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.state
 import com.mogproject.mogami.util.Implicits._
 
 /**
   * Reads Sfen-formatted state
   */
-trait SfenStateReader extends SfenFactory[State] {
+trait SfenStateReader extends SfenFactory[state.State] {
 
-  def parseSfenString(s: String): State = {
+  def parseSfenString(s: String): state.State = {
     val tokens = s.split(" ", 3)
     if (tokens.length != 3) throw new RecordFormatException(1, s"there must be three tokens: ${s}")
     val board = parseBoard(tokens(0))

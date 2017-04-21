@@ -3,7 +3,7 @@ package com.mogproject.mogami.core
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.Game.GameStatus._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.StateConstant._
+import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.{Pause, Resign, TimeUp}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -11,9 +11,9 @@ import org.scalatest.{FlatSpec, MustMatchers}
 
 class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
-  val stateHirateInv = State(WHITE, HIRATE.board, HIRATE.hand)
-  val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
-  val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
+  val stateHirateInv = state.State(WHITE, HIRATE.board, HIRATE.hand)
+  val stateEmpty = state.State(BLACK, Map(), state.State.EMPTY_HANDS)
+  val stateEmptyInv = state.State(WHITE, Map(), state.State.EMPTY_HANDS)
 
   val dataForTest = Seq(
     Game(stateEmpty, Vector(), GameInfo()),
@@ -171,7 +171,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     ), GameInfo(Map('whiteName -> "yyy")))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") mustBe Game(stateEmpty, Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe Game(State(
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe Game(state.State(
       WHITE, stateEmpty.board, stateEmpty.hand), Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
     Game.parseCsaString("V2.2\n-") mustBe Game(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))

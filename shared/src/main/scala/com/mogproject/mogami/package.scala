@@ -40,12 +40,15 @@ package object mogami {
 
   val Attack = com.mogproject.mogami.core.attack.Attack
 
-  type State = com.mogproject.mogami.core.State
-  val State = com.mogproject.mogami.core.State
+  type State = com.mogproject.mogami.core.state.State
+  val State = com.mogproject.mogami.core.state.State
 
-  type BoardType = com.mogproject.mogami.core.State.BoardType
-  type HandType = com.mogproject.mogami.core.State.HandType
-  type MoveFrom = com.mogproject.mogami.core.State.MoveFrom
+  type StateHash = com.mogproject.mogami.core.state.StateHash.StateHash
+  val StateHash = com.mogproject.mogami.core.state.StateHash
+
+  type BoardType = com.mogproject.mogami.core.state.State.BoardType
+  type HandType = com.mogproject.mogami.core.state.State.HandType
+  type MoveFrom = com.mogproject.mogami.core.state.State.MoveFrom
 
   type MoveBuilderCsa = com.mogproject.mogami.core.move.MoveBuilderCsa
   val MoveBuilderCsa = com.mogproject.mogami.core.move.MoveBuilderCsa

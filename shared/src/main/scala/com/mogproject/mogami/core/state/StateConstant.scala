@@ -1,7 +1,8 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.State.EMPTY_HANDS
+import com.mogproject.mogami.core.state.State.EMPTY_HANDS
+import com.mogproject.mogami.core.{Hand, Piece, Square}
 
 /**
   * Constant state definitions
@@ -78,7 +79,7 @@ object StateConstant {
   ))
 
   lazy val HANDICAP_LANCE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
     Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
@@ -129,7 +130,7 @@ object StateConstant {
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
     Square(2, 2) -> Piece(WHITE, BISHOP),
     Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
@@ -173,7 +174,7 @@ object StateConstant {
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
     Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
     Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
@@ -217,7 +218,7 @@ object StateConstant {
     Square(8, 1) -> Piece(WHITE, KNIGHT),
     Square(9, 1) -> Piece(WHITE, LANCE),
     Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -250,7 +251,7 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_ROOK_LANCE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
     Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
@@ -260,7 +261,7 @@ object StateConstant {
     Square(8, 1) -> Piece(WHITE, KNIGHT),
     Square(9, 1) -> Piece(WHITE, LANCE),
     Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -302,8 +303,8 @@ object StateConstant {
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
     Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -344,9 +345,9 @@ object StateConstant {
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -379,7 +380,7 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_4_PIECE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
     Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
@@ -387,9 +388,9 @@ object StateConstant {
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -422,17 +423,17 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_5_PIECE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
     Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
     Square(5, 1) -> Piece(WHITE, KING),
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
-//    Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(8, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -465,17 +466,17 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_5_PIECE_LEFT = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
     Square(5, 1) -> Piece(WHITE, KING),
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
     Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -508,17 +509,17 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_6_PIECE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 1) -> Piece(WHITE, KNIGHT),
     Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
     Square(5, 1) -> Piece(WHITE, KING),
     Square(6, 1) -> Piece(WHITE, GOLD),
     Square(7, 1) -> Piece(WHITE, SILVER),
-//    Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(8, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -551,17 +552,17 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_8_PIECE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 1) -> Piece(WHITE, KNIGHT),
-//    Square(3, 1) -> Piece(WHITE, SILVER),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(3, 1) -> Piece(WHITE, SILVER),
     Square(4, 1) -> Piece(WHITE, GOLD),
     Square(5, 1) -> Piece(WHITE, KING),
     Square(6, 1) -> Piece(WHITE, GOLD),
-//    Square(7, 1) -> Piece(WHITE, SILVER),
-//    Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(7, 1) -> Piece(WHITE, SILVER),
+    //    Square(8, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),
@@ -594,17 +595,17 @@ object StateConstant {
   ), EMPTY_HANDS)
 
   lazy val HANDICAP_10_PIECE = State(WHITE, Map(
-//    Square(1, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 1) -> Piece(WHITE, KNIGHT),
-//    Square(3, 1) -> Piece(WHITE, SILVER),
-//    Square(4, 1) -> Piece(WHITE, GOLD),
+    //    Square(1, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(3, 1) -> Piece(WHITE, SILVER),
+    //    Square(4, 1) -> Piece(WHITE, GOLD),
     Square(5, 1) -> Piece(WHITE, KING),
-//    Square(6, 1) -> Piece(WHITE, GOLD),
-//    Square(7, 1) -> Piece(WHITE, SILVER),
-//    Square(8, 1) -> Piece(WHITE, KNIGHT),
-//    Square(9, 1) -> Piece(WHITE, LANCE),
-//    Square(2, 2) -> Piece(WHITE, BISHOP),
-//    Square(8, 2) -> Piece(WHITE, ROOK),
+    //    Square(6, 1) -> Piece(WHITE, GOLD),
+    //    Square(7, 1) -> Piece(WHITE, SILVER),
+    //    Square(8, 1) -> Piece(WHITE, KNIGHT),
+    //    Square(9, 1) -> Piece(WHITE, LANCE),
+    //    Square(2, 2) -> Piece(WHITE, BISHOP),
+    //    Square(8, 2) -> Piece(WHITE, ROOK),
     Square(1, 3) -> Piece(WHITE, PAWN),
     Square(2, 3) -> Piece(WHITE, PAWN),
     Square(3, 3) -> Piece(WHITE, PAWN),

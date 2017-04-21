@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.state
 import com.mogproject.mogami.util.MapUtil
 
 import scala.annotation.tailrec
@@ -9,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Reads CSA-formatted state
   */
-trait CsaStateReader extends CsaFactory[State] {
+trait CsaStateReader extends CsaFactory[state.State] {
   type PtypeMap = Map[Ptype, Int]
   type Result = (BoardType, HandType, PtypeMap)
 
@@ -112,9 +113,9 @@ trait CsaStateReader extends CsaFactory[State] {
     }
   }
 
-  def parseCsaString(nel: NonEmptyLines): State = {
+  def parseCsaString(nel: NonEmptyLines): state.State = {
     @tailrec
-    def f(ls: List[Line], sofar: Result, usedInit: Boolean, usedAll: Boolean): State = {
+    def f(ls: List[Line], sofar: Result, usedInit: Boolean, usedAll: Boolean): state.State = {
       (ls, usedInit, usedAll) match {
         case (ln :: Nil, _, _) => // Turn to move should be written in the last line
           val t = Player.parseCsaString(NonEmptyLines(ln))

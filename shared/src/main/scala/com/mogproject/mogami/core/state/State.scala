@@ -1,8 +1,9 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
+import com.mogproject.mogami.core.{Hand, Player, Ptype}
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
 
@@ -27,12 +28,17 @@ case class State(turn: Player = BLACK,
     require(!isNifu, "two pawns cannot be in the same file")
   }
 
-  import com.mogproject.mogami.core.State.MoveFrom
-  import com.mogproject.mogami.core.State.PromotionFlag.{CanPromote, CannotPromote, MustPromote, PromotionFlag}
+  import com.mogproject.mogami.core.state.State.MoveFrom
+  import com.mogproject.mogami.core.state.State.PromotionFlag.{CanPromote, CannotPromote, MustPromote, PromotionFlag}
 
   private[this] def checkCapacity: Boolean = {
     occupancy(Piece(BLACK, KING)).count <= 1 && occupancy(Piece(WHITE, KING)).count <= 1 && unusedPtypeCount.values.forall(_ >= 0)
   }
+
+  /**
+    * Practically unique hash value
+    */
+  lazy val hash: StateHash = hint.map(_.hash).getOrElse(StateHash.get(this))
 
   /**
     * Test if the board is Nifu.
@@ -45,11 +51,7 @@ case class State(turn: Player = BLACK,
   }
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case that: State =>
-      // ignore hint
-      turn == that.turn &&
-        board == that.board &&
-        hand == that.hand
+    case that: State => hash == that.hash
     case _ => false
   }
 
@@ -138,28 +140,6 @@ case class State(turn: Player = BLACK,
         occAll = occAll.set(sq)
         occOwn(p.owner.id) = occOwn(p.owner.id).set(sq)
         occPce(p.id) = occPce(p.id).set(sq)
-    }
-    (occAll, occOwn.toVector, occPce.toVector)
-  }
-
-  private[this] def getUpdatedOccupancy(move: Move): (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {
-    var occAll = occupancyAll
-    val occOwn = occupancyByOwner.toArray
-    val occPce = occupancyByPiece.toArray
-
-    move.from.foreach { fr =>
-      occAll = occAll.reset(fr)
-      occOwn(move.player.id) = occOwn(move.player.id).reset(fr)
-      occPce(move.oldPiece.id) = occPce(move.oldPiece.id).reset(fr)
-    }
-
-    occAll = occAll.set(move.to)
-    occOwn(move.player.id) = occOwn(move.player.id).set(move.to)
-    occPce(move.newPiece.id) = occPce(move.newPiece.id).set(move.to)
-
-    move.capturedPiece.foreach { cp =>
-      occOwn(cp.owner.id) = occOwn(cp.owner.id).reset(move.to)
-      occPce(cp.id) = occPce(cp.id).reset(move.to)
     }
     (occAll, occOwn.toVector, occPce.toVector)
   }
@@ -309,12 +289,35 @@ case class State(turn: Player = BLACK,
     val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
+      hash ^ StateHash.getDifference(hand, move),
       newOccs._1,
       newOccs._2,
       newOccs._3,
       unusedPtypeCount
     )
     State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(hint))
+  }
+
+  private[this] def getUpdatedOccupancy(move: Move): (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {
+    var occAll = occupancyAll
+    val occOwn = occupancyByOwner.toArray
+    val occPce = occupancyByPiece.toArray
+
+    move.from.foreach { fr =>
+      occAll = occAll.reset(fr)
+      occOwn(move.player.id) = occOwn(move.player.id).reset(fr)
+      occPce(move.oldPiece.id) = occPce(move.oldPiece.id).reset(fr)
+    }
+
+    occAll = occAll.set(move.to)
+    occOwn(move.player.id) = occOwn(move.player.id).set(move.to)
+    occPce(move.newPiece.id) = occPce(move.newPiece.id).set(move.to)
+
+    move.capturedPiece.foreach { cp =>
+      occOwn(cp.owner.id) = occOwn(cp.owner.id).reset(move.to)
+      occPce(cp.id) = occPce(cp.id).reset(move.to)
+    }
+    (occAll, occOwn.toVector, occPce.toVector)
   }
 
   private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
@@ -417,7 +420,8 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
 /**
   * Inherits calculated information from the previous state so that computation time will be reduced.
   */
-case class StateHint(occupancyAll: BitBoard,
+case class StateHint(hash: StateHash,
+                     occupancyAll: BitBoard,
                      occupancyByOwner: Vector[BitBoard],
                      occupancyByPiece: Vector[BitBoard],
                      unusedPtypeCount: Map[Ptype, Int])

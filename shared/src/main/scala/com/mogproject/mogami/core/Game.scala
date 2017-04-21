@@ -10,12 +10,12 @@ import scala.util.{Failure, Success, Try}
 /**
   * Game
   */
-case class Game(initialState: State = State.HIRATE,
+case class Game(initialState: state.State = state.State.HIRATE,
                 moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 finalAction: Option[SpecialMove] = None,
-                givenHistory: Option[Vector[State]] = None
+                givenHistory: Option[Vector[state.State]] = None
                ) extends CsaGameWriter with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
@@ -36,11 +36,11 @@ case class Game(initialState: State = State.HIRATE,
   override def hashCode(): Int = (((initialState.hashCode * 31 + moves.hashCode) * 31 + gameInfo.hashCode) * 31 + movesOffset.hashCode) * 31 + finalAction.hashCode
 
   /** history of states */
-  lazy val history: Vector[State] = {
-    givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
+  lazy val history: Vector[state.State] = {
+    givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[state.State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
   }
 
-  lazy val hashCodes: Vector[Int] = history.map(_.hashCode())
+  lazy val hashCodes: Vector[StateHash] = history.map(_.hash)
 
   lazy val status: GameStatus = {
     finalAction match {
@@ -66,7 +66,7 @@ case class Game(initialState: State = State.HIRATE,
   /**
     * Get the latest state.
     */
-  def currentState: State = history.last
+  def currentState: state.State = history.last
 
   def lastMove: Option[Move] = moves.lastOption
 
@@ -87,10 +87,10 @@ case class Game(initialState: State = State.HIRATE,
     *
     * @return true if the latest move is the repetition
     */
-  def isRepetition: Boolean = hashCodes.drop(1).count(_ == currentState.hashCode()) >= 4
+  def isRepetition: Boolean = hashCodes.drop(1).count(_ == currentState.hash) >= 4
 
   def isPerpetualCheck: Boolean = currentState.isChecked &&
-    (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hashCode() == currentState.hashCode()) >= 4)
+    (history.drop(1).reverse.takeWhile(s => s.turn == !turn || s.isChecked).count(_.hash == currentState.hash) >= 4)
 
   /**
     * Moves for description. This includes an illegal move if it exists.
@@ -109,7 +109,7 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
     val tokens = s.split(" ")
     if (tokens.length < 4) throw new RecordFormatException(1, s"there must be four or more tokens: ${s}")
 
-    val st = State.parseSfenString(tokens.take(3).mkString(" "))
+    val st = state.State.parseSfenString(tokens.take(3).mkString(" "))
     val offset = Try(tokens(3).toInt) match {
       case Success(n) => n
       case Failure(e) => throw new RecordFormatException(1, s"offset must be number: ${tokens(3)}")

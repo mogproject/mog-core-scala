@@ -5,7 +5,8 @@ import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.{Hand, Ptype, Square, State}
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.{Hand, Ptype, Square}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 

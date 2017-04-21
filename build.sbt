@@ -28,8 +28,8 @@ lazy val mogCore = crossProject.in(file("."))
       import com.mogproject.mogami.core.Ptype._
       import com.mogproject.mogami.core.SquareConstant._
       import com.mogproject.mogami.core.PieceConstant._
-      import com.mogproject.mogami.core.StateConstant._
-      import com.mogproject.mogami.core.State.PromotionFlag._
+      import com.mogproject.mogami.core.state.StateConstant._
+      import com.mogproject.mogami.core.state.State.PromotionFlag._
       """
   )
   .jsSettings(

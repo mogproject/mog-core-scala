@@ -1,8 +1,7 @@
 package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
-
-import scala.io.Source
+import com.mogproject.mogami.core.state.State
 
 /**
   * Shared benchmark utility

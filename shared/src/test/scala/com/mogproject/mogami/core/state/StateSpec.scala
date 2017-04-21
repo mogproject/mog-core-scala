@@ -1,9 +1,9 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.State.PromotionFlag._
+import com.mogproject.mogami.core.state.State.PromotionFlag._
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
