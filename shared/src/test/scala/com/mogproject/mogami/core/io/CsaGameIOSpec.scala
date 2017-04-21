@@ -4,6 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import com.mogproject.mogami.core.move.{IllegalMove, Move, Resign, TimeUp}
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 

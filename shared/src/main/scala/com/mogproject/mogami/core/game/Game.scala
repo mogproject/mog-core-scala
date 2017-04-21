@@ -2,7 +2,8 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami.core.Ptype.PAWN
 import com.mogproject.mogami.core.{Player, Square}
-import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.{State, StateCache}
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
@@ -19,7 +20,7 @@ case class Game(initialState: State = State.HIRATE,
                 movesOffset: Int = 0,
                 finalAction: Option[SpecialMove] = None,
                 givenHistory: Option[Vector[State]] = None
-               ) extends CsaGameWriter with SfenLike with KifGameWriter {
+               )(implicit stateCache: StateCache) extends CsaGameWriter with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 

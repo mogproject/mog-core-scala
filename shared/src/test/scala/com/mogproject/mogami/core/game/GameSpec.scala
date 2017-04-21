@@ -6,6 +6,7 @@ import com.mogproject.mogami.core.game.Game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.{Pause, Resign, TimeUp}
 import com.mogproject.mogami.core.state.StateConstant._
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
