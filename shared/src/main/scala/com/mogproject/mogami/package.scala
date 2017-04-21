@@ -65,11 +65,14 @@ package object mogami {
   type Move = com.mogproject.mogami.core.move.Move
   val Move = com.mogproject.mogami.core.move.Move
 
-  type Game = com.mogproject.mogami.core.Game
-  val Game = com.mogproject.mogami.core.Game
+  type Game = com.mogproject.mogami.core.game.Game
+  val Game = com.mogproject.mogami.core.game.Game
 
-  type GameInfo = com.mogproject.mogami.core.GameInfo
-  val GameInfo = com.mogproject.mogami.core.GameInfo
+  type GameStatus = com.mogproject.mogami.core.game.Game.GameStatus.GameStatus
+  val GameStatus = com.mogproject.mogami.core.game.Game.GameStatus
+
+  type GameInfo = com.mogproject.mogami.core.game.GameInfo
+  val GameInfo = com.mogproject.mogami.core.game.GameInfo
 
 }
 

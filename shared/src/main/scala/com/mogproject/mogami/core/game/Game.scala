@@ -1,6 +1,9 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.game
 
-import com.mogproject.mogami._
+import com.mogproject.mogami.core.Ptype.PAWN
+import com.mogproject.mogami.core.{Player, Square}
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
@@ -10,17 +13,17 @@ import scala.util.{Failure, Success, Try}
 /**
   * Game
   */
-case class Game(initialState: state.State = state.State.HIRATE,
+case class Game(initialState: State = State.HIRATE,
                 moves: Vector[Move] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 movesOffset: Int = 0,
                 finalAction: Option[SpecialMove] = None,
-                givenHistory: Option[Vector[state.State]] = None
+                givenHistory: Option[Vector[State]] = None
                ) extends CsaGameWriter with SfenLike with KifGameWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
-  import com.mogproject.mogami.core.Game.GameStatus._
+  import com.mogproject.mogami.core.game.Game.GameStatus._
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: Game =>
@@ -36,8 +39,8 @@ case class Game(initialState: state.State = state.State.HIRATE,
   override def hashCode(): Int = (((initialState.hashCode * 31 + moves.hashCode) * 31 + gameInfo.hashCode) * 31 + movesOffset.hashCode) * 31 + finalAction.hashCode
 
   /** history of states */
-  lazy val history: Vector[state.State] = {
-    givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[state.State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
+  lazy val history: Vector[State] = {
+    givenHistory.getOrElse(moves.scanLeft(Some(initialState): Option[State])((s, m) => s.flatMap(_.makeMove(m))).flatten)
   }
 
   lazy val hashCodes: Vector[StateHash] = history.map(_.hash)
@@ -66,7 +69,7 @@ case class Game(initialState: state.State = state.State.HIRATE,
   /**
     * Get the latest state.
     */
-  def currentState: state.State = history.last
+  def currentState: State = history.last
 
   def lastMove: Option[Move] = moves.lastOption
 
@@ -109,14 +112,14 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
     val tokens = s.split(" ")
     if (tokens.length < 4) throw new RecordFormatException(1, s"there must be four or more tokens: ${s}")
 
-    val st = state.State.parseSfenString(tokens.take(3).mkString(" "))
+    val st = State.parseSfenString(tokens.take(3).mkString(" "))
     val offset = Try(tokens(3).toInt) match {
       case Success(n) => n
       case Failure(e) => throw new RecordFormatException(1, s"offset must be number: ${tokens(3)}")
     }
     val gi = GameInfo()
     // initialize without information
-    val moves = tokens.drop(4).map(move.MoveBuilderSfen.parseSfenString)
+    val moves = tokens.drop(4).map(MoveBuilderSfen.parseSfenString)
     moves.foldLeft[Game](Game(st, Vector.empty, gi, offset)) { (g, m) =>
       g.makeMove(m).getOrElse(throw new RecordFormatException(1, s"invalid move: ${m.toSfenString}"))
     }
@@ -144,54 +147,4 @@ object Game extends CsaGameReader with SfenFactory[Game] with KifGameReader {
 
   }
 
-}
-
-
-/**
-  * Game information
-  */
-case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
-
-  require(validateTagKeys)
-
-  def validateTagKeys: Boolean = tags.keys forall { k => GameInfo.keys.map(_._1).contains(k) }
-
-  def updated(key: Symbol, value: String): GameInfo = GameInfo(tags.updated(key, value))
-
-  def toCsaString: String = {
-    GameInfo.keys.toList.flatMap {
-      case (k, c) if tags.contains(k) => List(c + tags(k))
-      case _ => Nil
-    } mkString "\n"
-  }
-
-  // todo: impl toKifString
-  /*
-  example:
-
-#KIF version=2.0 encoding=UTF-8
-開始日時：2017/03/13 ??:??
-終了日時：2017/03/13 ??:??
-場所：81Dojo (ver.2016/03/20)
-持ち時間：15分+60秒
-手合割：平手
-先手：black
-後手：white
-   */
-}
-
-object GameInfo {
-  /** pairs of a symbol name and its csa-formatted string */
-  val keys: Seq[(Symbol, String)] = Seq(
-    ('formatVersion, "V"),
-    ('blackName, "N+"),
-    ('whiteName, "N-"),
-    ('event, "$EVENT:"),
-    ('site, "$SITE:"),
-    ('start, "$START:"),
-    ('startTime, "$START_TIME:"),
-    ('endTime, "$END_TIME:"),
-    ('timeLimit, "$TIME_LIMIT:"),
-    ('opening, "$OPENING:")
-  )
 }

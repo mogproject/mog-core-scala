@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami.core.state.State
-import com.mogproject.mogami.core.{Game, GameInfo}
+import com.mogproject.mogami.core.game.{Game, GameInfo}
 
 /**
   *

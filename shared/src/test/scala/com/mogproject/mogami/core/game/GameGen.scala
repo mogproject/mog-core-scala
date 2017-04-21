@@ -1,5 +1,6 @@
-package com.mogproject.mogami.core
+package com.mogproject.mogami.core.game
 
+import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
 import com.mogproject.mogami.core.state.{State, StateGen}
 import org.scalacheck.Gen

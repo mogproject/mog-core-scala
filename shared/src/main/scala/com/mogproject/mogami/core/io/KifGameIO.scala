@@ -1,8 +1,9 @@
 package com.mogproject.mogami.core.io
 
-import com.mogproject.mogami.core.Game.GameStatus.GameStatus
+import com.mogproject.mogami.core.game.Game.GameStatus.GameStatus
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core._
+import com.mogproject.mogami.core.game.{Game, GameInfo}
 import com.mogproject.mogami.core.state.{State, StateConstant}
 
 import scala.annotation.tailrec
