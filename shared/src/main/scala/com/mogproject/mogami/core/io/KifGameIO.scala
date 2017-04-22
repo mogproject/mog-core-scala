@@ -1,9 +1,9 @@
 package com.mogproject.mogami.core.io
 
-import com.mogproject.mogami.core.game.Game.GameStatus.GameStatus
-import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core._
-import com.mogproject.mogami.core.game.{Game, GameInfo}
+import com.mogproject.mogami.core.move._
+import com.mogproject.mogami.core.game.GameStatus.GameStatus
+import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.state.{State, StateConstant}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 
@@ -40,45 +40,35 @@ trait KifGameIO {
   * Writes Kif-formatted game
   */
 trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
-  def initialState: State
-
-  def descriptiveMoves: Vector[Move]
+  def trunk: Branch
 
   def gameInfo: GameInfo
-
-  def movesOffset: Int
-
-  def finalAction: Option[SpecialMove]
-
-  def turn: Player
-
-  def status: GameStatus
 
   private[this] def getHeader: String = {
     // todo: add 上手/下手
     val blackName = s"先手：${gameInfo.tags.getOrElse('blackName, "")}"
     val whiteName = s"後手：${gameInfo.tags.getOrElse('whiteName, "")}"
 
-    getPresetLabel(initialState).map { label =>
+    getPresetLabel(trunk.initialState).map { label =>
       Seq(s"手合割：${label}", blackName, whiteName)
     }.getOrElse {
-      val ss = initialState.toKifString.split('\n').toSeq
+      val ss = trunk.initialState.toKifString.split('\n').toSeq
       (whiteName +: ss.take(13)) ++ (blackName +: ss.drop(13))
     }.mkString("\n")
   }
 
   override def toKifString: String = {
-    val ms = (descriptiveMoves ++ finalAction).map(_.toKifString)
+    val ms = (trunk.descriptiveMoves ++ trunk.finalAction).map(_.toKifString)
     val body = ("手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
-      f"${n + movesOffset + 1}%4d ${m}"
+      f"${n + trunk.offset + 1}%4d ${m}"
     }).mkString("\n")
     getHeader + "\n\n" + body + "\n"
   }
 
   override def toKi2String: String = {
     val movesPerLine: Int = 6
-    val ms = descriptiveMoves.map(_.toKi2String)
-    val lst = finalAction.map(_.toKi2String(turn, descriptiveMoves.length))
+    val ms = trunk.descriptiveMoves.map(_.toKi2String)
+    val lst = trunk.finalAction.map(_.toKi2String(trunk.lastState.turn, trunk.descriptiveMoves.length))
     val body = (ms.grouped(movesPerLine).map(_.mkString(" ")) ++ lst).mkString("\n")
     getHeader + "\n\n" + body + "\n"
   }
@@ -168,7 +158,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
   // todo: refactor these functions
   protected[io] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
-    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Game): Game = (ls, illegal) match {
+    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal) match {
       case ((x, n) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Resign(tm)
@@ -185,7 +175,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (Nil, None) => sofar // ends without errors
       case ((x, n) :: xs, None) =>
         val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
-        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
+        bldr.toMove(sofar.lastState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
             case None => f(xs, Some((x, n), mv), sofar) // illegal move
@@ -195,12 +185,13 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (_ :: _, Some(((x, n), _))) => throw new RecordFormatException(n, s"invalid move expression: ${x}")
     }
 
-    f(lines.toList, None, Game(initialState))
+    val trunk = f(lines.toList, None, Branch(initialState))
+    Game(trunk)
   }
 
   protected[io] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
-    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Game): Game = (ls, illegal, footer) match {
+    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal, footer) match {
       case (Nil, Some((_, mv)), Some((x, n))) if x.contains(IllegalMove.ki2Keyword) => // ends with explicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, Some((_, mv)), None) => // ends with implicit illegal move
@@ -221,7 +212,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (Nil, None, None) => sofar // ends without errors
       case ((x, n) :: xs, None, _) =>
         val bldr = MoveBuilderKi2.parseKi2String(NonEmptyLines(n, x))
-        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
+        bldr.toMove(sofar.lastState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(xs, None, g) // legal move
             case None => f(xs, Some((x, n), mv), sofar) // illegal move
@@ -231,7 +222,8 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
       case (_ :: _, Some(((x, n), _)), _) => throw new RecordFormatException(n, s"invalid move expression: ${x}")
     }
 
-    f(lines.toList, None, Game(initialState))
+    val trunk = f(lines.toList, None, Branch(initialState))
+    Game(trunk)
   }
 
   private[this] val parserKif = new RecordParser(sectionSplitterKif, parseGameInfo, parseInitialState, parseMovesKif)

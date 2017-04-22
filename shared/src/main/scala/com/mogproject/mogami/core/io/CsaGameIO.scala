@@ -2,38 +2,28 @@ package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.State
-import com.mogproject.mogami.core.game.{Game, GameInfo}
+import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 import scala.annotation.tailrec
 
 /**
-  */
-trait CsaGameIO {
-
-}
-
-/**
   * Writes Csa-formatted game
   */
-trait CsaGameWriter extends CsaGameIO with CsaLike {
-  def initialState: State
-
-  def descriptiveMoves: Vector[Move]
+trait CsaGameWriter extends CsaLike {
+  def trunk: Branch
 
   def gameInfo: GameInfo
 
-  def finalAction: Option[SpecialMove]
-
   override def toCsaString: String =
-    (gameInfo :: initialState :: (descriptiveMoves ++ finalAction).toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
+    (gameInfo :: trunk.initialState :: (trunk.descriptiveMoves ++ trunk.finalAction).toList) map (_.toCsaString) filter (!_.isEmpty) mkString "\n"
 
 }
 
 /**
   * Reads Csa-formatted game
   */
-trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
+trait CsaGameReader extends CsaFactory[Game] {
 
   private[this] def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
 
@@ -68,7 +58,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
     */
   protected[io] def parseMoves(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
-    def f(ls: List[Line], pending: List[Line], illegal: Option[Move], sofar: Game): Game = (ls, pending, illegal) match {
+    def f(ls: List[Line], pending: List[Line], illegal: Option[Move], sofar: Branch): Branch = (ls, pending, illegal) match {
       case (ln :: xs, _, _) if ln._1.startsWith("T") => f(xs, pending :+ ln, illegal, sofar)
       case (Nil, (x, n) :: _, None) if x.startsWith("%") => // evaluate special move
         val special = MoveBuilderCsa.parseTime(NonEmptyLines(pending)) match {
@@ -86,7 +76,7 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
         sofar
       case (_, _, None) if pending.nonEmpty => // evaluate the pending move
         val bldr = MoveBuilderCsa.parseCsaString(NonEmptyLines(pending))
-        bldr.toMove(sofar.currentState, sofar.lastMoveTo, isStrict = false) match {
+        bldr.toMove(sofar.lastState, sofar.lastMoveTo, isStrict = false) match {
           case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
             case Some(g) => f(ls, Nil, None, g) // legal move
             case None => f(ls, Nil, Some(mv), sofar) // illegal move
@@ -100,7 +90,8 @@ trait CsaGameReader extends CsaGameIO with CsaFactory[Game] {
       // $COVERAGE-ON$
     }
 
-    f(lines.toList, Nil, None, Game(initialState))
+    val trunk = f(lines.toList, Nil, None, Branch(initialState))
+    Game(trunk)
   }
 
   private[this] val parser = new RecordParser(sectionSplitter, parseGameInfo, State.parseCsaString, parseMoves)

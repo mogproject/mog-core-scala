@@ -1,7 +1,9 @@
 package com.mogproject.mogami.core.io
 
-import com.mogproject.mogami._
-import com.mogproject.mogami.core.state
+import com.mogproject.mogami.core._
+import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.State.{BoardType, HandType}
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -64,7 +66,7 @@ trait KifStateReader extends KifFactory[state.State] {
     f(Map.empty, nel.lines.slice(2, 11).toList, 1)
   }
 
-  override def parseKifString(nel: NonEmptyLines): state.State = {
+  override def parseKifString(nel: NonEmptyLines): State = {
     @tailrec
     def f(ls: List[Line], sofar: (BoardType, HandType)): state.State = {
       ls match {

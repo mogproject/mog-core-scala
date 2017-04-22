@@ -1,7 +1,9 @@
 package com.mogproject.mogami.core.io
 
-import com.mogproject.mogami._
-import com.mogproject.mogami.core.state
+import com.mogproject.mogami.core.Ptype.KING
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.State.{BoardType, HandType}
+import com.mogproject.mogami.core._
 import com.mogproject.mogami.util.MapUtil
 
 import scala.annotation.tailrec
@@ -113,7 +115,7 @@ trait CsaStateReader extends CsaFactory[state.State] {
     }
   }
 
-  def parseCsaString(nel: NonEmptyLines): state.State = {
+  def parseCsaString(nel: NonEmptyLines): State = {
     @tailrec
     def f(ls: List[Line], sofar: Result, usedInit: Boolean, usedAll: Boolean): state.State = {
       (ls, usedInit, usedAll) match {

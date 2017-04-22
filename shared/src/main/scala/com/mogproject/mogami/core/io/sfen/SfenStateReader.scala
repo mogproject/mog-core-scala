@@ -1,9 +1,12 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.sfen
+
+import com.mogproject.mogami.core.io.RecordFormatException
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.State.{BoardType, HandType}
+import com.mogproject.mogami.core._
+import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
-import com.mogproject.mogami._
-import com.mogproject.mogami.core.state
-import com.mogproject.mogami.util.Implicits._
 
 /**
   * Reads Sfen-formatted state

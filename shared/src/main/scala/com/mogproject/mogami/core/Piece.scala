@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.sfen.{SfenLike, SfenTableFactory}
 import com.mogproject.mogami.util.Implicits._
 
 /**

@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.sfen.{SfenLike, SfenStateReader}
 import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
 import com.mogproject.mogami.core.{Hand, Player, Ptype}
 import com.mogproject.mogami.util.Implicits._

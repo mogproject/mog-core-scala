@@ -68,8 +68,8 @@ package object mogami {
   type Game = com.mogproject.mogami.core.game.Game
   val Game = com.mogproject.mogami.core.game.Game
 
-  type GameStatus = com.mogproject.mogami.core.game.Game.GameStatus.GameStatus
-  val GameStatus = com.mogproject.mogami.core.game.Game.GameStatus
+  type GameStatus = com.mogproject.mogami.core.game.GameStatus.GameStatus
+  val GameStatus = com.mogproject.mogami.core.game.GameStatus
 
   type GameInfo = com.mogproject.mogami.core.game.GameInfo
   val GameInfo = com.mogproject.mogami.core.game.GameInfo

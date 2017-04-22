@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.sfen.SfenLike
 import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.util.Implicits._
 

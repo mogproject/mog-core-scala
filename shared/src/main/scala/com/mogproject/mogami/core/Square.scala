@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.Player.WHITE
 import scala.util.matching.Regex
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.sfen.{SfenFactory, SfenLike}
 import com.mogproject.mogami.util.Implicits._
 
 /**

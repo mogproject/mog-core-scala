@@ -78,4 +78,6 @@ object StateHash {
         get(h, hand(h))
     }) ^ turnWhiteConstant ^ get(move.newPiece, move.to)
   }
+
+  def isSamePlayer(a: StateHash, b: StateHash): Boolean = ((a ^ b) & turnWhiteConstant) == 0L
 }
