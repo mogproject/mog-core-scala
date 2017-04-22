@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.io.kif
 
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype.{KING, PAWN}
+import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
@@ -74,6 +75,64 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     createGame(HIRATE, finalAction = Some(IllegalMove(
       Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)
     ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59) (02:03/)", "   2 反則手", "")).mkString("\n")
+  }
+  it must "describe branches" in {
+    val tr1 = Branch().makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
+      .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get
+    val br1 = Branch(tr1.history(2), 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get.updateComment(3, "comment\n 3")
+    val br2 = Branch(tr1.history(1), 1).copy(
+      finalAction = Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false))))
+    Game(tr1, Vector(br1, br2)).toKifString mustBe Seq(
+      "手合割：平手",
+      "先手：",
+      "後手：",
+      "",
+      "手数----指手----消費時間--",
+      "   1 ２六歩(27)",
+      "   2 ４二玉(51)",
+      "   3 ２五歩(26)",
+      "",
+      "",
+      "変化：3手",
+      "   3 ７六歩(77)",
+      "*comment",
+      "* 3",
+      "",
+      "",
+      "変化：2手",
+      "   2 ５一玉(59)",
+      "   3 反則手",
+      ""
+    ).mkString("\n")
+
+    val tr2 = Branch(HIRATE.hash, offset=10).makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
+      .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get.updateComment(10, "init")
+    val br3 = Branch(tr2.history(2), 12).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get.updateComment(13, "comment\n 13")
+    val br4 = Branch(tr2.history(1), 11).copy(
+      finalAction = Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false))))
+    Game(tr2, Vector(br3, br4)).toKifString mustBe Seq(
+      "手合割：平手",
+      "先手：",
+      "後手：",
+      "",
+      "手数----指手----消費時間--",
+      "*init",
+      "  11 ２六歩(27)",
+      "  12 ４二玉(51)",
+      "  13 ２五歩(26)",
+      "",
+      "",
+      "変化：13手",
+      "  13 ７六歩(77)",
+      "*comment",
+      "* 13",
+      "",
+      "",
+      "変化：12手",
+      "  12 ５一玉(59)",
+      "  13 反則手",
+      ""
+    ).mkString("\n")
   }
 
   "KifGameReader#parseMovesKif" must "parse normal moves" in {
