@@ -22,6 +22,7 @@ package object io {
   type KifStateReader = com.mogproject.mogami.core.io.kif.KifStateReader
   type KifGameReader = com.mogproject.mogami.core.io.kif.KifGameReader
   type KifGameWriter = com.mogproject.mogami.core.io.kif.KifGameWriter
+  type KifBranchWriter = com.mogproject.mogami.core.io.kif.KifBranchWriter
 
   type Ki2Like = com.mogproject.mogami.core.io.kif.Ki2Like
   type Ki2Factory[T <: Ki2Like] = com.mogproject.mogami.core.io.kif.Ki2Factory[T]
@@ -32,5 +33,7 @@ package object io {
   type SfenStateReader = com.mogproject.mogami.core.io.sfen.SfenStateReader
   type SfenGameReader = com.mogproject.mogami.core.io.sfen.SfenGameReader
   type SfenGameWriter = com.mogproject.mogami.core.io.sfen.SfenGameWriter
+  type SfenBranchReader = com.mogproject.mogami.core.io.sfen.SfenBranchReader
+  type SfenBranchWriter = com.mogproject.mogami.core.io.sfen.SfenBranchWriter
 
 }

@@ -39,8 +39,39 @@ trait KifGameIO {
 /**
   * Writes Kif-formatted game
   */
+trait KifBranchWriter extends KifLike {
+  def initialState: State
+
+  def offset: Int
+
+  def moves: Vector[Move]
+
+  def finalAction: Option[SpecialMove]
+
+  def comments: Map[Int, String]
+
+  def descriptiveMoves: Vector[Move]
+
+  override def toKifString: String = {
+    def commentToSeq(index: Int): Seq[String] = for {
+      text <- comments.get(index).toSeq
+      line <- text.split("\n").toSeq
+    } yield "*" + line
+
+    val lines: Seq[String] = for {
+      (m, i) <- (descriptiveMoves ++ finalAction).map(_.toKifString).zipWithIndex
+      index = offset + i
+      ln <- commentToSeq(index) :+ f"${index + 1}%4d ${m}"
+    } yield ln
+
+    (lines ++ commentToSeq(offset + moves.length)).mkString("\n")
+  }
+}
+
 trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   def trunk: Branch
+
+  def branches: Vector[Branch]
 
   def gameInfo: GameInfo
 
@@ -58,11 +89,9 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   }
 
   override def toKifString: String = {
-    val ms = (trunk.descriptiveMoves ++ trunk.finalAction).map(_.toKifString)
-    val body = ("手数----指手----消費時間--" +: ms.zipWithIndex.map { case (m, n) =>
-      f"${n + trunk.offset + 1}%4d ${m}"
-    }).mkString("\n")
-    getHeader + "\n\n" + body + "\n"
+    val t = Seq(getHeader + "\n", "手数----指手----消費時間--", trunk.toKifString)
+    val b = branches.map(br => s"\n\n変化：${br.offset + 1}手\n" + br.toKifString)
+    (t ++ b).filter(_.nonEmpty).mkString("", "\n", "\n")
   }
 
   override def toKi2String: String = {

@@ -23,7 +23,7 @@ trait SfenBranchReader {
     */
   def parseSfenString(s: String)(implicit stateCache: StateCache): Branch = {
     val tokens = s.split(" ")
-    parseOffsetAndMoves(tokens.drop(3), Int.MaxValue, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash)
+    parseOffsetAndMoves(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash)
   }
 
   /**
@@ -33,12 +33,12 @@ trait SfenBranchReader {
     * @param s     "{offset} [{move}...]"
     */
   def parseSfenString(trunk: Branch, s: String)(implicit stateCache: StateCache): Branch =
-    parseOffsetAndMoves(tokens = s.split(" "), trunk.history.length, trunk.history.apply)
+    parseOffsetAndMoves(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset))
 
   // helper functions
-  private[this] def parseOffsetAndMoves(tokens: Seq[String], maxOffsetValue: Int, initialStateFunc: Int => StateHash)
+  private[this] def parseOffsetAndMoves(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash)
                                        (implicit stateCache: StateCache): Branch = {
-    val offset = tokens.headOption.map(parseOffset(_, maxOffsetValue)).getOrElse(throw new RecordFormatException(1, s"cannot find offset"))
+    val offset = tokens.headOption.map(parseOffset(_, range)).getOrElse(throw new RecordFormatException(1, s"cannot find offset"))
     val moves = tokens.drop(1).map(MoveBuilderSfen.parseSfenString)
 
     moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset)) { (br, m) =>
@@ -46,10 +46,11 @@ trait SfenBranchReader {
     }
   }
 
-  private[this] def parseOffset(s: String, maxValue: Int = Int.MaxValue): Int = Try(s.toInt) match {
-    case Success(n) if 0 <= n && n < maxValue => n
-    case Success(_) => throw new RecordFormatException(1, s"offset must be non-negative and less than ${maxValue}: ${s}")
-    case Failure(_) => throw new RecordFormatException(1, s"offset must be number: ${s}")
+  private[this] def parseOffset(s: String, range: Option[Range] = None): Int = (Try(s.toInt), range) match {
+    case (Success(n), None) if 0 <= n => n
+    case (Success(n), Some(r)) if r.contains(n) => n
+    case (Success(_), _) => throw new RecordFormatException(1, s"offset is out of range: ${s}")
+    case _ => throw new RecordFormatException(1, s"offset must be number: ${s}")
   }
 
   /**

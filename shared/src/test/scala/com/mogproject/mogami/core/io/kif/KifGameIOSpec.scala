@@ -1,12 +1,14 @@
 package com.mogproject.mogami.core.io.kif
 
+import com.mogproject.mogami.core.Player.{BLACK, WHITE}
+import com.mogproject.mogami.core.Ptype.{KING, PAWN}
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.state.StateCache
+import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
-import com.mogproject.mogami.{Move, _}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -28,6 +30,38 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     "",
     "手数----指手----消費時間--"
   )
+
+  "KifBranchWriter#toKifString" must "describe comments" in {
+    val hirate = Branch()
+    val hirate2 = hirate.makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false)).get
+    val hirate3 = Branch(hirate2.lastState.hash, 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
+
+    hirate.toKifString mustBe ""
+
+    hirate.updateComment(0, "comment 0").toKifString mustBe Seq(
+      "*comment 0"
+    ).mkString("\n")
+
+    hirate.updateComment(0, "com\nment\n 0\nx ").toKifString mustBe Seq(
+      "*com",
+      "*ment",
+      "* 0",
+      "*x "
+    ).mkString("\n")
+
+    hirate2.updateComment(0, "comment 0").updateComment(2, "comment 2").toKifString mustBe Seq(
+      "*comment 0",
+      "   1 ２六歩(27)",
+      "   2 ４二玉(51)",
+      "*comment 2"
+    ).mkString("\n")
+
+    hirate3.updateComment(2, "comment 2").updateComment(3, "comment 3").toKifString mustBe Seq(
+      "*comment 2",
+      "   3 ７六歩(77)",
+      "*comment 3"
+    ).mkString("\n")
+  }
 
   "KifGameWriter#toKifString" must "describe special moves" in {
     createGame(HIRATE, finalAction = Some(Resign())).toKifString mustBe (hirateState ++ Seq("   1 投了", "")).mkString("\n")

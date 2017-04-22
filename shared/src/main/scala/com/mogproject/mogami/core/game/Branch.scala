@@ -4,7 +4,7 @@ import com.mogproject.mogami.core.Ptype.PAWN
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.game.GameStatus._
-import com.mogproject.mogami.core.io.sfen.{SfenBranchReader, SfenBranchWriter}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache, StateHash}
 import com.mogproject.mogami.core.state.StateHash.StateHash
@@ -20,7 +20,7 @@ case class Branch(initialHash: StateHash,
                   finalAction: Option[SpecialMove] = None,
                   comments: Map[Int, String] = Map.empty,
                   hint: Option[BranchHint] = None)
-                 (implicit stateCache: StateCache) extends SfenBranchWriter {
+                 (implicit stateCache: StateCache) extends SfenBranchWriter with KifBranchWriter {
 
   require(history.length == moves.length + 1, "all moves must be valid")
 
