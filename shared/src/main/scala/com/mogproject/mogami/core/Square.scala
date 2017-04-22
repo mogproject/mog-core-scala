@@ -1,9 +1,9 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.Player.WHITE
+import com.mogproject.mogami.core.Ptype.{KNIGHT, LANCE, PAWN}
 
 import scala.util.matching.Regex
-import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.util.Implicits._
 

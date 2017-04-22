@@ -1,8 +1,8 @@
 package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
-
-import scala.io.Source
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 /**
   * Shared benchmark utility
@@ -71,7 +71,7 @@ trait Benchmark {
     withBenchmark {
       var i = 0
       while (i < 1000) {
-        state.makeMove(move).get.legalMoves
+        state.makeMove(move).get.legalMoves(None)
         i += 1
       }
     }.print()

@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.move.Movement._
+import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 
 /**
@@ -79,6 +80,6 @@ trait MoveBuilder {
 
   }
 
-  def toMove(state: State, isStrict: Boolean = true): Option[Move]
+  def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move]
 }
 

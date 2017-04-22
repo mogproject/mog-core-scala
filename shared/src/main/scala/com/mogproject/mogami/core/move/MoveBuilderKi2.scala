@@ -2,7 +2,9 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.kif.{Ki2Factory, Ki2Like}
 import com.mogproject.mogami.core.move.Movement.{Dropped, Movement}
+import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
@@ -42,10 +44,10 @@ case class MoveBuilderKi2(player: Player,
       }.map { case (sq, _) => Some(sq) }
   }
 
-  override def toMove(state: State, isStrict: Boolean): Option[Move] = for {
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean): Option[Move] = for {
     moveTo <- to match {
       case Some(t) => Some(t)
-      case None => state.lastMoveTo
+      case None => lastMoveTo
     }
     from <- findMoveFrom(state, moveTo)
     pr = promote.contains(true)

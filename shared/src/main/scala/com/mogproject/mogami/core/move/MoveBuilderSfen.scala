@@ -2,6 +2,8 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.sfen.{SfenFactory, SfenLike}
+import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
@@ -49,11 +51,11 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] {
 case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) extends MoveBuilderSfen {
   override def toSfenString: String = s"${from.toSfenString}${to.toSfenString}${promote.fold("+", "")}"
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] =
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       newPtype = promote.fold(oldPiece.ptype.promoted, oldPiece.ptype)
-      isSame = state.lastMoveTo.contains(to)
+      isSame = lastMoveTo.contains(to)
       isCheck = isCheckMove(state, Some(from), to, newPtype)
       movement = getMovement(state, Some(from), to, oldPiece.ptype)
       captured = state.board.get(to).map(_.ptype).filter(_ != KING)
@@ -64,7 +66,7 @@ case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) exte
 case class MoveBuilderSfenHand(ptype: Ptype, to: Square) extends MoveBuilderSfen {
   override def toSfenString: String = s"${Piece(Player.BLACK, ptype).toSfenString}*${to.toSfenString}"
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] = {
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     val movement = getMovement(state, None, to, ptype)
     for {

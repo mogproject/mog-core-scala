@@ -3,9 +3,9 @@ package com.mogproject.mogami.core.move
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.State
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.Movement._
+import com.mogproject.mogami.core.state.State
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 

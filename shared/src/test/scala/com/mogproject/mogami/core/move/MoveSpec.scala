@@ -5,7 +5,8 @@ import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.{Hand, Ptype, Square, State}
+import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.{Hand, Ptype, Square}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -46,7 +47,7 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   object TestMoveBuilder extends MoveBuilder {
     override def isCheckMove(state: State, from: Option[Square], to: Square, newPtype: Ptype): Boolean = super.isCheckMove(state, from, to, newPtype)
 
-    override def toMove(state: State, isStrict: Boolean = true) = ???
+    override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true) = ???
   }
 
   "MoveBuilder#isCheckMove" must "return true is the move is check" in {

@@ -2,6 +2,8 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.kif.{KifFactory, KifLike}
+import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 
 import scala.util.matching.Regex
@@ -53,13 +55,13 @@ case class MoveBuilderKifBoard(from: Square, to: Option[Square], oldPtype: Ptype
   override def toKifString: String =
     to.map(_.toKifString).getOrElse("同　") + oldPtype.toKifString + promote.fold("成", "") + s"(${from.toCsaString})${timeToKifString(elapsedTime)}"
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] =
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       newPtype = promote.fold(oldPiece.ptype.promoted, oldPiece.ptype)
       moveTo <- to match {
         case Some(t) => Some(t);
-        case None => state.lastMoveTo
+        case None => lastMoveTo
       }
       isSame = to.isEmpty
       isCheck = isCheckMove(state, Some(from), moveTo, newPtype)
@@ -72,7 +74,7 @@ case class MoveBuilderKifBoard(from: Square, to: Option[Square], oldPtype: Ptype
 case class MoveBuilderKifHand(to: Square, ptype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderKif {
   override def toKifString: String = s"${to.toKifString}${ptype.toKifString}打${timeToKifString(elapsedTime)}"
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] = {
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     val movement = getMovement(state, None, to, ptype)
     for {

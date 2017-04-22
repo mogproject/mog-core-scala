@@ -3,6 +3,8 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.csa.{CsaFactory, CsaLike}
+import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 
 import scala.util.Try
@@ -51,11 +53,11 @@ object MoveBuilderCsa extends CsaFactory[MoveBuilderCsa] {
 case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderCsa {
   override def toCsaString: String = List(player, from, to, newPtype).map(_.toCsaString).mkString + timeToCsaString(elapsedTime)
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] =
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] =
     for {
       oldPiece <- state.board.get(from)
       promote = oldPiece.ptype != newPtype
-      isSame = state.lastMoveTo.contains(to)
+      isSame = lastMoveTo.contains(to)
       isCheck = isCheckMove(state, Some(from), to, newPtype)
       movement = getMovement(state, Some(from), to, oldPiece.ptype)
       captured = state.board.get(to).map(_.ptype).filter(_ != KING)
@@ -68,7 +70,7 @@ case class MoveBuilderCsaBoard(player: Player, from: Square, to: Square, newPtyp
 case class MoveBuilderCsaHand(player: Player, to: Square, ptype: Ptype, elapsedTime: Option[Int] = None) extends MoveBuilderCsa {
   override def toCsaString: String = s"${player.toCsaString}00${to.toCsaString}${ptype.toCsaString}${timeToCsaString(elapsedTime)}"
 
-  override def toMove(state: State, isStrict: Boolean = true): Option[Move] = {
+  override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean = true): Option[Move] = {
     val isCheck = isCheckMove(state, None, to, ptype)
     val movement = getMovement(state, None, to, ptype)
     for {
