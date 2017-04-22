@@ -1,9 +1,10 @@
 package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
+import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
 import com.mogproject.mogami.core.state.{State, StateCache}
-import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.{CsaGameReader, CsaGameWriter, KifGameReader, KifGameWriter}
 import com.mogproject.mogami.core.io.sfen.{SfenGameReader, SfenGameWriter}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
@@ -36,6 +37,12 @@ case class Game(trunk: Branch = Branch(),
       }
     }
 
+  // aliases to the trunk
+  def moves: Vector[Move] = trunk.moves
+
+  def lastState: State = trunk.lastState
+
+  def status: GameStatus = trunk.status
 }
 
 object Game extends CsaGameReader with SfenGameReader with KifGameReader {
@@ -43,14 +50,5 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
   type BranchNo = Int // branch number: root = 0
 
   case class GamePosition(branch: BranchNo, position: Int)
-
-  /**
-    * Instanciate a game from one initial state
-    *
-    * @param state      state
-    * @param stateCache state cache
-    * @return new game
-    */
-  def apply(state: State)(implicit stateCache: StateCache): Game = Game(Branch(stateCache.set(state)))(stateCache)
 
 }

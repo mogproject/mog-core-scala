@@ -1,10 +1,12 @@
 package com.mogproject.mogami.core.io
 
 
-import com.mogproject.mogami._
+import com.mogproject.mogami.{Move, _}
 import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
-import com.mogproject.mogami.core.move.{IllegalMove, Move, Resign, TimeUp}
+import com.mogproject.mogami.core.move._
+import com.mogproject.mogami.core.state.StateCache
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -12,6 +14,13 @@ import org.scalatest.{FlatSpec, MustMatchers}
 class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
   object TestKifGameReader extends KifGameReader
+
+  def createGame(initialState: State,
+                 moves: Vector[Move] = Vector.empty,
+                 gameInfo: GameInfo = GameInfo(),
+                 finalAction: Option[SpecialMove] = None)
+                (implicit stateCache: StateCache): Game =
+    Game(Branch(stateCache.set(initialState), 0, moves, finalAction), Vector.empty, gameInfo)
 
   val hirateState = Seq(
     "手合割：平手",
@@ -22,14 +31,14 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   )
 
   "KifGameWriter#toKifString" must "describe special moves" in {
-    Game(HIRATE, finalAction = Some(Resign())).toKifString mustBe (hirateState ++ Seq("   1 投了", "")).mkString("\n")
-    Game(HIRATE, finalAction = Some(Resign(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 投了 (02:03/)", "")).mkString("\n")
-    Game(HIRATE, finalAction = Some(TimeUp())).toKifString mustBe (hirateState ++ Seq("   1 切れ負け", "")).mkString("\n")
-    Game(HIRATE, finalAction = Some(TimeUp(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 切れ負け (02:03/)", "")).mkString("\n")
-    Game(HIRATE, finalAction = Some(IllegalMove(
+    createGame(HIRATE, finalAction = Some(Resign())).toKifString mustBe (hirateState ++ Seq("   1 投了", "")).mkString("\n")
+    createGame(HIRATE, finalAction = Some(Resign(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 投了 (02:03/)", "")).mkString("\n")
+    createGame(HIRATE, finalAction = Some(TimeUp())).toKifString mustBe (hirateState ++ Seq("   1 切れ負け", "")).mkString("\n")
+    createGame(HIRATE, finalAction = Some(TimeUp(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 切れ負け (02:03/)", "")).mkString("\n")
+    createGame(HIRATE, finalAction = Some(IllegalMove(
       Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)
     ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59)", "   2 反則手", "")).mkString("\n")
-    Game(HIRATE, finalAction = Some(IllegalMove(
+    createGame(HIRATE, finalAction = Some(IllegalMove(
       Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)
     ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59) (02:03/)", "   2 反則手", "")).mkString("\n")
   }
@@ -39,20 +48,20 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
 
     TestKifGameReader.parseMovesKif(HIRATE, List(
       ("７六歩(77)   ( 0:12/)", 1), ("８四歩(83)   ( 0:13/)", 2)
-    ), None) mustBe Game(HIRATE, Vector(
+    ), None) mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
     ))
   }
   it must "parse special moves" in {
-    TestKifGameReader.parseMovesKif(HIRATE, List(("投了", 1)), None) mustBe Game(HIRATE, finalAction = Some(Resign()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("投了   ( 2:03/)", 1)), None) mustBe Game(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け", 1)), None) mustBe Game(HIRATE, finalAction = Some(TimeUp()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け (2:3/1:2:3)", 1)), None) mustBe Game(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)", 1), ("反則手", 1)), None) mustBe Game(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("投了", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("投了   ( 2:03/)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け (2:3/1:2:3)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)", 1), ("反則手", 1)), None) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)   ( 2:03/)", 1), ("反則手   ( 0:0/)", 2)), None) mustBe Game(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)   ( 2:03/)", 1), ("反則手   ( 0:0/)", 2)), None) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
   }

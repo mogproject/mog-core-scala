@@ -116,7 +116,7 @@ case class Branch(initialHash: StateHash,
   }
 
   def makeMove(move: Move): Option[Branch] = (status == Playing && lastState.isValidMove(move)).
-    option(this.copy(moves = moves :+ move, hint = lastState.makeMove(move).map(s => BranchHint(history :+ s.hash))))
+    option(this.copy(moves = moves :+ move, hint = lastState.makeMove(move).map(s => BranchHint(history :+ stateCache.set(s)))))
 
 
   def makeMove(move: MoveBuilder): Option[Branch] = move.toMove(lastState, lastMoveTo).flatMap(makeMove)

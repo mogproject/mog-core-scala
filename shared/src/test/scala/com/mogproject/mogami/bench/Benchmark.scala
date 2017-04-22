@@ -2,6 +2,7 @@ package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 /**
   * Shared benchmark utility

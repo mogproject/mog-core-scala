@@ -10,7 +10,6 @@ import scala.util.Random
 /**
   * Hash numbers that determine a specific state
   */
-
 object StateHash {
   type StateHash = Long
 
@@ -62,6 +61,7 @@ object StateHash {
 
   /**
     * Get difference between before and after one move
+    *
     * @param hand hand
     * @param move move
     * @return difference of the hash values

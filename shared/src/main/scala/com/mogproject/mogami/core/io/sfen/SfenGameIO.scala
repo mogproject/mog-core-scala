@@ -99,7 +99,7 @@ trait SfenBranchWriter extends SfenLike {
     *
     * @return "{offset} [{move}...]"
     */
-  override def toSfenString: String = offset.toString + " " + moves.map(_.toSfenString).mkString(" ")
+  override def toSfenString: String = (offset.toString +: moves.map(_.toSfenString).toList).mkString(" ")
 
   def toSfenExtendedBranch: SfenExtendedBranch = SfenExtendedBranch(toSfenString, finalAction.map(_.toSfenExtendedString), comments)
 }

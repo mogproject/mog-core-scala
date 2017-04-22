@@ -18,8 +18,9 @@ object GameGen {
     finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
   } yield {
     val moves = movesStream(state).take(n)
-    val g = Game(state, moves.toVector, gameInfo)
-    if (g.currentState.isMated) g else g.copy(finalAction = finalAction)
+    val trunk = Branch(state).copy(moves= moves.toVector)
+    val t = if (trunk.lastState.isMated) trunk else trunk.copy(finalAction = finalAction)
+    Game(t, gameInfo = gameInfo)
   }
 
   private[this] def movesStream(initState: State): Stream[Move] = {

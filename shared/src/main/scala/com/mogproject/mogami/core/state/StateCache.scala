@@ -7,6 +7,10 @@ import scala.collection.mutable
 /**
   * Key-value storage of states
   */
+
+class CacheNotFoundException(message: String) extends RuntimeException(message)
+
+
 trait StateCache {
   def size: Int
 
@@ -14,7 +18,7 @@ trait StateCache {
 
   def get(hash: StateHash): Option[State]
 
-  def apply(hash: StateHash): State = get(hash).getOrElse(throw new RuntimeException(f"failed to look up: hash=0x${hash}%016x"))
+  def apply(hash: StateHash): State = get(hash).getOrElse(throw new CacheNotFoundException(f"failed to look up: hash=0x${hash}%016x"))
 }
 
 /**

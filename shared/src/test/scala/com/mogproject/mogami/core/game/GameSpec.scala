@@ -2,9 +2,10 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.game.Game.GameStatus._
+import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.move.{Pause, Resign, TimeUp}
+import com.mogproject.mogami.core.move.{Pause, Resign, SpecialMove, TimeUp}
+import com.mogproject.mogami.core.state.StateCache
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -16,9 +17,17 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
   val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
 
+
+  def createGame(initialState: State,
+                 moves: Vector[Move] = Vector.empty,
+                 gameInfo: GameInfo = GameInfo(),
+                 finalAction: Option[SpecialMove] = None)
+                (implicit stateCache: StateCache): Game =
+    Game(Branch(stateCache.set(initialState), 0, moves, finalAction), Vector.empty, gameInfo)
+
   val dataForTest = Seq(
-    Game(stateEmpty, Vector(), GameInfo()),
-    Game(HIRATE, Vector(
+    createGame(stateEmpty, Vector(), GameInfo()),
+    createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)
     ), GameInfo(
       Map(
@@ -32,7 +41,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'timeLimit -> "00:25+00",
         'opening -> "YAGURA"
       ))),
-    Game(HIRATE, Vector(
+    createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(50)),
       Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, Some(1)),
       Move(BLACK, Some(P88), P22, PBISHOP, true, false, None, Some(BISHOP), false, Some(12)),
@@ -147,10 +156,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   "Game#parseCsaString" must "work in normal cases" in {
     csaForTest.map(Game.parseCsaString) zip dataForTest foreach { case (a, b) => a mustBe b }
-    Game.parseCsaString("+") mustBe Game(stateEmpty, Vector(), GameInfo())
-    Game.parseCsaString("-") mustBe Game(stateEmptyInv, Vector(), GameInfo())
+    Game.parseCsaString("+") mustBe createGame(stateEmpty, Vector(), GameInfo())
+    Game.parseCsaString("-") mustBe createGame(stateEmptyInv, Vector(), GameInfo())
 
-    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") mustBe Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI\n-\n-5152OU,T2345\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo())
@@ -166,17 +175,17 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n" +
       "P+\n" +
       "P-\n" +
-      "-\n-5152OU\nT2345\n+5958OU") mustBe Game(stateHirateInv, Vector(
+      "-\n-5152OU\nT2345\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo(Map('whiteName -> "yyy")))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") mustBe Game(stateEmpty, Vector(), GameInfo(
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") mustBe createGame(stateEmpty, Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
-    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe Game(State(
+    Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe createGame(State(
       WHITE, stateEmpty.board, stateEmpty.hand), Vector(), GameInfo(
       Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
-    Game.parseCsaString("V2.2\n-") mustBe Game(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))
-    Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") mustBe Game(
+    Game.parseCsaString("V2.2\n-") mustBe createGame(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))
+    Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") mustBe createGame(
       stateHirateInv,
       Vector(
         Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
@@ -216,19 +225,19 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game.parseCsaString(g.toCsaString) mustBe g
   }
   it must "ignore comments" in {
-    Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe Game(stateHirateInv, Vector(
+    Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo())
   }
   it must "parse special moves" in {
-    Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe Game(HIRATE, Vector(
+    Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
     ), finalAction = Some(Resign(Some(3))))
-    Game.parseCsaString("PI,+,+7776FU,T2,%TIME_UP,T3") mustBe Game(HIRATE, Vector(
+    Game.parseCsaString("PI,+,+7776FU,T2,%TIME_UP,T3") mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
     ), finalAction = Some(TimeUp(Some(3))))
-    Game.parseCsaString("PI,+,+7776FU,T2,%CHUDAN") mustBe Game(HIRATE, Vector(
+    Game.parseCsaString("PI,+,+7776FU,T2,%CHUDAN") mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
     ), finalAction = Some(Pause))
   }
@@ -238,7 +247,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   "Game#parseSfenString" must "create games in normal cases" in {
     sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
-      g.copy(gameInfo = GameInfo(), moves = g.moves.map(_.copy(elapsedTime = None)))
+      g.copy(gameInfo = GameInfo(), trunk = g.trunk.copy(moves = g.trunk.moves.map(_.copy(elapsedTime = None))))
     ) foreach { case (a, b) =>
       a mustBe b
     }
