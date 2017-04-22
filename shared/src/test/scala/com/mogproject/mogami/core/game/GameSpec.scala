@@ -2,10 +2,11 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.game.Game.GamePosition
 import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.move.{Pause, Resign, SpecialMove, TimeUp}
-import com.mogproject.mogami.core.state.StateCache
+import com.mogproject.mogami.core.io.sfen.{SfenExtendedBranch, SfenExtendedGame}
+import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -639,5 +640,135 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-",
       "%TORYO"
     ).mkString("\n")).status mustBe Resigned
+  }
+
+  "Game#getAllMoves" must "get all moves" in {
+    Game().getAllMoves(0) mustBe Vector.empty
+
+    val s1 = SfenExtendedGame(
+      SfenExtendedBranch(
+        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
+        None,
+        Map(0 -> "initial\ncomment", 1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
+      ),
+      Vector(
+        SfenExtendedBranch(
+          "2 7g7f 4b3b",
+          None,
+          Map(2 -> "m2", 3 -> "m3")
+        ),
+        SfenExtendedBranch(
+          "2 5g5f 4b3b",
+          Some("r"),
+          Map(2 -> "v2", 3 -> "v3")
+        ),
+        SfenExtendedBranch(
+          "0",
+          Some("i 5i5a"),
+          Map.empty
+        )
+      )
+    )
+    val g1 = Game.parseSfenExtendedGame(s1)
+    g1.getAllMoves(0) mustBe Vector(
+      Move(BLACK, Some(Square(55)), Square(46), PAWN, false, false, None, None, false, None, true),
+      Move(WHITE, Some(Square(4)), Square(12), KING, false, false, None, None, false, None, true),
+      Move(BLACK, Some(Square(46)), Square(37), PAWN, false, false, None, None, false, None, true)
+    )
+
+    g1.getAllMoves(1) mustBe Vector(
+      Move(BLACK, Some(Square(55)), Square(46), PAWN, false, false, None, None, false, None, true),
+      Move(WHITE, Some(Square(4)), Square(12), KING, false, false, None, None, false, None, true),
+      Move(BLACK, Some(Square(60)), Square(51), PAWN, false, false, None, None, false, None, true),
+      Move(WHITE, Some(Square(12)), Square(11), KING, false, false, None, None, false, None, true)
+    )
+
+    g1.getAllMoves(2) mustBe Vector(
+      Move(BLACK, Some(Square(55)), Square(46), PAWN, false, false, None, None, false, None, true),
+      Move(WHITE, Some(Square(4)), Square(12), KING, false, false, None, None, false, None, true),
+      Move(BLACK, Some(Square(58)), Square(49), PAWN, false, false, None, None, false, None, true),
+      Move(WHITE, Some(Square(12)), Square(11), KING, false, false, None, None, false, None, true)
+    )
+
+    g1.getAllMoves(3) mustBe Vector.empty
+    g1.getAllMoves(4) mustBe Vector.empty
+    g1.getAllMoves(-1) mustBe Vector.empty
+  }
+
+  "Game#hasComment" must "return if a position has a comment" in {
+    Game().hasComment(GamePosition(0, 0)) mustBe false
+    Game().hasComment(GamePosition(0, 1)) mustBe false
+    Game().hasComment(GamePosition(1, 0)) mustBe false
+
+    val s1 = SfenExtendedGame(
+      SfenExtendedBranch(
+        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
+        None,
+        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
+      ),
+      Vector(
+        SfenExtendedBranch(
+          "2 7g7f 4b3b",
+          None,
+          Map(2 -> "m2")
+        ),
+        SfenExtendedBranch(
+          "2 5g5f 4b3b",
+          Some("r"),
+          Map(2 -> "v2", 3 -> "v3")
+        ),
+        SfenExtendedBranch(
+          "0",
+          Some("i 5i5a"),
+          Map.empty
+        )
+      )
+    )
+    val g1 = Game.parseSfenExtendedGame(s1)
+    (for {
+      i <- 0 to 4
+      j <- 0 to 4
+    } yield g1.hasComment(GamePosition(i, j))) mustBe Seq(
+      false, true, true, true, false,
+      false, true, true, false, false,
+      false, true, true, true, false,
+      false, false, false, false, false,
+      false, false, false, false, false
+    )
+  }
+
+  "Game#getFinalAction" must "return final actions" in {
+    Game().getFinalAction(0) mustBe None
+    Game().getFinalAction(1) mustBe None
+
+    val s1 = SfenExtendedGame(
+      SfenExtendedBranch(
+        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
+        None,
+        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
+      ),
+      Vector(
+        SfenExtendedBranch(
+          "2 7g7f 4b3b",
+          None,
+          Map(2 -> "m2")
+        ),
+        SfenExtendedBranch(
+          "2 5g5f 4b3b",
+          Some("r"),
+          Map(2 -> "v2", 3 -> "v3")
+        ),
+        SfenExtendedBranch(
+          "0",
+          Some("i 5i5a"),
+          Map.empty
+        )
+      )
+    )
+    val g1 = Game.parseSfenExtendedGame(s1)
+    g1.getFinalAction(0) mustBe None
+    g1.getFinalAction(1) mustBe None
+    g1.getFinalAction(2) mustBe Some(Resign())
+    g1.getFinalAction(3) mustBe Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false)))
   }
 }
