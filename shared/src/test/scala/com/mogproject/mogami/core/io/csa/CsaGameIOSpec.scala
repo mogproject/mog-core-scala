@@ -1,12 +1,13 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.csa
 
-import com.mogproject.mogami.{Move, _}
+import com.mogproject.mogami.core.Player.BLACK
+import com.mogproject.mogami.core.Ptype.KING
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
-import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.state.StateCache
+import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 

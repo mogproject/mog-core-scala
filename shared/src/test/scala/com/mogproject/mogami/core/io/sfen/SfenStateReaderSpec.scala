@@ -1,10 +1,10 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.sfen
 
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core._
-import com.mogproject.mogami.core.io.sfen.SfenStateReader
+import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks

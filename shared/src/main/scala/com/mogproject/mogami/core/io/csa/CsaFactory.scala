@@ -1,4 +1,6 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.csa
+
+import com.mogproject.mogami.core.io.{Lines, NonEmptyLines, RecordFormatException}
 
 /**
   * Reads CSA-formatted string

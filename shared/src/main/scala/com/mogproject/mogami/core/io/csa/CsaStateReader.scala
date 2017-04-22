@@ -1,9 +1,10 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.csa
 
 import com.mogproject.mogami.core.Ptype.KING
+import com.mogproject.mogami.core._
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.core.state.State.{BoardType, HandType}
-import com.mogproject.mogami.core._
 import com.mogproject.mogami.util.MapUtil
 
 import scala.annotation.tailrec

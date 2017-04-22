@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.kif.{Ki2Factory, Ki2Like}
 import com.mogproject.mogami.core.move.Movement.{Dropped, Movement}
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._

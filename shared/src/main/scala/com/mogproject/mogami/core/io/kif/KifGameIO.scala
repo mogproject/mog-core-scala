@@ -1,11 +1,11 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.kif
 
 import com.mogproject.mogami.core._
-import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
-import com.mogproject.mogami.core.state.{State, StateConstant}
+import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.core.state.{State, StateConstant}
 
 import scala.annotation.tailrec
 import scala.util.Try

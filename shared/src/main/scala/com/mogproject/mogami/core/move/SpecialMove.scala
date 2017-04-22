@@ -1,8 +1,10 @@
 package com.mogproject.mogami.core.move
 
+import com.mogproject.mogami.core.io.csa.CsaLike
 import com.mogproject.mogami.core.{Player, Square}
 import com.mogproject.mogami.core.io.sfen.SfenExtendedLike
-import com.mogproject.mogami.core.io.{CsaLike, KifLike, RecordFormatException}
+import com.mogproject.mogami.core.io.RecordFormatException
+import com.mogproject.mogami.core.io.kif.KifLike
 import com.mogproject.mogami.core.state.State
 
 sealed trait SpecialMove extends CsaLike with KifLike with SfenExtendedLike {

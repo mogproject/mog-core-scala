@@ -1,8 +1,9 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.csa
 
+import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.State
-import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 import scala.annotation.tailrec

@@ -4,8 +4,7 @@ import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
 import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
 import com.mogproject.mogami.core.state.{State, StateCache}
-import com.mogproject.mogami.core.io.{CsaGameReader, CsaGameWriter, KifGameReader, KifGameWriter}
-import com.mogproject.mogami.core.io.sfen.{SfenGameReader, SfenGameWriter}
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
 

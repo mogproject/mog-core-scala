@@ -1,4 +1,6 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.kif
+
+import com.mogproject.mogami.core.io.{Lines, NonEmptyLines, RecordFormatException}
 
 /**
   *

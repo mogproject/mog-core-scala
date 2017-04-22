@@ -1,4 +1,4 @@
-package com.mogproject.mogami.core.io
+package com.mogproject.mogami.core.io.csa
 
 /**
   *

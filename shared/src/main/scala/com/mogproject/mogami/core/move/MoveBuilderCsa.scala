@@ -3,6 +3,7 @@ package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.csa.{CsaFactory, CsaLike}
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.util.Implicits._
 

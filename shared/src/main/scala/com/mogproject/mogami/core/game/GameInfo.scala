@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core.game
 
-import com.mogproject.mogami.core.io.CsaLike
+import com.mogproject.mogami.core.io.csa.CsaLike
 
 /**
   * Game information

@@ -1,13 +1,13 @@
-package com.mogproject.mogami.core.io
-
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+package com.mogproject.mogami.core.io.csa
 
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.PieceConstant._
+import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.io.{NonEmptyLines, RecordFormatException}
 import com.mogproject.mogami.core.state.State.HIRATE
 import com.mogproject.mogami.util.Implicits._
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{FlatSpec, MustMatchers}
 
 class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
