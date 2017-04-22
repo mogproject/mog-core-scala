@@ -1,5 +1,7 @@
 package com.mogproject
 
+import com.mogproject.mogami.core.move.Resign
+
 package object mogami {
 
   type Player = com.mogproject.mogami.core.Player
@@ -64,6 +66,17 @@ package object mogami {
 
   type Move = com.mogproject.mogami.core.move.Move
   val Move = com.mogproject.mogami.core.move.Move
+
+  type SpecialMove = com.mogproject.mogami.core.move.SpecialMove
+  val SpecialMove = com.mogproject.mogami.core.move.SpecialMove
+
+  type Resign = com.mogproject.mogami.core.move.Resign
+  val Resign = com.mogproject.mogami.core.move.Resign
+  type IllegalMove = com.mogproject.mogami.core.move.IllegalMove
+  val IllegalMove = com.mogproject.mogami.core.move.IllegalMove
+  type TimeUp = com.mogproject.mogami.core.move.TimeUp
+  val TimeUp = com.mogproject.mogami.core.move.TimeUp
+  val Pause = com.mogproject.mogami.core.move.Pause
 
   type Game = com.mogproject.mogami.core.game.Game
   val Game = com.mogproject.mogami.core.game.Game

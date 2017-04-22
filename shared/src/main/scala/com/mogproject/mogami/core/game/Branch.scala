@@ -151,6 +151,8 @@ case class Branch(initialHash: StateHash,
     val relPos = pos - offset
     history.isDefinedAt(relPos).option(Branch(history(relPos), pos))
   }
+
+  def hasComment(pos: Int): Boolean = comments.contains(pos)
 }
 
 object Branch extends SfenBranchReader with KifBranchReader {
