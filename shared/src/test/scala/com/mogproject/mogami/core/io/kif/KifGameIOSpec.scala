@@ -5,7 +5,6 @@ import com.mogproject.mogami.core.Ptype.{KING, PAWN}
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
-import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
@@ -16,6 +15,8 @@ import org.scalatest.{FlatSpec, MustMatchers}
 class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
   object TestKifGameReader extends KifGameReader
+
+  object TestKifBranchReader extends KifBranchReader
 
   def createGame(initialState: State,
                  moves: Vector[Move] = Vector.empty,
@@ -105,7 +106,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       ""
     ).mkString("\n")
 
-    val tr2 = Branch(HIRATE.hash, offset=10).makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
+    val tr2 = Branch(HIRATE.hash, offset = 10).makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
       .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get.updateComment(10, "init")
     val br3 = Branch(tr2.history(2), 12).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get.updateComment(13, "comment\n 13")
     val br4 = Branch(tr2.history(1), 11).copy(
@@ -139,23 +140,32 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     TestKifGameReader.parseMovesKif(HIRATE, List(), None) mustBe Game()
 
     TestKifGameReader.parseMovesKif(HIRATE, List(
-      ("７六歩(77)   ( 0:12/)", 1), ("８四歩(83)   ( 0:13/)", 2)
+      ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
     ), None) mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
     ))
   }
   it must "parse special moves" in {
-    TestKifGameReader.parseMovesKif(HIRATE, List(("投了", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("投了   ( 2:03/)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("切れ負け (2:3/1:2:3)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)", 1), ("反則手", 1)), None) mustBe createGame(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了   ( 2:03/)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け (2:3/1:2:3)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)", 1), ("2 反則手", 1)), None) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestKifGameReader.parseMovesKif(HIRATE, List(("５一玉(59)   ( 2:03/)", 1), ("反則手   ( 0:0/)", 2)), None) mustBe createGame(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)   ( 2:03/)", 1), ("1 反則手   ( 0:0/)", 2)), None) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
+  }
+
+  "KifGameReader#splitBranches" must "split branches" in {
+    TestKifGameReader.splitBranchesKif(Nil, Nil, Nil) mustBe Nil
+    TestKifGameReader.splitBranchesKif(List(("1 ７六歩(77)   ( 0:12/)", 1)), Nil, Nil) mustBe Vector(List(("1 ７六歩(77)   ( 0:12/)", 1)))
+    TestKifGameReader.splitBranchesKif(List(("変化：1手", 1),("1 ７六歩(77)   ( 0:12/)", 1)), Nil, Nil) mustBe
+      Vector(Nil, List(("1 ７六歩(77)   ( 0:12/)", 1)))
+    TestKifGameReader.splitBranchesKif(List(("1 ７六歩(77)   ( 0:12/)", 1), ("変化：1手", 2),("1 ７六歩(77)   ( 0:12/)", 3)), Nil, Nil) mustBe
+      Vector(List(("1 ７六歩(77)   ( 0:12/)", 1)), List(("1 ７六歩(77)   ( 0:12/)", 3)))
   }
 
   "KifGameReader#parseKifString" must "create games" in {
@@ -223,4 +233,62 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     )
 
   }
+
+  "KifBranchReader#parseKifString" must "parse moves" in {
+    TestKifBranchReader.parseKifString(List(
+      ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
+    ), HIRATE) mustBe Branch(HIRATE.hash, 0, Vector(
+      Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
+      Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
+    ))
+  }
+
+  "KifBranchReader#parseComments" must "parse comments" in {
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(("", 1)))) mustBe Map.empty
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(("*cmt", 1)))) mustBe Map(0 -> "cmt")
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(
+      ("*cmt ", 1),
+      ("* x ", 1),
+      ("***a ", 1),
+      ("* b", 1)
+    ))) mustBe Map(0 -> "cmt \n x \n**a \n b")
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(
+      ("   1 ２六歩(27)", 1),
+      ("   2 ４二玉(51)", 2),
+      ("   3 ２五歩(26)", 3)
+    ))) mustBe Map.empty
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(
+      ("*対局開始", 1),
+      ("*", 2),
+      ("   1 ２六歩(27)", 3),
+      ("*すごい", 4),
+      ("   2 ４二玉(51)", 5),
+      ("*よい", 6),
+      ("*よい", 7),
+      ("   3 ２五歩(26)", 8),
+      ("*かてる", 9)
+    ))) mustBe Map(
+      0 -> "対局開始\n",
+      1 -> "すごい",
+      2 -> "よい\nよい",
+      3 -> "かてる"
+    )
+    TestKifBranchReader.parseComments(TestKifBranchReader.convertLines(Seq(
+      ("*途中対局開始", 1),
+      ("*", 2),
+      ("  12 ２六歩(27)", 3),
+      ("*すごい", 4),
+      ("  13 ４二玉(51)", 5),
+      ("*よい", 6),
+      ("*よい", 7),
+      ("  14 ２五歩(26)", 8),
+      ("*かてる", 9)
+    ))) mustBe Map(
+      11 -> "途中対局開始\n",
+      12 -> "すごい",
+      13 -> "よい\nよい",
+      14 -> "かてる"
+    )
+  }
+
 }

@@ -5,7 +5,8 @@ import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
-import com.mogproject.mogami.core.state.{State, StateConstant}
+import com.mogproject.mogami.core.state.{State, StateCache, StateConstant}
+import com.mogproject.mogami.util.Implicits._
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -34,6 +35,9 @@ trait KifGameIO {
   private[this] val presetFindTable: Map[Int, String] = presetStates.map { case (k, v) => v.hashCode() -> k }
 
   protected def getPresetLabel(state: State): Option[String] = presetFindTable.get(state.hashCode())
+
+  protected def isNormalMoveKif(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
+
 }
 
 /**
@@ -90,7 +94,8 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
 
   override def toKifString: String = {
     val t = Seq(getHeader + "\n", "手数----指手----消費時間--", trunk.toKifString)
-    val b = branches.map(br => s"\n\n変化：${br.offset + 1}手\n" + br.toKifString)
+    /** @note to keep the compatibility with KIF Format, sort the branches by offset from the largest to the smallest */
+    val b = branches.sortBy(-_.offset).map(br => s"\n\n変化：${br.offset + 1}手\n" + br.toKifString)
     (t ++ b).filter(_.nonEmpty).mkString("", "\n", "\n")
   }
 
@@ -106,9 +111,132 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
 /**
   * Reads Kif-formatted game
   */
-trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
+trait KifBranchReader extends KifGameIO {
 
-  private[this] def isNormalMoveKif(s: String): Boolean = s.headOption.exists(c => c == '同' || '１' <= c && c <= '９')
+  /** (line number, (move number, move description), comment) */
+  type LineInput = (Int, Option[(Int, String)], Option[String])
+
+  /**
+    * Parse Kif string as a trunk
+    */
+  def parseKifString(lines: Lines, initialState: State)(implicit stateCache: StateCache): Branch = {
+    parseKifString(lines, (offset, _) => (Branch(stateCache.set(initialState), offset), None))
+  }
+
+  /**
+    * Parse Kif string as a branch
+    *
+    * @note When parsing branches in KIF Format, the reader must traverse previous branches and the trunk inversely
+    */
+  def parseKifString(lines: Lines, trunk: Branch, branchesSofar: List[Branch])(implicit stateCache: StateCache): Branch = {
+    def f(offset: Int, offsetLineNo: Int): (Branch, Option[Square]) = {
+      branchesSofar.find(br => br.hasHistoryAt(offset) && br.offset != offset) match {
+        case None =>
+          // parent is trunk
+          if (trunk.hasHistoryAt(offset)) {
+            val targetMove = offset - trunk.offset - 1
+            val lastMoveTo = trunk.moves.isDefinedAt(targetMove).option(trunk.moves(targetMove).to)
+            (trunk.deriveNewBranch(offset).get, lastMoveTo)
+          } else {
+            throw new RecordFormatException(offsetLineNo, s"invalid offset for a branch: ${offset}")
+          }
+        case Some(parent) =>
+          // parent is branch
+          val targetMove = offset - parent.offset - 1
+          val lastMoveTo = parent.moves.isDefinedAt(targetMove).option(parent.moves(targetMove).to)
+          (parent.getSubBranch(offset).get, lastMoveTo)
+      }
+    }
+
+    parseKifString(lines, f _)
+  }
+
+  /**
+    * Parse Kif string
+    *
+    * @param createBranch a function that create a Branch instance and 'lastMoveTo' from an offset number
+    */
+  def parseKifString(lines: Lines, createBranch: (Int, LineNo) => (Branch, Option[Square])): Branch = {
+    // convert lines
+    val converted = convertLines(lines)
+
+    val (offsetLineNo, offset) = converted.find(_._2.isDefined).map {
+      case (n, Some((x, _)), _) => n -> (x - 1)
+      case _ => 0 -> 0
+    }.getOrElse(0 -> 0)
+
+    val comments = parseComments(converted)
+
+    val (br, lastMoveTo) = createBranch(offset, offsetLineNo)
+
+    // parse moves
+    parseMoves(br.updateComments(comments), lastMoveTo, converted)
+  }
+
+  protected[kif] def convertLines(lines: Lines): List[LineInput] = lines.flatMap {
+    case (x, n) if x.startsWith("*") || x.startsWith("#") => List((n, None, Some(x.drop(1)))) // comment lines
+    case (x, n) =>
+      x.trim.split("[ ]+", 2).toList match {
+        case s :: t :: Nil => Try(s.toInt).toOption.map(i => (n, Some((i, t)), None))
+        case _ => Nil
+      }
+    case _ => Nil
+  }.toList
+
+  protected[kif] def parseComments(input: List[LineInput]): Map[Int, String] = {
+    @tailrec
+    def f(ls: List[LineInput], sofar: Map[Int, String], pos: Int, remainder: List[String]): Map[Int, String] = ls match {
+      case Nil => g(sofar, pos, remainder) //finish
+      case (_, _, Some(s)) :: xs => f(xs, sofar, pos, s :: remainder) // comment line
+      case (_, Some((p, _)), _) :: xs => f(xs, g(sofar, p - 1, remainder), p, Nil)
+      case _ :: xs => f(xs, sofar, pos, remainder)
+    }
+
+    def g(sofar: Map[Int, String], pos: Int, remainder: List[String]) =
+      if (remainder.nonEmpty) sofar.updated(pos, remainder.reverse.mkString("\n")) else sofar
+
+    f(input, Map.empty, 0, Nil)
+  }
+
+  protected[kif] def parseMoves(initialBranch: Branch, initialLastMoveTo: Option[Square], input: List[LineInput]): Branch = {
+    @tailrec
+    def f(ls: List[LineInput], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal) match {
+      case (Nil, Some((_, mv))) => // ends with implicit illegal move
+        sofar.copy(finalAction = Some(IllegalMove(mv)))
+      case (Nil, None) => // ends without errors
+        sofar
+      case ((n, Some((_, x)), _) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
+        val special = MoveBuilderKif.parseTime((x, n)) match {
+          case ((Resign.kifKeyword, _), tm) => Resign(tm)
+          case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
+          case ((TimeUp.kifKeyword2, _), tm) => TimeUp(tm)
+          case ((Pause.kifKeyword, _), _) => Pause
+          case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
+        }
+        sofar.copy(finalAction = Some(special))
+      case ((_, Some((_, x)), _) :: Nil, Some((_, mv))) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
+        sofar.copy(finalAction = Some(IllegalMove(mv)))
+      case ((n, Some((_, x)), _) :: xs, None) =>
+        val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
+        bldr.toMove(sofar.lastState, (sofar.lastMoveTo ++ initialLastMoveTo).headOption, isStrict = false) match {
+          case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
+            case Some(g) => f(xs, None, g) // legal move
+            case None => f(xs, Some((x, n), mv), sofar) // illegal move
+          }
+          case None => throw new RecordFormatException(n, s"invalid move: ${x}")
+        }
+      case (_, Some(((x, n), _))) =>
+        throw new RecordFormatException(n, s"invalid move expression: ${x}")
+      case ((_ :: xs), _) => // ignore other lines
+        f(xs, illegal, sofar)
+    }
+
+    f(input, None, initialBranch)
+  }
+
+}
+
+trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
 
   private[this] def isNormalMoveKi2(s: String): Boolean = s.headOption.exists(c => Player.symbolTable.mkString.contains(c))
 
@@ -119,12 +247,6 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
     case _ if s.slice(1, 3) == "手番" => true
     case _ if s.startsWith("手合割：") => true
     case _ => false
-  }
-
-  private[this] def splitMovesKif(lines: Lines): Lines = lines.flatMap { case (x, n) => {
-    val chunks = x.trim.split("[ ]+", 2)
-    if (chunks.length < 2 || Try(chunks(0).toInt).isFailure) Seq.empty else Seq((chunks(1), n))
-  }
   }
 
   protected[io] def splitMovesKi2(lines: Lines): Lines = lines.flatMap {
@@ -142,8 +264,7 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
 
   private[this] def sectionSplitterKif(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
     val (gi, st, body) = sectionSplitterCommon(nel, { s => !s.startsWith("手数") })
-    val b = body.drop(1).span { case (x, _) => !x.startsWith("変化：")}._1 // ignore branches (todo)
-    (gi, st, splitMovesKif(b), None)
+    (gi, st, body.drop(1), None)
   }
 
   private[this] def sectionSplitterKi2(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
@@ -184,41 +305,22 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
     * @param footer       not used
     * @return Game instance
     */
-  // todo: refactor these functions
-  protected[io] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
-    @tailrec
-    def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal) match {
-      case ((x, n) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
-        val special = MoveBuilderKif.parseTime((x, n)) match {
-          case ((Resign.kifKeyword, _), tm) => Resign(tm)
-          case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
-          case ((TimeUp.kifKeyword2, _), tm) => TimeUp(tm)
-          case ((Pause.kifKeyword, _), _) => Pause
-          case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
-        }
-        sofar.copy(finalAction = Some(special))
-      case ((x, _) :: Nil, Some((_, mv))) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
-        sofar.copy(finalAction = Some(IllegalMove(mv)))
-      case (Nil, Some((_, mv))) => // ends with implicit illegal move
-        sofar.copy(finalAction = Some(IllegalMove(mv)))
-      case (Nil, None) => sofar // ends without errors
-      case ((x, n) :: xs, None) =>
-        val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
-        bldr.toMove(sofar.lastState, sofar.lastMoveTo, isStrict = false) match {
-          case Some(mv) => mv.verify.flatMap(sofar.makeMove) match {
-            case Some(g) => f(xs, None, g) // legal move
-            case None => f(xs, Some((x, n), mv), sofar) // illegal move
-          }
-          case None => throw new RecordFormatException(n, s"invalid move: ${x}")
-        }
-      case (_ :: _, Some(((x, n), _))) => throw new RecordFormatException(n, s"invalid move expression: ${x}")
-    }
-
-    val trunk = f(lines.toList, None, Branch(initialState))
-    Game(trunk)
+  protected[kif] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+    val ls = splitBranchesKif(lines.toList, Nil, Nil)
+    val trunk = Branch.parseKifString(ls.headOption.getOrElse(Nil), initialState)
+    val branches = ls.drop(1).foldLeft(List.empty[Branch]) { case (xs, ln) => Branch.parseKifString(ln, trunk, xs) :: xs }
+    Game(trunk, branches.reverse.toVector)
   }
 
-  protected[io] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+  @tailrec
+  final protected[kif] def splitBranchesKif(ls: Lines, sofar: List[Lines], remainder: List[Line]): List[Lines] = (ls, remainder.nonEmpty) match {
+    case (Nil, true) => splitBranchesKif(Nil, remainder.reverse :: sofar, Nil)
+    case (Nil, false) => sofar.reverse
+    case ((x, _) :: xs, _) if x.startsWith("変化：") => splitBranchesKif(xs, remainder.reverse :: sofar, Nil)
+    case (ln :: xs, _) => splitBranchesKif(xs, sofar, ln :: remainder)
+  }
+
+  protected[kif] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     @tailrec
     def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal, footer) match {
       case (Nil, Some((_, mv)), Some((x, n))) if x.contains(IllegalMove.ki2Keyword) => // ends with explicit illegal move

@@ -121,9 +121,39 @@ case class Branch(initialHash: StateHash,
 
   def makeMove(move: MoveBuilder): Option[Branch] = move.toMove(lastState, lastMoveTo).flatMap(makeMove)
 
+  /**
+    * Check if the position is valid
+    *
+    * @return true if valid
+    */
+  def hasHistoryAt(pos: Int): Boolean = history.isDefinedAt(pos - offset)
+
+  /**
+    * Create part of this branch from the initial position
+    *
+    * @param pos offset position
+    * @return None if the position is invalid
+    */
+  def getSubBranch(pos: Int): Option[Branch] = {
+    val relPos = pos - offset
+    history.isDefinedAt(relPos).option(
+      this.copy(moves = moves.take(relPos), finalAction = None, comments = Map.empty, hint = Some(BranchHint(history.take(relPos + 1))))
+    )
+  }
+
+  /**
+    * Derive a new branch from a specific position
+    *
+    * @param pos offset position
+    * @return None if the position is invalid
+    */
+  def deriveNewBranch(pos: Int): Option[Branch] = {
+    val relPos = pos - offset
+    history.isDefinedAt(relPos).option(Branch(history(relPos), pos))
+  }
 }
 
-object Branch extends SfenBranchReader {
+object Branch extends SfenBranchReader with KifBranchReader {
   def apply()(implicit stateCache: StateCache): Branch = apply(State.HIRATE)
 
   def apply(state: State)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state))

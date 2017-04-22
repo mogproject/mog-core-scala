@@ -10,18 +10,79 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
   }
 
   "Game#parseCsaString" must "create games from files" in {
-    game.Game.parseCsaString(loadFile("csa/game/001.csa")).moves.length mustBe 111
+    Game.parseCsaString(loadFile("csa/game/001.csa")).moves.length mustBe 111
   }
 
   "Game#parseKifString" must "create games from files" in {
-    game.Game.parseKifString(loadFile("kif/game/001.kif")).moves.length mustBe 111
-    game.Game.parseKifString(loadFile("kif/game/002.kif")).moves.length mustBe 193
-    game.Game.parseKifString(loadFile("kif/game/003.kif", "sjis")).moves.length mustBe 117
-    game.Game.parseKifString(loadFile("kif/game/004.kif")).moves.length mustBe 223
+    Game.parseKifString(loadFile("kif/game/001.kif")).moves.length mustBe 111
+    Game.parseKifString(loadFile("kif/game/002.kif")).moves.length mustBe 193
+
+    val g003: Game = Game.parseKifString(loadFile("kif/game/003.kif", "sjis"))
+    g003.moves.length mustBe 117
+    g003.branches.map(_.offset) mustBe Seq(69, 69, 49, 33)
+    g003.branches.map(_.moves.length) mustBe Seq(9, 7, 13, 9)
+    g003.branches(2).comments mustBe Map(
+      52 -> Seq("[Taichi_NAKAMURA] 次に53銀打の狙いがあります。",
+        "\"You are threatening Silver drop to 53 ",
+        "here\"").mkString("\n"),
+      53 -> "[Archon] I was worried about bishop drop 77",
+      54 -> Seq(
+        "[Archon] I see, and without king to defend from ",
+        "earliermove",
+        "( \"なるほど、本譜のように玉が守っていないので。 \")",
+        "",
+        "[Taichi_NAKAMURA] そうですね。実戦の進行は上手の駒の連結が良くなってしまいました。",
+        "\"Yes. In the game, my pieces were connected ",
+        "tighter.\"",
+        ""
+      ).mkString("\n"),
+      62 -> Seq("[Taichi_NAKAMURA] 駒の働きや連結を意識するともっと上達すると思います。",
+        "\"You will improve a lot more, if you think ",
+        "more about pieces' connection and their efficiencies.\""
+      ).mkString("\n")
+    )
+
+    Game.parseKifString(loadFile("kif/game/004.kif")).moves.length mustBe 223
+
+    val g005: Game = Game.parseKifString(loadFile("kif/game/005.kif"))
+    g005.branches.map(_.status) mustBe Seq(GameStatus.Playing, GameStatus.Mated, GameStatus.Resigned)
+
+    Game.parseKifString(loadFile("kif/game/006.kif")).toKifString mustBe Seq(
+      "手合割：平手",
+      "先手：",
+      "後手：",
+      "",
+      "手数----指手----消費時間--",
+      "   1 ３六歩(37)",
+      "   2 ４二玉(51)",
+      "   3 ３五歩(36)",
+      "   4 ３二玉(42)",
+      "   5 ３四歩(35)",
+      "   6 ４二銀(31)",
+      "   7 ３三歩成(34)",
+      "   8 同　桂(21)",
+      "",
+      "",
+      "変化：7手",
+      "   7 ３三歩成(34)",
+      "",
+      "",
+      "変化：5手",
+      "   5 ３四歩(35)",
+      "",
+      "",
+      "変化：3手",
+      "   3 ３五歩(36)",
+      "",
+      "",
+      "変化：1手",
+      "   1 ３六歩(37)",
+      ""
+    ).mkString("\n")
   }
 
   "Game#parseKi2String" must "create games from files" in {
-    game.Game.parseKi2String(loadFile("ki2/game/001.ki2")).moves.length mustBe 111
-    game.Game.parseKi2String(loadFile("ki2/game/002.ki2")).moves.length mustBe 111
+    Game.parseKi2String(loadFile("ki2/game/001.ki2")).moves.length mustBe 111
+    Game.parseKi2String(loadFile("ki2/game/002.ki2")).moves.length mustBe 111
   }
 }

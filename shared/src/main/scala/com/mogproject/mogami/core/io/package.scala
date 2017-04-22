@@ -22,6 +22,7 @@ package object io {
   type KifStateReader = com.mogproject.mogami.core.io.kif.KifStateReader
   type KifGameReader = com.mogproject.mogami.core.io.kif.KifGameReader
   type KifGameWriter = com.mogproject.mogami.core.io.kif.KifGameWriter
+  type KifBranchReader = com.mogproject.mogami.core.io.kif.KifBranchReader
   type KifBranchWriter = com.mogproject.mogami.core.io.kif.KifBranchWriter
 
   type Ki2Like = com.mogproject.mogami.core.io.kif.Ki2Like

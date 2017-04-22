@@ -7,9 +7,13 @@ import com.mogproject.mogami.core.io.{Lines, NonEmptyLines, RecordFormatExceptio
   */
 trait KifFactory[T <: KifLike] {
 
+  /**
+    * @note do not ignore comments (* or #) here
+    * @param s
+    * @return
+    */
   final protected[io] def normalizeKifString(s: Seq[String]): Lines = for {
     (ln, n) <- s.zipWithIndex // set line numbers
-    if !ln.startsWith("*") && !ln.startsWith("#") // ignore comment lines
     if ln.nonEmpty
   } yield {
     (ln, n + 1)
