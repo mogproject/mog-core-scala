@@ -16,9 +16,11 @@ case class Game(trunk: Branch = Branch(),
                 gameInfo: GameInfo = GameInfo()
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
-  private[this] def getBranch(branchNo: BranchNo): Option[Branch] =
-    (1 <= branchNo && branchNo <= branches.length).option(branches(branchNo - 1))
+  def getBranch(branchNo: BranchNo): Option[Branch] =
+    if (branchNo == 0) Some(trunk) else branches.isDefinedAt(branchNo - 1).option(branches(branchNo - 1))
 
+  def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
+  
   def createBranch(position: GamePosition, move: Move): Option[(Game, BranchNo)] = ???
 
   def deleteBranch(branchNo: BranchNo): Option[Game] = ???
