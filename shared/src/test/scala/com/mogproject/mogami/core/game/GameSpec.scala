@@ -777,7 +777,6 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().truncated(GamePosition(0, 1)) mustBe Game()
     Game().truncated(GamePosition(1, 0)) mustBe Game()
 
-
     val s1 = SfenExtendedGame(
       SfenExtendedBranch(
         "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
@@ -812,5 +811,11 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.truncated(GamePosition(0, 2)).branches.length mustBe 3
     g1.truncated(GamePosition(0, 1)).branches.length mustBe 1
     g1.truncated(GamePosition(0, 0)).branches.length mustBe 1
+  }
+
+  "Game#getState" must "return state" in {
+    Game().getState(GamePosition(0, 0)) mustBe Some(HIRATE)
+    Game().getState(GamePosition(0, 1)) mustBe None
+    Game().getState(GamePosition(1, 0)) mustBe None
   }
 }

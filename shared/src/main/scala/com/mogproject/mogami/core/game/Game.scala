@@ -56,6 +56,8 @@ case class Game(trunk: Branch = Branch(),
     getBranch(branchNo).map { br => trunk.moves.take(br.offset - trunk.offset) ++ br.moves }.getOrElse(Vector.empty)
   }
 
+  def getState(gamePosition: GamePosition): Option[State] = withBranch(gamePosition.branch)(_.getState(gamePosition.position)).flatten
+
   def hasComment(gamePosition: GamePosition): Boolean = if (gamePosition.isTrunk) {
     trunk.hasComment(gamePosition.position)
   } else {
