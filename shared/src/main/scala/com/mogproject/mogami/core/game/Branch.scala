@@ -153,6 +153,16 @@ case class Branch(initialHash: StateHash,
   }
 
   def hasComment(pos: Int): Boolean = comments.contains(pos)
+
+  /**
+    * Create a truncated branch
+    *
+    * @param pos the point to truncate
+    */
+  def truncated(pos: Int): Branch = {
+    val relPos = pos - offset
+    copy(moves = moves.take(relPos), finalAction = None, comments = comments.filterKeys(_ <= pos), hint = Some(BranchHint(history.take(relPos + 1))))
+  }
 }
 
 object Branch extends SfenBranchReader with KifBranchReader {

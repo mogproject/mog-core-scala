@@ -771,4 +771,46 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.getFinalAction(2) mustBe Some(Resign())
     g1.getFinalAction(3) mustBe Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false)))
   }
+
+  "Game#truncated" must "return truncated games" in {
+    Game().truncated(GamePosition(0, 0)) mustBe Game()
+    Game().truncated(GamePosition(0, 1)) mustBe Game()
+    Game().truncated(GamePosition(1, 0)) mustBe Game()
+
+
+    val s1 = SfenExtendedGame(
+      SfenExtendedBranch(
+        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
+        None,
+        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
+      ),
+      Vector(
+        SfenExtendedBranch(
+          "2 7g7f 4b3b",
+          None,
+          Map(2 -> "m2")
+        ),
+        SfenExtendedBranch(
+          "2 5g5f 4b3b",
+          Some("r"),
+          Map(2 -> "v2", 4 -> "v4")
+        ),
+        SfenExtendedBranch(
+          "0",
+          Some("i 5i5a"),
+          Map.empty
+        )
+      )
+    )
+    val g1 = Game.parseSfenExtendedGame(s1)
+
+    g1.truncated(GamePosition(0, 3)) mustBe g1
+    g1.truncated(GamePosition(0, 2)).trunk.moves.length mustBe 2
+    g1.truncated(GamePosition(0, 2)).trunk.comments mustBe Map(1 -> "mv1", 2 -> "mv2")
+    g1.truncated(GamePosition(2, 3)).branches(2).comments mustBe Map(2 -> "v2")
+    g1.truncated(GamePosition(2, 4)).branches(2).status mustBe GameStatus.Playing
+    g1.truncated(GamePosition(0, 2)).branches.length mustBe 3
+    g1.truncated(GamePosition(0, 1)).branches.length mustBe 1
+    g1.truncated(GamePosition(0, 0)).branches.length mustBe 1
+  }
 }
