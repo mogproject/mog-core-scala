@@ -25,20 +25,21 @@ case class Game(trunk: Branch = Branch(),
 
   def deleteBranch(branchNo: BranchNo): Option[Game] = ???
 
-  def makeMove(move: Move, branchNo: BranchNo = 0): Option[Game] =
+  def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
     if (branchNo == 0) {
-      trunk.makeMove(move).map(tr => this.copy(trunk = tr))
+      f(trunk).map(tr => this.copy(trunk = tr))
     } else {
       for {
         br <- getBranch(branchNo)
         index = branchNo - 1
-        nxt <- br.makeMove(move)
+        nxt <- f(br)
       } yield {
         this.copy(branches = branches.updated(index, nxt))
       }
     }
+  }
 
-  // aliases to the trunk
+  // aliases to the trunk (will be deprecated)
   def moves: Vector[Move] = trunk.moves
 
   def lastState: State = trunk.lastState
