@@ -118,6 +118,25 @@ class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     MoveBuilderSfen.parseSfenString(m.toSfenString) mustBe m
   }
 
+  "Move#toUsenString" must "describe the move" in {
+    movesForTestSfen map (_.toUsenString) mustBe Seq("7ku", "a01", "biw")
+  }
+  "Move#parseUsenString" must "suceed in normal cases" in {
+    Seq("7ku", "a01", "biw") map { c => MoveBuilderSfen.parseUsenString(c) } mustBe movesForTestSfen
+  }
+  it must "throw an exception in error cases" in {
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString(""))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString(" "))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString("x" * 1000))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString("-1"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString("7g76"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString("zzz"))
+    assertThrows[RecordFormatException](MoveBuilderSfen.parseUsenString("7lc"))
+  }
+  it must "restore moves" in forAll(MoveGen.movesSfenFormat) { m =>
+    MoveBuilderSfen.parseUsenString(m.toUsenString) mustBe m
+  }
+
   "Move#toKifString" must "describe the move" in {
     movesForTestKif map (_.toKifString) mustBe kifForTest
   }
