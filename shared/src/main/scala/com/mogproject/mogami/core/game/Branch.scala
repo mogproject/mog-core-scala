@@ -43,6 +43,8 @@ case class Branch(initialHash: StateHash,
 
   def clearComment(pos: Int): Branch = updateComments(comments - pos)
 
+  def getState(pos: Int): Option[State] = history.isDefinedAt(pos - offset).option(stateCache.get(history(pos - offset))).flatten
+
   /**
     * history of state hashes
     */
