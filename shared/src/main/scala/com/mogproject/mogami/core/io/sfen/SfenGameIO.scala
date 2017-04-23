@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.{Move, MoveBuilderSfen, SpecialMove}
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateHash.StateHash
+import com.mogproject.mogami.util.Implicits._
 
 import scala.util.{Failure, Success, Try}
 
@@ -102,7 +103,10 @@ trait SfenBranchWriter extends SfenLike {
     */
   override def toSfenString: String = (offset.toString +: moves.map(_.toSfenString).toList).mkString(" ")
 
-  def toSfenExtendedBranch: SfenExtendedBranch = SfenExtendedBranch(toSfenString, finalAction.map(_.toSfenExtendedString), comments)
+  def toSfenExtendedBranch(addInitialState: Boolean = false): SfenExtendedBranch = {
+    val mv = addInitialState.fold(initialState.toSfenString + " ", "") + toSfenString
+    SfenExtendedBranch(mv, finalAction.map(_.toSfenExtendedString), comments)
+  }
 }
 
 trait SfenGameWriter extends SfenLike {
@@ -117,5 +121,5 @@ trait SfenGameWriter extends SfenLike {
     */
   override def toSfenString: String = trunk.initialState.toSfenString + " " + trunk.toSfenString
 
-  def toSfenExtendedGame: SfenExtendedGame = SfenExtendedGame(trunk.toSfenExtendedBranch, branches.map(_.toSfenExtendedBranch))
+  def toSfenExtendedGame: SfenExtendedGame = SfenExtendedGame(trunk.toSfenExtendedBranch(true), branches.map(_.toSfenExtendedBranch(false)))
 }
