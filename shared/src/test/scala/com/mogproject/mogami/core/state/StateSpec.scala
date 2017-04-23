@@ -249,6 +249,18 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     State.parseSfenString(st.toSfenString) mustBe st
   }
 
+  "State#toUsenString" must "describe the state" in {
+    dataForTest(0).toUsenString mustBe "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-"
+    dataForTest(1).toUsenString mustBe "9_9_9_9_9_9_9_9_9.b.-"
+    dataForTest(2).toUsenString mustBe "lnsgk2nl_1r4gs1_pppzBpp1p1_6p1p_2P6_8P_PP2PPPP1_2S1G4_LN2KGSNL.w.BPrp"
+    dataForTest(3).toUsenString mustBe "zlznzsgkgzsznzl_1zr5zb1_zpzpzpzpzpzpzpzpzp_9_9_9_zPzPzPzPzPzPzPzPzP_1zB5zR1_zLzNzSGKGzSzNzL.b.-"
+    dataForTest(4).toUsenString mustBe "4k4_9_9_9_9_9_9_9_9.b.2R2B4G4S4N4L18P"
+    dataForTest(5).toUsenString mustBe "9_9_9_9_9_9_9_9_4K4.w.2r2b4g4s4n4l18p"
+  }
+  it must "restore states" in forAll(StateGen.statesWithFullPieces) { st =>
+    State.parseUsenString(st.toUsenString) mustBe st
+  }
+
   "State#toKifString" must "describe the state" in {
     dataForTest(0).toKifString mustBe kifForTest(0)
     dataForTest(1).toKifString mustBe kifForTest(1)
