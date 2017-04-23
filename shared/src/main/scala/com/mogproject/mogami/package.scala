@@ -1,7 +1,5 @@
 package com.mogproject
 
-import com.mogproject.mogami.core.move.Resign
-
 package object mogami {
 
   type Player = com.mogproject.mogami.core.Player
@@ -83,6 +81,8 @@ package object mogami {
 
   type Branch = com.mogproject.mogami.core.game.Branch
   val Branch = com.mogproject.mogami.core.game.Branch
+
+  type BranchNo = com.mogproject.mogami.core.game.Game.BranchNo
 
   type GamePosition = com.mogproject.mogami.core.game.Game.GamePosition
   val GamePosition = com.mogproject.mogami.core.game.Game.GamePosition
