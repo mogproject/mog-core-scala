@@ -20,7 +20,7 @@ case class Game(trunk: Branch = Branch(),
     if (branchNo == 0) Some(trunk) else branches.isDefinedAt(branchNo - 1).option(branches(branchNo - 1))
 
   def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
-  
+
   def createBranch(position: GamePosition, move: Move): Option[(Game, BranchNo)] = ???
 
   def deleteBranch(branchNo: BranchNo): Option[Game] = ???
@@ -77,6 +77,20 @@ case class Game(trunk: Branch = Branch(),
   } else {
     getBranch(branchNo).flatMap(_.finalAction)
   }
+
+  /**
+    * Create a truncated game at a specific position
+    */
+  def truncated(gamePosition: GamePosition): Game = {
+    if (gamePosition.isTrunk) {
+      // delete branches if needed
+      copy(trunk = trunk.truncated(gamePosition.position), branches = branches.filter(_.offset <= gamePosition.position))
+    } else {
+      withBranch(gamePosition.branch) { br =>
+        copy(branches = branches.updated(gamePosition.branch, br.truncated(gamePosition.position)))
+      }.getOrElse(this)
+    }
+  }
 }
 
 object Game extends CsaGameReader with SfenGameReader with KifGameReader {
@@ -84,6 +98,9 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
   type BranchNo = Int // branch number: root = 0
 
   case class GamePosition(branch: BranchNo, position: Int) {
+    require(branch >= 0, "branch must not be negative")
+    require(position >= 0, "position must not be negative")
+
     def isTrunk: Boolean = branch == 0
   }
 

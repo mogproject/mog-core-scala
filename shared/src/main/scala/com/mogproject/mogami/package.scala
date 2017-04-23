@@ -81,6 +81,12 @@ package object mogami {
   type Game = com.mogproject.mogami.core.game.Game
   val Game = com.mogproject.mogami.core.game.Game
 
+  type Branch = com.mogproject.mogami.core.game.Branch
+  val Branch = com.mogproject.mogami.core.game.Branch
+
+  type GamePosition = com.mogproject.mogami.core.game.Game.GamePosition
+  val GamePosition = com.mogproject.mogami.core.game.Game.GamePosition
+
   type GameStatus = com.mogproject.mogami.core.game.GameStatus.GameStatus
   val GameStatus = com.mogproject.mogami.core.game.GameStatus
 
