@@ -4,7 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.io.csa.CsaLike
 import com.mogproject.mogami.core.io.kif.{Ki2Like, KifLike}
-import com.mogproject.mogami.core.io.sfen.SfenLike
+import com.mogproject.mogami.core.io.sfen.{SfenLike, UsenLike}
 import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.util.Implicits._
 
@@ -25,7 +25,7 @@ case class Move(player: Player,
                 isCheck: Boolean,
                 elapsedTime: Option[Int] = None,
                 isStrict: Boolean = true // enable strict requirement check
-               ) extends CsaLike with SfenLike with KifLike with Ki2Like {
+               ) extends CsaLike with SfenLike with KifLike with Ki2Like with UsenLike {
   if (isStrict) checkRequirement()
 
   def checkRequirement(): Unit = {
@@ -79,6 +79,9 @@ case class Move(player: Player,
 
   override def toSfenString: String =
     from.map(fr => MoveBuilderSfenBoard(fr, to, promote)).getOrElse(MoveBuilderSfenHand(newPtype, to)).toSfenString
+
+  override def toUsenString: String =
+    from.map(fr => MoveBuilderSfenBoard(fr, to, promote)).getOrElse(MoveBuilderSfenHand(newPtype, to)).toUsenString
 
   override def toKifString: String =
     from.map(fr => MoveBuilderKifBoard(fr, (!isSameSquare).option(to), oldPtype, promote, elapsedTime))

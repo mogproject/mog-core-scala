@@ -37,4 +37,6 @@ package object io {
   type SfenBranchReader = com.mogproject.mogami.core.io.sfen.SfenBranchReader
   type SfenBranchWriter = com.mogproject.mogami.core.io.sfen.SfenBranchWriter
 
+  type UsenLike = com.mogproject.mogami.core.io.sfen.UsenLike
+  type UsenFactory[T <: UsenLike] = com.mogproject.mogami.core.io.sfen.UsenFactory[T]
 }

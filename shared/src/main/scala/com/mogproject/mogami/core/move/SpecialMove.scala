@@ -1,13 +1,10 @@
 package com.mogproject.mogami.core.move
 
-import com.mogproject.mogami.core.io.csa.CsaLike
+import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.{Player, Square}
-import com.mogproject.mogami.core.io.sfen.SfenExtendedLike
-import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.io.kif.KifLike
 import com.mogproject.mogami.core.state.State
 
-sealed trait SpecialMove extends CsaLike with KifLike with SfenExtendedLike {
+sealed trait SpecialMove extends CsaLike with KifLike with UsenLike {
   def toJapaneseNotationString: String
 
   def toWesternNotationString: String
@@ -18,13 +15,13 @@ sealed trait SpecialMove extends CsaLike with KifLike with SfenExtendedLike {
 }
 
 object SpecialMove {
-  def parseSfenExtended(s: String, lastState: State, lastMoveTo: Option[Square]): SpecialMove = s.split(" ").toList match {
-    case Resign.sfenExtendedKeyword :: Nil => Resign()
-    case TimeUp.sfenExtendedKeyword :: Nil => TimeUp()
-    case Pause.sfenExtendedKeyword :: Nil => Pause
-    case IllegalMove.sfenExtendedKeyword :: mv :: Nil =>
-      IllegalMove(MoveBuilderSfen.parseSfenString(mv).toMove(lastState, lastMoveTo, isStrict=false).getOrElse(
-        throw new RecordFormatException(1, s"invalid illegal move: ${mv}")
+  def parseUsenString(s: String, lastState: State, lastMoveTo: Option[Square]): SpecialMove = s.headOption match {
+    case Some(Resign.usenKeyword) => Resign()
+    case Some(TimeUp.usenKeyword) => TimeUp()
+    case Some(Pause.usenKeyword) => Pause
+    case Some(IllegalMove.usenKeyword) =>
+      IllegalMove(MoveBuilderSfen.parseUsenString(s.drop(1)).toMove(lastState, lastMoveTo, isStrict = false).getOrElse(
+        throw new RecordFormatException(1, s"invalid illegal move: ${s.drop(1)}")
       ))
     case _ => throw new RecordFormatException(1, s"unknown final action: ${s}")
   }
@@ -40,7 +37,7 @@ case class IllegalMove(move: Move) extends SpecialMove {
 
   override def toKifString: String = IllegalMove.kifKeyword
 
-  override def toSfenExtendedString: String = IllegalMove.sfenExtendedKeyword + " " + move.toSfenString
+  override def toUsenString: String = IllegalMove.usenKeyword + move.toUsenString
 
   override def toJapaneseNotationString: String = IllegalMove.kifKeyword
 
@@ -54,7 +51,7 @@ object IllegalMove {
   val csaKeyword = "%ILLEGAL_MOVE"
   val kifKeyword = "反則手"
   val ki2Keyword = "反則"
-  val sfenExtendedKeyword = "i"
+  val usenKeyword = 'i'
 }
 
 /**
@@ -67,7 +64,7 @@ case class Resign(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKifString: String = Resign.kifKeyword + timeToKifString(elapsedTime)
 
-  override def toSfenExtendedString: String = Resign.sfenExtendedKeyword
+  override def toUsenString: String = Resign.usenKeyword.toString
 
   override def toJapaneseNotationString: String = Resign.kifKeyword
 
@@ -80,7 +77,7 @@ case class Resign(elapsedTime: Option[Int] = None) extends SpecialMove {
 object Resign {
   val csaKeyword = "%TORYO"
   val kifKeyword = "投了"
-  val sfenExtendedKeyword = "r"
+  val usenKeyword = 'r'
 }
 
 /**
@@ -93,7 +90,7 @@ case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKifString: String = TimeUp.kifKeyword + timeToKifString(elapsedTime)
 
-  override def toSfenExtendedString: String = TimeUp.sfenExtendedKeyword
+  override def toUsenString: String = TimeUp.usenKeyword.toString
 
   override def toJapaneseNotationString: String = TimeUp.kifKeyword
 
@@ -108,7 +105,7 @@ object TimeUp {
   val kifKeyword = "切れ負け"
   val kifKeyword2 = "Time-up" // Used on 81Dojo
   val ki2Keyword = "時間切れ"
-  val sfenExtendedKeyword = "t"
+  val usenKeyword = 't'
 }
 
 /**
@@ -118,13 +115,13 @@ case object Pause extends SpecialMove {
   val csaKeyword = "%CHUDAN"
   val kifKeyword = "中断"
   val ki2Keyword: String = kifKeyword
-  val sfenExtendedKeyword = "p"
+  val usenKeyword = 'p'
 
   override def toCsaString: String = csaKeyword
 
   override def toKifString: String = kifKeyword
 
-  override def toSfenExtendedString: String = sfenExtendedKeyword
+  override def toUsenString: String = usenKeyword.toString
 
   override def toJapaneseNotationString: String = kifKeyword
 

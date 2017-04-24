@@ -17,7 +17,7 @@ case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
                  hint: Option[StateHint] = None
-                ) extends CsaLike with SfenLike with KifLike {
+                ) extends CsaLike with SfenLike with KifLike with UsenLike {
 
   // if a hint is given, skip requirement checks
   if (hint.isEmpty) {
@@ -86,6 +86,8 @@ case class State(turn: Player = BLACK,
 
     s"$boardString ${turn.toSfenString} ${handString.isEmpty.fold("-", handString)}"
   }
+
+  override def toUsenString: String = toSfenString.replace('/', '_').replace(' ', '.').replace('+', 'z')
 
   private[this] def numberToJapanese(n: Int): String = n match {
     case _ if 1 <= n && n <= 18 =>

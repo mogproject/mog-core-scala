@@ -11,9 +11,9 @@ import scala.annotation.tailrec
 /**
   * Reads Sfen-formatted state
   */
-trait SfenStateReader extends SfenFactory[state.State] {
+trait SfenStateReader extends SfenFactory[State] with UsenFactory[State] {
 
-  def parseSfenString(s: String): state.State = {
+  override def parseSfenString(s: String): state.State = {
     val tokens = s.split(" ", 3)
     if (tokens.length != 3) throw new RecordFormatException(1, s"there must be three tokens: ${s}")
     val board = parseBoard(tokens(0))
@@ -57,4 +57,6 @@ trait SfenStateReader extends SfenFactory[state.State] {
 
     (s == "-").fold(State.EMPTY_HANDS, f(State.EMPTY_HANDS, s))
   }
+
+  override def parseUsenString(s: String): state.State = parseSfenString(s.replace('_', '/').replace('.', ' ').replace('z', '+'))
 }
