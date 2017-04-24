@@ -5,7 +5,6 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.Game.GamePosition
 import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
-import com.mogproject.mogami.core.io.sfen.{SfenExtendedBranch, SfenExtendedGame}
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
@@ -645,31 +644,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   "Game#getAllMoves" must "get all moves" in {
     Game().getAllMoves(0) mustBe Vector.empty
 
-    val s1 = SfenExtendedGame(
-      SfenExtendedBranch(
-        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
-        None,
-        Map(0 -> "initial\ncomment", 1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
-      ),
-      Vector(
-        SfenExtendedBranch(
-          "2 7g7f 4b3b",
-          None,
-          Map(2 -> "m2", 3 -> "m3")
-        ),
-        SfenExtendedBranch(
-          "2 5g5f 4b3b",
-          Some("r"),
-          Map(2 -> "v2", 3 -> "v3")
-        ),
-        SfenExtendedBranch(
-          "0",
-          Some("i 5i5a"),
-          Map.empty
-        )
-      )
-    )
-    val g1 = Game.parseSfenExtendedGame(s1)
+    val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
+    val g1 = Game.parseUsenString(s1)
     g1.getAllMoves(0) mustBe Vector(
       Move(BLACK, Some(Square(55)), Square(46), PAWN, false, false, None, None, false, None, true),
       Move(WHITE, Some(Square(4)), Square(12), KING, false, false, None, None, false, None, true),
@@ -700,31 +676,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().hasComment(GamePosition(0, 1)) mustBe false
     Game().hasComment(GamePosition(1, 0)) mustBe false
 
-    val s1 = SfenExtendedGame(
-      SfenExtendedBranch(
-        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
-        None,
-        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
-      ),
-      Vector(
-        SfenExtendedBranch(
-          "2 7g7f 4b3b",
-          None,
-          Map(2 -> "m2")
-        ),
-        SfenExtendedBranch(
-          "2 5g5f 4b3b",
-          Some("r"),
-          Map(2 -> "v2", 3 -> "v3")
-        ),
-        SfenExtendedBranch(
-          "0",
-          Some("i 5i5a"),
-          Map.empty
-        )
-      )
-    )
-    val g1 = Game.parseSfenExtendedGame(s1)
+    val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
+    val g1: Game = Game.parseUsenString(s1)
+      .updateBranch(0)(br => Some(br.updateComments(Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")))).get
+      .updateBranch(1)(br => Some(br.updateComments(Map(2 -> "m2")))).get
+      .updateBranch(2)(br => Some(br.updateComments(Map(2 -> "v2", 3 -> "v3")))).get
+
     (for {
       i <- 0 to 4
       j <- 0 to 4
@@ -741,31 +698,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().getFinalAction(0) mustBe None
     Game().getFinalAction(1) mustBe None
 
-    val s1 = SfenExtendedGame(
-      SfenExtendedBranch(
-        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
-        None,
-        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
-      ),
-      Vector(
-        SfenExtendedBranch(
-          "2 7g7f 4b3b",
-          None,
-          Map(2 -> "m2")
-        ),
-        SfenExtendedBranch(
-          "2 5g5f 4b3b",
-          Some("r"),
-          Map(2 -> "v2", 3 -> "v3")
-        ),
-        SfenExtendedBranch(
-          "0",
-          Some("i 5i5a"),
-          Map.empty
-        )
-      )
-    )
-    val g1 = Game.parseSfenExtendedGame(s1)
+    val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
+    val g1: Game = Game.parseUsenString(s1)
+
     g1.getFinalAction(0) mustBe None
     g1.getFinalAction(1) mustBe None
     g1.getFinalAction(2) mustBe Some(Resign())
@@ -777,31 +712,11 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().truncated(GamePosition(0, 1)) mustBe Game()
     Game().truncated(GamePosition(1, 0)) mustBe Game()
 
-    val s1 = SfenExtendedGame(
-      SfenExtendedBranch(
-        "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 5a4b 2f2e",
-        None,
-        Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")
-      ),
-      Vector(
-        SfenExtendedBranch(
-          "2 7g7f 4b3b",
-          None,
-          Map(2 -> "m2")
-        ),
-        SfenExtendedBranch(
-          "2 5g5f 4b3b",
-          Some("r"),
-          Map(2 -> "v2", 4 -> "v4")
-        ),
-        SfenExtendedBranch(
-          "0",
-          Some("i 5i5a"),
-          Map.empty
-        )
-      )
-    )
-    val g1 = Game.parseSfenExtendedGame(s1)
+    val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
+    val g1: Game = Game.parseUsenString(s1)
+      .updateBranch(0)(br => Some(br.updateComments(Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")))).get
+      .updateBranch(1)(br => Some(br.updateComments(Map(2 -> "m2")))).get
+      .updateBranch(2)(br => Some(br.updateComments(Map(2 -> "v2", 4 -> "v4")))).get
 
     g1.truncated(GamePosition(0, 3)) mustBe g1
     g1.truncated(GamePosition(0, 2)).trunk.moves.length mustBe 2
