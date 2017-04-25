@@ -21,6 +21,9 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     g003.moves.length mustBe 117
     g003.branches.map(_.offset) mustBe Seq(69, 69, 49, 33)
     g003.branches.map(_.moves.length) mustBe Seq(9, 7, 13, 9)
+    g003.trunk.hasComment(0) mustBe true
+    g003.trunk.comments.size mustBe 17
+    g003.trunk.comments.keySet mustBe Set(0, 32, 33, 46, 49, 56, 64, 69, 72, 76, 83, 100, 105, 109, 111, 113, 117)
     g003.branches(2).comments mustBe Map(
       52 -> Seq("[Taichi_NAKAMURA] 次に53銀打の狙いがあります。",
         "\"You are threatening Silver drop to 53 ",
@@ -41,6 +44,8 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
         "more about pieces' connection and their efficiencies.\""
       ).mkString("\n")
     )
+
+    Game.parseKifString(g003.toKifString).toUsenString mustBe g003.toUsenString
 
     Game.parseKifString(loadFile("kif/game/004.kif")).moves.length mustBe 223
 

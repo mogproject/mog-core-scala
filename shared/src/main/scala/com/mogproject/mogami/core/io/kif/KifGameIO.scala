@@ -63,12 +63,13 @@ trait KifBranchWriter extends KifLike {
     } yield "*" + line
 
     val lines: Seq[String] = for {
-      (m, i) <- (descriptiveMoves ++ finalAction).map(_.toKifString).zipWithIndex
+      (m, i) <- ((descriptiveMoves ++ finalAction).map(_.toKifString) :+ "").zipWithIndex
       index = offset + i
       ln <- commentToSeq(index) :+ f"${index + 1}%4d ${m}"
     } yield ln
 
-    (lines ++ commentToSeq(offset + moves.length)).mkString("\n")
+    // remove the last element (dummy)
+    lines.init.mkString("\n")
   }
 }
 
