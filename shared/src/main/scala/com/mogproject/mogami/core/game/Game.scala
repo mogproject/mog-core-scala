@@ -1,13 +1,14 @@
 package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
-import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
+
+import scala.collection.mutable
 
 /**
   * Game
@@ -17,14 +18,45 @@ case class Game(trunk: Branch = Branch(),
                 gameInfo: GameInfo = GameInfo()
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
-  def getBranch(branchNo: BranchNo): Option[Branch] =
-    if (branchNo == 0) Some(trunk) else branches.isDefinedAt(branchNo - 1).option(branches(branchNo - 1))
+  type ForkList = Map[Int, Vector[(Move, BranchNo)]]
+  private[this] val forkList: mutable.Map[BranchNo, ForkList] = mutable.Map.empty
+
+  def getBranch(branchNo: BranchNo): Option[Branch] = (branchNo == 0).fold(Some(trunk), branches.get(branchNo - 1))
 
   def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
 
-  def createBranch(position: GamePosition, move: Move): Option[(Game, BranchNo)] = ???
+  def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
+    val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
+    val forks = getForkList(gamePosition.branch)
 
-  def deleteBranch(branchNo: BranchNo): Option[Game] = ???
+    val ok = moveOnThisBranch.exists(_ != move) && forks.get(gamePosition.position + 1).forall(_.forall(_._1 != move))
+
+    if (ok) {
+      (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
+        println(trunk.getState(gamePosition.position - trunk.offset).get.toCsaString)
+        println(move.toCsaString)
+        Some(Branch(trunk.history(gamePosition.position - trunk.offset), gamePosition.position, Vector(move)))
+      } else {
+        val diff = gamePosition.position - br.offset
+        (br.moves.take(diff) :+ move).foreach(x => println(x.toCsaString))
+        println(trunk.history(br.offset - trunk.offset))
+        println(trunk.getState(br.offset).get.toCsaString)
+
+        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff), hint = Some(BranchHint(br.history.take(diff + 1)))).makeMove(move)
+      }) map { newBranch =>
+        copy(branches = branches :+ newBranch)
+      }
+    } else {
+      // the position is the last position of the current branch, or the fork already exists
+      None
+    }
+  }.flatten
+
+  def deleteBranch(branchNo: BranchNo): Option[Game] = if (branchNo == 0 || !branches.isDefinedAt(branchNo - 1)) {
+    None // trunk cannot be deleted
+  } else {
+    Some(copy(branches = branches.patch(branchNo - 1, Nil, 1)))
+  }
 
   def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
     if (branchNo == 0) {
@@ -41,11 +73,17 @@ case class Game(trunk: Branch = Branch(),
   }
 
   /**
-    *
     * @param branchNo map of offset -> {vector of (move, branch number)
     * @return
     */
-  def getForkList(branchNo: BranchNo): Map[Int, Vector[(Move, BranchNo)]] = {
+  protected[game] def getForkList(branchNo: BranchNo): ForkList = forkList.getOrElse(branchNo, {
+    // update stored value
+    val ls = createForkList(branchNo)
+    forkList.update(branchNo, ls)
+    ls
+  })
+
+  protected[game] def createForkList(branchNo: BranchNo): ForkList = {
     val m: Map[(Int, Move), BranchNo] = if (branchNo == 0) {
       findForksOnTrunk(trunk.offset + trunk.moves.length)
     } else {
@@ -57,7 +95,7 @@ case class Game(trunk: Branch = Branch(),
         val trunkFork = if (trunk.moves.isDefinedAt(br.offset)) Map((br.offset + 1, trunk.moves(br.offset)) -> 0) else Map.empty
 
         // find brother nodes
-        val brothers = branches.zipWithIndex.filter { case (b, _) => b.offset == br.offset }
+        val brothers = branches.zipWithIndex.filter { case (b, i) => i != branchNo - 1 && b.offset == br.offset }
         preceding ++ trunkFork ++ findForksOnBrotherNodes(br.history, brothers)
       }.getOrElse(Map.empty)
     }
@@ -85,6 +123,8 @@ case class Game(trunk: Branch = Branch(),
       }
     }
   }
+
+  def getForks(gamePosition: GamePosition): Vector[(Move, BranchNo)] = getForkList(gamePosition.branch).getOrElse(gamePosition.position, Vector.empty)
 
   /**
     * Get all moves from the trunk's start position
@@ -120,6 +160,8 @@ case class Game(trunk: Branch = Branch(),
   } else {
     getBranch(branchNo).flatMap(_.finalAction)
   }
+
+  def hasFork(gamePosition: GamePosition): Boolean = getForkList(gamePosition.branch).keySet.contains(gamePosition.position)
 
   /**
     * Create a truncated game at a specific position

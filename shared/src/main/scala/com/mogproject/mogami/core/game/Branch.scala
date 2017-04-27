@@ -22,7 +22,7 @@ case class Branch(initialHash: StateHash,
                   hint: Option[BranchHint] = None)
                  (implicit stateCache: StateCache) extends SfenBranchWriter with KifBranchWriter {
 
-  require(history.length == moves.length + 1, "all moves must be valid")
+  require(history.length == moves.length + 1, s"all moves must be valid: history.length=${history.length}, moves.length=${moves.length}")
 
 
   /**
@@ -43,7 +43,7 @@ case class Branch(initialHash: StateHash,
 
   def clearComment(pos: Int): Branch = updateComments(comments - pos)
 
-  def getState(pos: Int): Option[State] = history.isDefinedAt(pos - offset).option(stateCache.get(history(pos - offset))).flatten
+  def getState(pos: Int): Option[State] = history.get(pos - offset).flatMap(stateCache.get)
 
   /**
     * history of state hashes
@@ -51,6 +51,8 @@ case class Branch(initialHash: StateHash,
   lazy val history: Vector[StateHash] = hint.map(_.history).getOrElse(createHistory())
 
   def initialState: State = stateCache(initialHash)
+
+  def getMove(pos: Int): Option[Move] = moves.get(pos - offset)
 
   lazy val lastState: State = stateCache(history.last)
 
@@ -150,8 +152,7 @@ case class Branch(initialHash: StateHash,
     * @return None if the position is invalid
     */
   def deriveNewBranch(pos: Int): Option[Branch] = {
-    val relPos = pos - offset
-    history.isDefinedAt(relPos).option(Branch(history(relPos), pos))
+    history.get(pos - offset).map(h => Branch(h, pos))
   }
 
   def hasComment(pos: Int): Boolean = comments.contains(pos)
