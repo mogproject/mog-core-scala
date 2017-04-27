@@ -86,16 +86,6 @@ case class Game(trunk: Branch = Branch(),
     }
   }
 
-  // aliases to the trunk (will be deprecated)
-  @deprecated
-  def moves: Vector[Move] = trunk.moves
-
-  @deprecated
-  def lastState: State = trunk.lastState
-
-  @deprecated
-  def status: GameStatus = trunk.status
-
   /**
     * Get all moves from the trunk's start position
     *
