@@ -46,4 +46,14 @@ object Implicits {
       */
     final def mapKeys[A](f: K => A): Map[A, V] = m.map { case (k, v) => f(k) -> v }
   }
+
+  /**
+    * Extension for build-tin Map type
+    */
+  implicit class RichIndexedSeq[A](val xs: IndexedSeq[A]) extends AnyVal {
+    /**
+      * @return get value wrapped by Option
+      */
+    final def get(index: Int): Option[A] = if (xs.isDefinedAt(index)) Some(xs(index)) else None
+  }
 }

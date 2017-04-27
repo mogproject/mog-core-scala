@@ -21,14 +21,42 @@ case class Game(trunk: Branch = Branch(),
   type ForkList = Map[Int, Vector[(Move, BranchNo)]]
   private[this] val forkList: mutable.Map[BranchNo, ForkList] = mutable.Map.empty
 
-  def getBranch(branchNo: BranchNo): Option[Branch] =
-    if (branchNo == 0) Some(trunk) else branches.isDefinedAt(branchNo - 1).option(branches(branchNo - 1))
+  def getBranch(branchNo: BranchNo): Option[Branch] = (branchNo == 0).fold(Some(trunk), branches.get(branchNo - 1))
 
   def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
 
-  def createBranch(position: GamePosition, move: Move): Option[(Game, BranchNo)] = ???
+  def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
+    val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
+    val forks = getForkList(gamePosition.branch)
 
-  def deleteBranch(branchNo: BranchNo): Option[Game] = ???
+    val ok = moveOnThisBranch.exists(_ != move) && forks.get(gamePosition.position + 1).forall(_.forall(_._1 != move))
+
+    if (ok) {
+      (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
+        println(trunk.getState(gamePosition.position - trunk.offset).get.toCsaString)
+        println(move.toCsaString)
+        Some(Branch(trunk.history(gamePosition.position - trunk.offset), gamePosition.position, Vector(move)))
+      } else {
+        val diff = gamePosition.position - br.offset
+        (br.moves.take(diff) :+ move).foreach(x => println(x.toCsaString))
+        println(trunk.history(br.offset - trunk.offset))
+        println(trunk.getState(br.offset).get.toCsaString)
+
+        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff), hint = Some(BranchHint(br.history.take(diff + 1)))).makeMove(move)
+      }) map { newBranch =>
+        copy(branches = branches :+ newBranch)
+      }
+    } else {
+      // the position is the last position of the current branch, or the fork already exists
+      None
+    }
+  }.flatten
+
+  def deleteBranch(branchNo: BranchNo): Option[Game] = if (branchNo == 0 || !branches.isDefinedAt(branchNo - 1)) {
+    None // trunk cannot be deleted
+  } else {
+    Some(copy(branches = branches.patch(branchNo - 1, Nil, 1)))
+  }
 
   def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
     if (branchNo == 0) {
