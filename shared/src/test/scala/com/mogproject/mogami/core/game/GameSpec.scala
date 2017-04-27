@@ -735,7 +735,6 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
 
   "Game#getForkList" must "return fork list" in {
-
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -747,7 +746,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
       "3.0e4.", // Branch: 7
       "0.72m2jm83m.", // Branch: 8
-      "0.72m36e83m."  // Branch: 9
+      "0.72m36e83m." // Branch: 9
     ).mkString("~")
     /*
                 1       2       3       4       5       6       7       8       9       10      11      12      13
@@ -764,7 +763,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
      */
 
     val g1: Game = Game.parseUsenString(s1)
-    def f(n: Int) = g1.getForkList(n).map{ case (pos, vs) => pos -> vs.map {case (m, b) => m.toCsaString -> b }}
+
+    def f(n: Int) = g1.getForkList(n).map { case (pos, vs) => pos -> vs.map { case (m, b) => m.toCsaString -> b } }
 
     f(0) mustBe Map(
       1 -> Vector(("+3736FU", 8)),
@@ -820,5 +820,62 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       1 -> Vector(("+2726FU", 0)),
       2 -> Vector(("-3334FU", 8))
     )
+  }
+
+  "Game#hasFork" must "return if the position has a fork" in {
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "12.3kk.", // Branch: 1
+      "11.05m3jm5ge7pe22w.", // Branch: 2
+      "8.8uc1cd9yu.", // Branch: 3
+      "3.2jm4o22f281k4be.", // Branch: 4
+      "3.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "3.0e4.", // Branch: 7
+      "0.72m2jm83m.", // Branch: 8
+      "0.72m36e83m." // Branch: 9
+    ).mkString("~")
+
+    val g1: Game = Game.parseUsenString(s1)
+
+    g1.hasFork(GamePosition(0, 0)) mustBe false
+    g1.hasFork(GamePosition(0, 1)) mustBe true
+    g1.hasFork(GamePosition(0, 13)) mustBe true
+    g1.hasFork(GamePosition(0, 14)) mustBe false
+    g1.hasFork(GamePosition(7, 4)) mustBe true
+    g1.hasFork(GamePosition(99, 0)) mustBe false
+  }
+
+  "Game#getForks" must "return forks at the position" in {
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "12.3kk.", // Branch: 1
+      "11.05m3jm5ge7pe22w.", // Branch: 2
+      "8.8uc1cd9yu.", // Branch: 3
+      "3.2jm4o22f281k4be.", // Branch: 4
+      "3.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "3.0e4.", // Branch: 7
+      "0.72m2jm83m.", // Branch: 8
+      "0.72m36e83m." // Branch: 9
+    ).mkString("~")
+
+    val g1: Game = Game.parseUsenString(s1)
+
+    g1.getForks(GamePosition(0, 0)) mustBe Vector.empty
+    g1.getForks(GamePosition(0, 1)) mustBe Vector(
+      (Move(BLACK, Some(Square(56)), Square(47), PAWN, false, false, None, None, false, None, true), 8)
+    )
+    g1.getForks(GamePosition(0, 13)) mustBe Vector(
+      (Move(BLACK, Some(Square(28)), Square(46), ROOK, false, false, None, None, false, None, true), 1)
+    )
+    g1.getForks(GamePosition(0, 14)) mustBe Vector.empty
+    g1.getForks(GamePosition(7, 4)) mustBe Vector(
+      (Move(WHITE, Some(Square(34)), Square(43), PAWN, false, false, None, None, false, None, true), 0),
+      (Move(WHITE, Some(Square(20)), Square(29), PAWN, false, false, None, None, false, None, true), 4)
+    )
+    g1.getForks(GamePosition(99, 0)) mustBe Vector.empty
   }
 }
