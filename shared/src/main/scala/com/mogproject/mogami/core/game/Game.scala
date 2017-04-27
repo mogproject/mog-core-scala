@@ -137,7 +137,23 @@ case class Game(trunk: Branch = Branch(),
     getBranch(branchNo).map { br => trunk.moves.take(br.offset - trunk.offset) ++ br.moves }.getOrElse(Vector.empty)
   }
 
-  def getState(gamePosition: GamePosition): Option[State] = withBranch(gamePosition.branch)(_.getState(gamePosition.position)).flatten
+  /**
+    * Get the state at a specific game position
+    *
+    * @param gamePosition game position
+    * @return None if the game position is invalid
+    */
+  def getState(gamePosition: GamePosition): Option[State] = if (gamePosition.branch == 0) {
+    trunk.getState(gamePosition.position)
+  } else {
+    withBranch(gamePosition.branch) { br =>
+      if (gamePosition.position <= br.offset) {
+        trunk.getState(gamePosition.position)
+      } else {
+        br.getState(gamePosition.position)
+      }
+    }.flatten
+  }
 
   def hasComment(gamePosition: GamePosition): Boolean = if (gamePosition.isTrunk) {
     trunk.hasComment(gamePosition.position)

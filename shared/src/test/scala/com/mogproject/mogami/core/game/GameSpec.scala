@@ -732,6 +732,54 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().getState(GamePosition(0, 0)) mustBe Some(HIRATE)
     Game().getState(GamePosition(0, 1)) mustBe None
     Game().getState(GamePosition(1, 0)) mustBe None
+
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "12.3kk.", // Branch: 1
+      "11.05m3jm5ge7pe22w.", // Branch: 2
+      "8.8uc1cd9yu.", // Branch: 3
+      "3.2jm4o22f281k4be.", // Branch: 4
+      "3.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "3.0e4.", // Branch: 7
+      "0.72m2jm83m.", // Branch: 8
+      "0.72m36e83m." // Branch: 9
+    ).mkString("~")
+
+    val g1: Game = Game.parseUsenString(s1)
+    g1.getState(GamePosition(1, 0)) mustBe Some(HIRATE)
+    g1.getState(GamePosition(2, 11)).get.toSfenString mustBe "lnsgk1snl/1r4gb1/p1pppp2p/6pR1/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL w Pp"
+    g1.getState(GamePosition(2, 12)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6pR1/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL b Pp"
+    g1.getState(GamePosition(2, 13)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL w 2Pp"
+    g1.getState(GamePosition(2, 14)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/9/1pP6/PP1PPPP1P/1BG6/LNS1KGSNL b 2Pp"
+    g1.getState(GamePosition(2, 15)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/9/1PP6/P2PPPP1P/1BG6/LNS1KGSNL w 3Pp"
+    g1.getState(GamePosition(2, 16)).get.toSfenString mustBe "lnsgk1s1l/6gb1/p1ppppn1p/6R2/9/1rP6/P2PPPP1P/1BG6/LNS1KGSNL b 3P2p"
+    g1.getState(GamePosition(2, 17)) mustBe None
+
+    val s2 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "10.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "22.3kk.", // Branch: 1
+      "21.05m3jm5ge7pe22w.", // Branch: 2
+      "18.8uc1cd9yu.", // Branch: 3
+      "13.2jm4o22f281k4be.", // Branch: 4
+      "13.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "13.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "13.0e4.", // Branch: 7
+      "10.72m2jm83m.", // Branch: 8
+      "10.72m36e83m." // Branch: 9
+    ).mkString("~")
+
+    val g2: Game = Game.parseUsenString(s2)
+    g2.getState(GamePosition(1, 10)) mustBe Some(HIRATE)
+    g2.getState(GamePosition(2, 21)).get.toSfenString mustBe "lnsgk1snl/1r4gb1/p1pppp2p/6pR1/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL w Pp"
+    g2.getState(GamePosition(2, 22)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6pR1/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL b Pp"
+    g2.getState(GamePosition(2, 23)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/1p7/2P6/PP1PPPP1P/1BG6/LNS1KGSNL w 2Pp"
+    g2.getState(GamePosition(2, 24)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/9/1pP6/PP1PPPP1P/1BG6/LNS1KGSNL b 2Pp"
+    g2.getState(GamePosition(2, 25)).get.toSfenString mustBe "lnsgk1s1l/1r4gb1/p1ppppn1p/6R2/9/1PP6/P2PPPP1P/1BG6/LNS1KGSNL w 3Pp"
+    g2.getState(GamePosition(2, 26)).get.toSfenString mustBe "lnsgk1s1l/6gb1/p1ppppn1p/6R2/9/1rP6/P2PPPP1P/1BG6/LNS1KGSNL b 3P2p"
+    g2.getState(GamePosition(2, 27)) mustBe None
   }
 
   "Game#getForkList" must "return fork list" in {
