@@ -449,8 +449,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
 
   "Game#status" must "return Playing when playing" in {
-    Game().status mustBe Playing
-    Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").status mustBe Playing
+    Game().trunk.status mustBe Playing
+    Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").trunk.status mustBe Playing
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  * -FU * ",
@@ -464,7 +464,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0012FU"
-    ).mkString("\n")).status mustBe Playing
+    ).mkString("\n")).trunk.status mustBe Playing
   }
   it must "return Mated when mated" in {
     Game.parseCsaString(Seq(
@@ -478,7 +478,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P8 *  *  *  *  *  *  *  *  * ",
       "P9 *  *  *  *  *  *  *  *  * ",
       "-"
-    ).mkString("\n")).status mustBe Mated
+    ).mkString("\n")).trunk.status mustBe Mated
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  *  * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -491,7 +491,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9 *  *  *  *  *  *  *  * +OU",
       "-",
       "-2718NG"
-    ).mkString("\n")).status mustBe Mated
+    ).mkString("\n")).trunk.status mustBe Mated
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -504,7 +504,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9 *  *  *  *  *  *  *  *  * ",
       "+",
       "+1312FU"
-    ).mkString("\n")).status mustBe Mated
+    ).mkString("\n")).trunk.status mustBe Mated
 
     // dropping pawn but not a check
     Game.parseCsaString(Seq(
@@ -520,7 +520,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0013FU"
-    ).mkString("\n")).status mustBe Mated
+    ).mkString("\n")).trunk.status mustBe Mated
   }
   it must "return Illegal when perpetual check" in {
     Game.parseCsaString(Seq(
@@ -547,7 +547,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+1223GI",
       "-2211OU",
       "+2312GI"
-    ).mkString("\n")).status mustBe PerpetualCheck
+    ).mkString("\n")).trunk.status mustBe PerpetualCheck
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  *  * ",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -572,7 +572,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-1827GI",
       "+2819OU",
       "-2718GI"
-    ).mkString("\n")).status mustBe PerpetualCheck
+    ).mkString("\n")).trunk.status mustBe PerpetualCheck
   }
   it must "return Illegal when uchifuzume" in {
     Game.parseCsaString(Seq(
@@ -588,7 +588,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P+00FU",
       "+",
       "+0012FU"
-    ).mkString("\n")).status mustBe Uchifuzume
+    ).mkString("\n")).trunk.status mustBe Uchifuzume
   }
   it must "return Drawn when repetition" in {
     Game.parseCsaString(Seq(
@@ -618,12 +618,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-1121OU",
       "+3423GI",
       "-2111OU"
-    ).mkString("\n")).status mustBe Drawn
+    ).mkString("\n")).trunk.status mustBe Drawn
   }
   it must "tell special moves" in {
-    Game.parseCsaString("PI,+,+7776FU,%TORYO").status mustBe Resigned
-    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").status mustBe TimedUp
-    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").status mustBe IllegallyMoved
+    Game.parseCsaString("PI,+,+7776FU,%TORYO").trunk.status mustBe Resigned
+    Game.parseCsaString("PI,+,+7776FU,%TIME_UP").trunk.status mustBe TimedUp
+    Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").trunk.status mustBe IllegallyMoved
   }
   it must "tell resigned even though the state is mated" in {
     Game.parseCsaString(Seq(
@@ -638,7 +638,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "P9 *  *  *  *  *  *  *  *  * ",
       "-",
       "%TORYO"
-    ).mkString("\n")).status mustBe Resigned
+    ).mkString("\n")).trunk.status mustBe Resigned
   }
 
   "Game#getAllMoves" must "get all moves" in {
@@ -732,5 +732,93 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     Game().getState(GamePosition(0, 0)) mustBe Some(HIRATE)
     Game().getState(GamePosition(0, 1)) mustBe None
     Game().getState(GamePosition(1, 0)) mustBe None
+  }
+
+  "Game#getForkList" must "return fork list" in {
+
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "12.3kk.", // Branch: 1
+      "11.05m3jm5ge7pe22w.", // Branch: 2
+      "8.8uc1cd9yu.", // Branch: 3
+      "3.2jm4o22f281k4be.", // Branch: 4
+      "3.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "3.0e4.", // Branch: 7
+      "0.72m2jm83m.", // Branch: 8
+      "0.72m36e83m."  // Branch: 9
+    ).mkString("~")
+    /*
+                1       2       3       4       5       6       7       8       9       10      11      12      13
+      trunk: +2726FU -8384FU +2625FU -8485FU +6978KI -4132KI +7776FU -3334FU +2524FU -2324FU +2824HI -0023FU +2434HI
+      br 1 :                                                                                                 +2426HI
+      br 2 :                                                                                         -2133KE +2434HI -8586FU +8786FU -8286HI
+      br 3 :                                                                 +8877KA -2277UM +8977KE
+      br 4 :                         -3334FU +2524FU -2324FU +2824HI -8485FU
+      br 5 :                         -3334FU +2524FU -2324FU +7776FU -2288UM +7988GI
+      br 6 :                         -3334FU +2524FU -2324FU +2824HI -4132KI +0023FU -2233KA +2426HI
+      br 7 :                         -4132KI
+      br 8 : +3736FU -3334FU +2838HI
+      br 9 : +3736FU -8384FU +2838HI
+     */
+
+    val g1: Game = Game.parseUsenString(s1)
+    def f(n: Int) = g1.getForkList(n).map{ case (pos, vs) => pos -> vs.map {case (m, b) => m.toCsaString -> b }}
+
+    f(0) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      9 -> Vector(("+8877KA", 3)),
+      12 -> Vector(("-2133KE", 2)),
+      13 -> Vector(("+2426HI", 1))
+    )
+    f(1) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      9 -> Vector(("+8877KA", 3)),
+      12 -> Vector(("-2133KE", 2)),
+      13 -> Vector(("+2434HI", 0))
+    )
+    f(2) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      9 -> Vector(("+8877KA", 3)),
+      12 -> Vector(("-0023FU", 0))
+    )
+    f(3) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      9 -> Vector(("+2524FU", 0))
+    )
+    f(4) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      7 -> Vector(("+7776FU", 5)),
+      8 -> Vector(("-4132KI", 6))
+    )
+    f(5) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      7 -> Vector(("+2824HI", 4))
+    )
+    f(6) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      7 -> Vector(("+7776FU", 5)),
+      8 -> Vector(("-8485FU", 4))
+    )
+    f(7) mustBe Map(
+      1 -> Vector(("+3736FU", 8)),
+      4 -> Vector(("-8485FU", 0), ("-3334FU", 4))
+    )
+    f(8) mustBe Map(
+      1 -> Vector(("+2726FU", 0)),
+      2 -> Vector(("-8384FU", 9))
+    )
+    f(9) mustBe Map(
+      1 -> Vector(("+2726FU", 0)),
+      2 -> Vector(("-3334FU", 8))
+    )
   }
 }

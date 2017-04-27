@@ -192,7 +192,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       "+5847KA",
       "-6747HI"
     ).mkString("\n")
-    Game.parseKifString(Game.parseCsaString(s1).toKifString).moves.length mustBe 6
+    Game.parseKifString(Game.parseCsaString(s1).toKifString).trunk.moves.length mustBe 6
   }
 
   "KifGameReader#parseKi2String" must "create games" in {
@@ -219,7 +219,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       "+5847KA",
       "-6747HI"
     ).mkString("\n")
-    Game.parseKi2String(Game.parseCsaString(s1).toKi2String).moves.length mustBe 6
+    Game.parseKi2String(Game.parseCsaString(s1).toKi2String).trunk.moves.length mustBe 6
   }
   "KifGameReader#splitMovesKi2" must "create games" in {
     TestKifGameReader.splitMovesKi2(Seq(

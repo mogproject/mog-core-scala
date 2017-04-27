@@ -10,15 +10,15 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
   }
 
   "Game#parseCsaString" must "create games from files" in {
-    Game.parseCsaString(loadFile("csa/game/001.csa")).moves.length mustBe 111
+    Game.parseCsaString(loadFile("csa/game/001.csa")).trunk.moves.length mustBe 111
   }
 
   "Game#parseKifString" must "create games from files" in {
-    Game.parseKifString(loadFile("kif/game/001.kif")).moves.length mustBe 111
-    Game.parseKifString(loadFile("kif/game/002.kif")).moves.length mustBe 193
+    Game.parseKifString(loadFile("kif/game/001.kif")).trunk.moves.length mustBe 111
+    Game.parseKifString(loadFile("kif/game/002.kif")).trunk.moves.length mustBe 193
 
     val g003: Game = Game.parseKifString(loadFile("kif/game/003.kif", "sjis"))
-    g003.moves.length mustBe 117
+    g003.trunk.moves.length mustBe 117
     g003.branches.map(_.offset) mustBe Seq(69, 69, 49, 33)
     g003.branches.map(_.moves.length) mustBe Seq(9, 7, 13, 9)
     g003.trunk.hasComment(0) mustBe true
@@ -47,7 +47,7 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
 
     Game.parseKifString(g003.toKifString).toUsenString mustBe g003.toUsenString
 
-    Game.parseKifString(loadFile("kif/game/004.kif")).moves.length mustBe 223
+    Game.parseKifString(loadFile("kif/game/004.kif")).trunk.moves.length mustBe 223
 
     val g005: Game = Game.parseKifString(loadFile("kif/game/005.kif"))
     g005.branches.map(_.status) mustBe Seq(GameStatus.Playing, GameStatus.Mated, GameStatus.Resigned)
@@ -87,7 +87,7 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
   }
 
   "Game#parseKi2String" must "create games from files" in {
-    Game.parseKi2String(loadFile("ki2/game/001.ki2")).moves.length mustBe 111
-    Game.parseKi2String(loadFile("ki2/game/002.ki2")).moves.length mustBe 111
+    Game.parseKi2String(loadFile("ki2/game/001.ki2")).trunk.moves.length mustBe 111
+    Game.parseKi2String(loadFile("ki2/game/002.ki2")).trunk.moves.length mustBe 111
   }
 }

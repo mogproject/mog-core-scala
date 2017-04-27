@@ -4,6 +4,7 @@ import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
 import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
 import com.mogproject.mogami.core.state.{State, StateCache}
+import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
@@ -39,12 +40,51 @@ case class Game(trunk: Branch = Branch(),
     }
   }
 
-  // aliases to the trunk (will be deprecated)
-  def moves: Vector[Move] = trunk.moves
+  /**
+    *
+    * @param branchNo map of offset -> {vector of (move, branch number)
+    * @return
+    */
+  def getForkList(branchNo: BranchNo): Map[Int, Vector[(Move, BranchNo)]] = {
+    val m: Map[(Int, Move), BranchNo] = if (branchNo == 0) {
+      findForksOnTrunk(trunk.offset + trunk.moves.length)
+    } else {
+      withBranch(branchNo) { br =>
+        // find parent == trunk
+        val preceding = findForksOnTrunk(br.offset)
 
-  def lastState: State = trunk.lastState
+        // add trunk as a fork
+        val trunkFork = if (trunk.moves.isDefinedAt(br.offset)) Map((br.offset + 1, trunk.moves(br.offset)) -> 0) else Map.empty
 
-  def status: GameStatus = trunk.status
+        // find brother nodes
+        val brothers = branches.zipWithIndex.filter { case (b, _) => b.offset == br.offset }
+        preceding ++ trunkFork ++ findForksOnBrotherNodes(br.history, brothers)
+      }.getOrElse(Map.empty)
+    }
+
+    m.groupBy(_._1._1).map { case (k, v) => k -> v.map { case ((_, mv), br) => (mv, br) }.toSeq.sortBy(_._2).toVector }
+  }
+
+  private[this] def findForksOnTrunk(offsetLimit: Int): Map[(Int, Move), BranchNo] = {
+    branches.zipWithIndex.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
+      (br.offset, br.moves.headOption) match {
+        case (os, Some(mv)) if os < offsetLimit && !sofar.contains((os + 1, mv)) => sofar.updated((os + 1, mv), i + 1)
+        case _ => sofar // already set the same offset/move pair or no moves
+      }
+    }
+  }
+
+  private[this] def findForksOnBrotherNodes(baseHistory: Vector[StateHash], brothers: Vector[(Branch, Int)]): Map[(Int, Move), BranchNo] = {
+    brothers.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
+      baseHistory.zip(br.history).drop(1).indexWhere { case (a, b) => a != b } match {
+        case -1 =>
+          println(s"Error: Identical branch: ${i}")
+          sofar
+        case index if !sofar.contains((br.offset + index + 1, br.moves(index))) => sofar.updated((br.offset + index + 1, br.moves(index)), i + 1)
+        case _ => sofar // already set the same offset/move
+      }
+    }
+  }
 
   /**
     * Get all moves from the trunk's start position
