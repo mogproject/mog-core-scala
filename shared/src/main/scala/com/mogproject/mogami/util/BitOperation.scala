@@ -23,4 +23,8 @@ object BitOperation {
   def ntz(x: Long): Int =
     if (x == 0L) 64 else if (x == 0x8000000000000000L) 63 else (math.log(x & -x) / math.log(2)).toInt
 
+
+  /** Rotate shift left */
+  def rotateShift(x: Long, s: Int): Long = x << s | x >>> (64 - s)
+
 }

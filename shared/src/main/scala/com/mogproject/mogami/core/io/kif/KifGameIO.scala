@@ -175,7 +175,7 @@ trait KifBranchReader extends KifGameIO {
   }
 
   protected[kif] def convertLines(lines: Lines): List[LineInput] = lines.flatMap {
-    case (x, n) if x.startsWith("*") || x.startsWith("#") => List((n, None, Some(x.drop(1)))) // comment lines
+    case (x, n) if x.startsWith("*") || x.startsWith("#") => List((n, None, Some(x.tail))) // comment lines
     case (x, n) =>
       x.trim.split("[ ]+", 2).toList match {
         case s :: t :: Nil => Try(s.toInt).toOption.map(i => (n, Some((i, t)), None))

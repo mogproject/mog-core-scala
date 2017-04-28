@@ -2,12 +2,14 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami.core.Ptype.PAWN
 import com.mogproject.mogami.core.Square
+import com.mogproject.mogami.core.game.Game.HistoryHash
 import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache, StateHash}
 import com.mogproject.mogami.core.state.StateHash.StateHash
+import com.mogproject.mogami.util.BitOperation
 import com.mogproject.mogami.util.Implicits._
 
 
@@ -18,7 +20,8 @@ case class Branch(initialHash: StateHash,
                   offset: Int = 0,
                   moves: Vector[Move] = Vector.empty,
                   finalAction: Option[SpecialMove] = None,
-                  comments: Map[Int, String] = Map.empty,
+                  initialHistoryHash: Option[HistoryHash] = None,
+                  comments: Map[Int, String] = Map.empty, // to be deprecated
                   hint: Option[BranchHint] = None)
                  (implicit stateCache: StateCache) extends SfenBranchWriter with KifBranchWriter {
 
@@ -31,13 +34,14 @@ case class Branch(initialHash: StateHash,
     * @note ignores hint parameter
     */
   override def equals(obj: scala.Any): Boolean = obj match {
-    case that: Branch => initialHash == that.initialHash && moves == that.moves && finalAction == that.finalAction && comments == that.comments
+    case that: Branch => initialHash == that.initialHash && moves == that.moves && finalAction == that.finalAction &&
+      comments == that.comments && initialHistoryHash == that.initialHistoryHash
     case _ => false
   }
 
-  def updateFinalAction(fa: Option[SpecialMove]): Branch = Branch(initialHash, offset, moves, fa, comments, Some(BranchHint(history)))
+  def updateFinalAction(fa: Option[SpecialMove]): Branch = Branch(initialHash, offset, moves, fa, initialHistoryHash, comments, Some(BranchHint(history, historyHash)))
 
-  def updateComments(cmt: Map[Int, String]): Branch = Branch(initialHash, offset, moves, finalAction, cmt, Some(BranchHint(history)))
+  def updateComments(cmt: Map[Int, String]): Branch = Branch(initialHash, offset, moves, finalAction, initialHistoryHash, cmt, Some(BranchHint(history, historyHash)))
 
   def updateComment(pos: Int, text: String): Branch = if (text.isEmpty) clearComment(pos) else updateComments(comments.updated(pos, text))
 
@@ -49,6 +53,11 @@ case class Branch(initialHash: StateHash,
     * history of state hashes
     */
   lazy val history: Vector[StateHash] = hint.map(_.history).getOrElse(createHistory())
+
+  /**
+    * hashes of history
+    */
+  lazy val historyHash: Vector[HistoryHash] = hint.map(_.historyHash).getOrElse(createHistoryHash())
 
   def initialState: State = stateCache(initialHash)
 
@@ -71,6 +80,13 @@ case class Branch(initialHash: StateHash,
       }
     }.flatten
   }
+
+  private[this] def createHistoryHash(): Vector[HistoryHash] = {
+    val h0 = initialHistoryHash.getOrElse(createHistoryHash(offset, initialHash))
+    history.zipWithIndex.tail.scanLeft(h0) { case (r, (h, i)) => r ^ createHistoryHash(i + offset, h) }
+  }
+
+  private[this] def createHistoryHash(position: Int, stateHash: StateHash): HistoryHash = BitOperation.rotateShift(stateHash, position % 63)
 
   /**
     * Create SFEN string
@@ -104,10 +120,10 @@ case class Branch(initialHash: StateHash,
     *
     * @return true if the latest move is the repetition
     */
-  def isRepetition: Boolean = history.drop(1).count(_ == lastState.hash) >= 4
+  def isRepetition: Boolean = history.tail.count(_ == lastState.hash) >= 4
 
   def isPerpetualCheck: Boolean = lastState.isChecked &&
-    (history.drop(1).reverse.takeWhile { h => !StateHash.isSamePlayer(h, lastState.hash) || stateCache(h).isChecked }.count(_ == lastState.hash) >= 4)
+    (history.tail.reverse.takeWhile { h => !StateHash.isSamePlayer(h, lastState.hash) || stateCache(h).isChecked }.count(_ == lastState.hash) >= 4)
 
   /**
     * Moves for description. This includes an illegal move if it exists.
@@ -119,9 +135,12 @@ case class Branch(initialHash: StateHash,
     case _ => moves
   }
 
-  def makeMove(move: Move): Option[Branch] = (status == Playing && lastState.isValidMove(move)).
-    option(this.copy(moves = moves :+ move, hint = lastState.makeMove(move).map(s => BranchHint(history :+ stateCache.set(s)))))
-
+  def makeMove(move: Move): Option[Branch] =
+    (status == Playing && lastState.isValidMove(move))
+      .option(this.copy(moves = moves :+ move, hint = lastState.makeMove(move).map { s =>
+        val h = stateCache.set(s)
+        BranchHint(history :+ h, historyHash :+ (historyHash.last ^ createHistoryHash(historyHash.length + offset, h)))
+      }))
 
   def makeMove(move: MoveBuilder): Option[Branch] = move.toMove(lastState, lastMoveTo).flatMap(makeMove)
 
@@ -141,7 +160,12 @@ case class Branch(initialHash: StateHash,
   def getSubBranch(pos: Int): Option[Branch] = {
     val relPos = pos - offset
     history.isDefinedAt(relPos).option(
-      this.copy(moves = moves.take(relPos), finalAction = None, comments = Map.empty, hint = Some(BranchHint(history.take(relPos + 1))))
+      this.copy(
+        moves = moves.take(relPos),
+        finalAction = None,
+        comments = Map.empty,
+        hint = Some(BranchHint(history.take(relPos + 1), historyHash.take(relPos + 1)))
+      )
     )
   }
 
@@ -152,7 +176,7 @@ case class Branch(initialHash: StateHash,
     * @return None if the position is invalid
     */
   def deriveNewBranch(pos: Int): Option[Branch] = {
-    history.get(pos - offset).map(h => Branch(h, pos))
+    history.get(pos - offset).map(h => Branch(h, pos, initialHistoryHash = historyHash.get(pos - offset)))
   }
 
   def hasComment(pos: Int): Boolean = comments.contains(pos)
@@ -160,11 +184,18 @@ case class Branch(initialHash: StateHash,
   /**
     * Create a truncated branch
     *
+    * Unused comments and unconnected branches are removed.
+    *
     * @param pos the point to truncate
     */
   def truncated(pos: Int): Branch = {
     val relPos = pos - offset
-    copy(moves = moves.take(relPos), finalAction = None, comments = comments.filterKeys(_ <= pos), hint = Some(BranchHint(history.take(relPos + 1))))
+    copy(
+      moves = moves.take(relPos),
+      finalAction = None,
+      comments = comments.filterKeys(_ <= pos),
+      hint = Some(BranchHint(history.take(relPos + 1), historyHash.take(relPos + 1)))
+    )
   }
 }
 
@@ -174,4 +205,4 @@ object Branch extends SfenBranchReader with KifBranchReader {
   def apply(state: State)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state))
 }
 
-case class BranchHint(history: Vector[StateHash])
+case class BranchHint(history: Vector[StateHash], historyHash: Vector[HistoryHash])

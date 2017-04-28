@@ -33,16 +33,11 @@ case class Game(trunk: Branch = Branch(),
 
     if (ok) {
       (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
-        println(trunk.getState(gamePosition.position - trunk.offset).get.toCsaString)
-        println(move.toCsaString)
         Some(Branch(trunk.history(gamePosition.position - trunk.offset), gamePosition.position, Vector(move)))
       } else {
         val diff = gamePosition.position - br.offset
-        (br.moves.take(diff) :+ move).foreach(x => println(x.toCsaString))
-        println(trunk.history(br.offset - trunk.offset))
-        println(trunk.getState(br.offset).get.toCsaString)
-
-        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff), hint = Some(BranchHint(br.history.take(diff + 1)))).makeMove(move)
+        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
+          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
       }) map { newBranch =>
         copy(branches = branches :+ newBranch)
       }
@@ -114,7 +109,7 @@ case class Game(trunk: Branch = Branch(),
 
   private[this] def findForksOnBrotherNodes(baseHistory: Vector[StateHash], brothers: Vector[(Branch, Int)]): Map[(Int, Move), BranchNo] = {
     brothers.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
-      baseHistory.zip(br.history).drop(1).indexWhere { case (a, b) => a != b } match {
+      baseHistory.zip(br.history).tail.indexWhere { case (a, b) => a != b } match {
         case -1 =>
           println(s"Error: Identical branch: ${i}")
           sofar
@@ -204,5 +199,10 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
     def isTrunk: Boolean = branch == 0
   }
+
+  /**
+    * A hash value of a sequence of moves. This differenciates the same state with different histories.
+    */
+  type HistoryHash = Long
 
 }
