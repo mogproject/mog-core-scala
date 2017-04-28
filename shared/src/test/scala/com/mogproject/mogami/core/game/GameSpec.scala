@@ -797,7 +797,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "0.72m36e83m." // Branch: 9
     ).mkString("~")
     /*
-                1       2       3       4       5       6       7       8       9       10      11      12      13
+                1       2       3       4       5       6       7       8       9       10      11      12      13      14      15      16
       trunk: +2726FU -8384FU +2625FU -8485FU +6978KI -4132KI +7776FU -3334FU +2524FU -2324FU +2824HI -0023FU +2434HI
       br 1 :                                                                                                 +2426HI
       br 2 :                                                                                         -2133KE +2434HI -8586FU +8786FU -8286HI
@@ -815,58 +815,58 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     def f(n: Int) = g1.getForkList(n).map { case (pos, vs) => pos -> vs.map { case (m, b) => m.toCsaString -> b } }
 
     f(0) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
-      9 -> Vector(("+8877KA", 3)),
-      12 -> Vector(("-2133KE", 2)),
-      13 -> Vector(("+2426HI", 1))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      8 -> Vector(("+8877KA", 3)),
+      11 -> Vector(("-2133KE", 2)),
+      12 -> Vector(("+2426HI", 1))
     )
     f(1) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
-      9 -> Vector(("+8877KA", 3)),
-      12 -> Vector(("-2133KE", 2)),
-      13 -> Vector(("+2434HI", 0))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      8 -> Vector(("+8877KA", 3)),
+      11 -> Vector(("-2133KE", 2)),
+      12 -> Vector(("+2434HI", 0))
     )
     f(2) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
-      9 -> Vector(("+8877KA", 3)),
-      12 -> Vector(("-0023FU", 0))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      8 -> Vector(("+8877KA", 3)),
+      11 -> Vector(("-0023FU", 0))
     )
     f(3) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
-      9 -> Vector(("+2524FU", 0))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-3334FU", 4), ("-4132KI", 7)),
+      8 -> Vector(("+2524FU", 0))
     )
     f(4) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
-      7 -> Vector(("+7776FU", 5)),
-      8 -> Vector(("-4132KI", 6))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      6 -> Vector(("+7776FU", 5)),
+      7 -> Vector(("-4132KI", 6))
     )
     f(5) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
-      7 -> Vector(("+2824HI", 4))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      6 -> Vector(("+2824HI", 4))
     )
     f(6) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
-      7 -> Vector(("+7776FU", 5)),
-      8 -> Vector(("-8485FU", 4))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-8485FU", 0), ("-4132KI", 7)),
+      6 -> Vector(("+7776FU", 5)),
+      7 -> Vector(("-8485FU", 4))
     )
     f(7) mustBe Map(
-      1 -> Vector(("+3736FU", 8)),
-      4 -> Vector(("-8485FU", 0), ("-3334FU", 4))
+      0 -> Vector(("+3736FU", 8)),
+      3 -> Vector(("-8485FU", 0), ("-3334FU", 4))
     )
     f(8) mustBe Map(
-      1 -> Vector(("+2726FU", 0)),
-      2 -> Vector(("-8384FU", 9))
+      0 -> Vector(("+2726FU", 0)),
+      1 -> Vector(("-8384FU", 9))
     )
     f(9) mustBe Map(
-      1 -> Vector(("+2726FU", 0)),
-      2 -> Vector(("-3334FU", 8))
+      0 -> Vector(("+2726FU", 0)),
+      1 -> Vector(("-3334FU", 8))
     )
   }
 
@@ -887,11 +887,11 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     val g1: Game = Game.parseUsenString(s1)
 
-    g1.hasFork(GamePosition(0, 0)) mustBe false
-    g1.hasFork(GamePosition(0, 1)) mustBe true
-    g1.hasFork(GamePosition(0, 13)) mustBe true
-    g1.hasFork(GamePosition(0, 14)) mustBe false
-    g1.hasFork(GamePosition(7, 4)) mustBe true
+    g1.hasFork(GamePosition(0, 0)) mustBe true
+    g1.hasFork(GamePosition(0, 1)) mustBe false
+    g1.hasFork(GamePosition(0, 12)) mustBe true
+    g1.hasFork(GamePosition(0, 13)) mustBe false
+    g1.hasFork(GamePosition(7, 3)) mustBe true
     g1.hasFork(GamePosition(99, 0)) mustBe false
   }
 
@@ -912,15 +912,15 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     val g1: Game = Game.parseUsenString(s1)
 
-    g1.getForks(GamePosition(0, 0)) mustBe Vector.empty
-    g1.getForks(GamePosition(0, 1)) mustBe Vector(
+    g1.getForks(GamePosition(0, 1)) mustBe Vector.empty
+    g1.getForks(GamePosition(0, 0)) mustBe Vector(
       (Move(BLACK, Some(Square(56)), Square(47), PAWN, false, false, None, None, false, None, true), 8)
     )
-    g1.getForks(GamePosition(0, 13)) mustBe Vector(
+    g1.getForks(GamePosition(0, 12)) mustBe Vector(
       (Move(BLACK, Some(Square(28)), Square(46), ROOK, false, false, None, None, false, None, true), 1)
     )
-    g1.getForks(GamePosition(0, 14)) mustBe Vector.empty
-    g1.getForks(GamePosition(7, 4)) mustBe Vector(
+    g1.getForks(GamePosition(0, 13)) mustBe Vector.empty
+    g1.getForks(GamePosition(7, 3)) mustBe Vector(
       (Move(WHITE, Some(Square(34)), Square(43), PAWN, false, false, None, None, false, None, true), 0),
       (Move(WHITE, Some(Square(20)), Square(29), PAWN, false, false, None, None, false, None, true), 4)
     )

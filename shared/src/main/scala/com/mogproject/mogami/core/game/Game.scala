@@ -29,7 +29,7 @@ case class Game(trunk: Branch = Branch(),
     val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
     val forks = getForkList(gamePosition.branch)
 
-    val ok = moveOnThisBranch.exists(_ != move) && forks.get(gamePosition.position + 1).forall(_.forall(_._1 != move))
+    val ok = moveOnThisBranch.exists(_ != move) && forks.get(gamePosition.position).forall(_.forall(_._1 != move))
 
     if (ok) {
       (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
@@ -92,7 +92,7 @@ case class Game(trunk: Branch = Branch(),
         val preceding = findForksOnTrunk(br.offset)
 
         // add trunk as a fork
-        val trunkFork = if (trunk.moves.isDefinedAt(br.offset)) Map((br.offset + 1, trunk.moves(br.offset)) -> 0) else Map.empty
+        val trunkFork = if (trunk.moves.isDefinedAt(br.offset)) Map((br.offset, trunk.moves(br.offset)) -> 0) else Map.empty
 
         // find brother nodes
         val brothers = branches.zipWithIndex.filter { case (b, i) => i != branchNo - 1 && b.offset == br.offset }
@@ -106,7 +106,7 @@ case class Game(trunk: Branch = Branch(),
   private[this] def findForksOnTrunk(offsetLimit: Int): Map[(Int, Move), BranchNo] = {
     branches.zipWithIndex.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
       (br.offset, br.moves.headOption) match {
-        case (os, Some(mv)) if os < offsetLimit && !sofar.contains((os + 1, mv)) => sofar.updated((os + 1, mv), i + 1)
+        case (os, Some(mv)) if os < offsetLimit && !sofar.contains((os, mv)) => sofar.updated((os, mv), i + 1)
         case _ => sofar // already set the same offset/move pair or no moves
       }
     }
@@ -118,7 +118,7 @@ case class Game(trunk: Branch = Branch(),
         case -1 =>
           println(s"Error: Identical branch: ${i}")
           sofar
-        case index if !sofar.contains((br.offset + index + 1, br.moves(index))) => sofar.updated((br.offset + index + 1, br.moves(index)), i + 1)
+        case index if !sofar.contains((br.offset + index, br.moves(index))) => sofar.updated((br.offset + index, br.moves(index)), i + 1)
         case _ => sofar // already set the same offset/move
       }
     }
