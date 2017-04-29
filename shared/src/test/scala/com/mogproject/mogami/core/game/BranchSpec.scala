@@ -10,11 +10,6 @@ import org.scalatest.{FlatSpec, MustMatchers}
 
 class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
 
-  val stateHirateInv = State(WHITE, HIRATE.board, HIRATE.hand)
-  val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
-  val stateEmptyInv = State(WHITE, Map(), State.EMPTY_HANDS)
-
-
   def createBranch(initialState: State,
                    offset: Int = 0,
                    moves: Vector[Move] = Vector.empty,

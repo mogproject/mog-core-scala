@@ -110,8 +110,6 @@ trait SfenBranchWriter {
 
   def finalAction: Option[SpecialMove]
 
-  def comments: Map[Int, String]
-
   /**
     * Make Sfen string
     *

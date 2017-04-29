@@ -1,12 +1,14 @@
 package com.mogproject.mogami.core.io.kif
 
 import com.mogproject.mogami.core._
+import com.mogproject.mogami.core.game.Game.{CommentType, HistoryHash, Position}
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.{State, StateCache, StateConstant}
 import com.mogproject.mogami.util.Implicits._
+import com.mogproject.mogami.util.MapUtil
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -43,42 +45,35 @@ trait KifGameIO {
 /**
   * Writes Kif-formatted game
   */
-trait KifBranchWriter extends KifLike {
-  def initialState: State
+trait KifBranchWriter {
+  def comments: Map[HistoryHash, String]
 
-  def offset: Int
-
-  def moves: Vector[Move]
-
-  def finalAction: Option[SpecialMove]
-
-  def comments: Map[Int, String]
-
-  def descriptiveMoves: Vector[Move]
-
-  override def toKifString: String = {
-    def commentToSeq(index: Int): Seq[String] = for {
-      text <- comments.get(index).toSeq
-      line <- text.split("\n").toSeq
+  protected[kif] def branchToKifString(branch: Branch, commentsSofar: Set[HistoryHash]): (String, Set[HistoryHash]) = {
+    def commentsToKifStringSeq(index: Int): Seq[String] = for {
+      h <- branch.historyHash.get(index).toSeq
+      if commentsSofar.contains(h)
+      line <- comments(h).split("\n")
     } yield "*" + line
 
     val lines: Seq[String] = for {
-      (m, i) <- ((descriptiveMoves ++ finalAction).map(_.toKifString) :+ "").zipWithIndex
-      index = offset + i
-      ln <- commentToSeq(index) :+ f"${index + 1}%4d ${m}"
+      (m, i) <- ((branch.descriptiveMoves ++ branch.finalAction).map(_.toKifString) :+ "").zipWithIndex
+      index = branch.offset + i
+      ln <- commentsToKifStringSeq(i) :+ f"${index + 1}%4d ${m}"
     } yield ln
 
     // remove the last element (dummy)
-    lines.init.mkString("\n")
+    (lines.init.mkString("\n"), commentsSofar -- branch.historyHash)
   }
 }
 
-trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
+trait KifGameWriter extends KifGameIO with KifLike with Ki2Like with KifBranchWriter {
   def trunk: Branch
 
   def branches: Vector[Branch]
 
   def gameInfo: GameInfo
+
+  def comments: Map[HistoryHash, String]
 
   private[this] def getHeader: String = {
     // todo: add 上手/下手
@@ -94,9 +89,15 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like {
   }
 
   override def toKifString: String = {
-    val t = Seq(getHeader + "\n", "手数----指手----消費時間--", trunk.toKifString)
+    val (trunkStr, commentsSofar) = branchToKifString(trunk, comments.keySet)
+    val t = Seq(getHeader + "\n", "手数----指手----消費時間--", trunkStr)
+
     /** @note to keep the compatibility with KIF Format, sort the branches by offset from the largest to the smallest */
-    val b = branches.sortBy(-_.offset).map(br => s"\n\n変化：${br.offset + 1}手\n" + br.toKifString)
+    val (b, _) = branches.sortBy(br => (br.offset, br.hashCode())).foldLeft((List.empty[String], commentsSofar)) { case ((xs, cm), br) =>
+      val (s, nc) = branchToKifString(br, cm)
+      (s"\n\n変化：${br.offset + 1}手\n" + s :: xs, nc)
+    }
+
     (t ++ b).filter(_.nonEmpty).mkString("", "\n", "\n")
   }
 
@@ -120,7 +121,7 @@ trait KifBranchReader extends KifGameIO {
   /**
     * Parse Kif string as a trunk
     */
-  def parseKifString(lines: Lines, initialState: State)(implicit stateCache: StateCache): Branch = {
+  protected[kif] def parseKifStringAsTrunk(lines: Lines, initialState: State)(implicit stateCache: StateCache): (Branch, CommentType) = {
     parseKifString(lines, (offset, _) => (Branch(stateCache.set(initialState), offset), None))
   }
 
@@ -129,7 +130,7 @@ trait KifBranchReader extends KifGameIO {
     *
     * @note When parsing branches in KIF Format, the reader must traverse previous branches and the trunk inversely
     */
-  def parseKifString(lines: Lines, trunk: Branch, branchesSofar: List[Branch])(implicit stateCache: StateCache): Branch = {
+  protected[kif] def parseKifStringAsBranch(lines: Lines, trunk: Branch, branchesSofar: List[Branch])(implicit stateCache: StateCache): (Branch, CommentType) = {
     def f(offset: Int, offsetLineNo: Int): (Branch, Option[Square]) = {
       branchesSofar.find(br => br.hasHistoryAt(offset) && br.offset != offset) match {
         case None =>
@@ -149,7 +150,7 @@ trait KifBranchReader extends KifGameIO {
       }
     }
 
-    parseKifString(lines, f _)
+    parseKifString(lines, f)
   }
 
   /**
@@ -157,7 +158,7 @@ trait KifBranchReader extends KifGameIO {
     *
     * @param createBranch a function that create a Branch instance and 'lastMoveTo' from an offset number
     */
-  def parseKifString(lines: Lines, createBranch: (Int, LineNo) => (Branch, Option[Square])): Branch = {
+  private[this] def parseKifString(lines: Lines, createBranch: (Int, LineNo) => (Branch, Option[Square])): (Branch, CommentType) = {
     // convert lines
     val converted = convertLines(lines)
 
@@ -171,7 +172,9 @@ trait KifBranchReader extends KifGameIO {
     val (br, lastMoveTo) = createBranch(offset, offsetLineNo)
 
     // parse moves
-    parseMoves(br.updateComments(comments), lastMoveTo, converted)
+    val newBranch = parseMoves(br, lastMoveTo, converted)
+    val newComment = comments.flatMap { case (pos, s) => newBranch.historyHash.get(pos - br.offset).map(_ -> s) }
+    (newBranch, newComment)
   }
 
   protected[kif] def convertLines(lines: Lines): List[LineInput] = lines.flatMap {
@@ -184,16 +187,16 @@ trait KifBranchReader extends KifGameIO {
     case _ => Nil
   }.toList
 
-  protected[kif] def parseComments(input: List[LineInput]): Map[Int, String] = {
+  protected[kif] def parseComments(input: List[LineInput]): Map[Position, String] = {
     @tailrec
-    def f(ls: List[LineInput], sofar: Map[Int, String], pos: Int, remainder: List[String]): Map[Int, String] = ls match {
+    def f(ls: List[LineInput], sofar: Map[Int, String], pos: Int, remainder: List[String]): Map[Position, String] = ls match {
       case Nil => g(sofar, pos, remainder) //finish
       case (_, _, Some(s)) :: xs => f(xs, sofar, pos, s :: remainder) // comment line
       case (_, Some((p, _)), _) :: xs => f(xs, g(sofar, p - 1, remainder), p, Nil)
       case _ :: xs => f(xs, sofar, pos, remainder)
     }
 
-    def g(sofar: Map[Int, String], pos: Int, remainder: List[String]) =
+    def g(sofar: Map[Position, String], pos: Int, remainder: List[String]) =
       if (remainder.nonEmpty) sofar.updated(pos, remainder.reverse.mkString("\n")) else sofar
 
     f(input, Map.empty, 0, Nil)
@@ -237,7 +240,7 @@ trait KifBranchReader extends KifGameIO {
 
 }
 
-trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
+trait KifGameReader extends KifBranchReader with KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
 
   private[this] def isNormalMoveKi2(s: String): Boolean = s.headOption.exists(c => Player.symbolTable.mkString.contains(c))
 
@@ -308,9 +311,16 @@ trait KifGameReader extends KifGameIO with KifFactory[Game] with Ki2Factory[Game
     */
   protected[kif] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
     val ls = splitBranchesKif(lines.toList, Nil, Nil)
-    val trunk = Branch.parseKifString(ls.headOption.getOrElse(Nil), initialState)
-    val branches = ls.drop(1).foldLeft(List.empty[Branch]) { case (xs, ln) => Branch.parseKifString(ln, trunk, xs) :: xs }
-    Game(trunk, branches.reverse.toVector)
+    val (trunk, trunkComments) = parseKifStringAsTrunk(ls.headOption.getOrElse(Nil), initialState)
+    val (branches, branchComments) = ls.drop(1).foldLeft((List.empty[Branch], List.empty[CommentType])) { case ((bs, cs), ln) =>
+      val (b, c) = parseKifStringAsBranch(ln, trunk, bs)
+      (b :: bs, c :: cs)
+    }
+
+    val newComments = branchComments.reverse.fold(trunkComments) { case (a, b) =>
+      MapUtil.mergeMaps(a, b)((s, t) => s + (s.nonEmpty && t.nonEmpty).fold("\n\n", "") + t, "")
+    }
+    Game(trunk, branches.reverse.toVector, comments = newComments)
   }
 
   @tailrec

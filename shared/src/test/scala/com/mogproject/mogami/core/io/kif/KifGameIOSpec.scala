@@ -4,6 +4,7 @@ import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype.{KING, PAWN}
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.SquareConstant._
+import com.mogproject.mogami.core.game.Game.CommentType
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
@@ -17,6 +18,8 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   object TestKifGameReader extends KifGameReader
 
   object TestKifBranchReader extends KifBranchReader
+
+  case class TestKifBranchWriter(comments: CommentType = Map.empty) extends KifBranchWriter
 
   def createGame(initialState: State,
                  moves: Vector[Move] = Vector.empty,
@@ -38,31 +41,40 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     val hirate2 = hirate.makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false)).get
     val hirate3 = Branch(hirate2.lastState.hash, 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
 
-    hirate.toKifString mustBe ""
+    // history hashes
+    val h0 = hirate.historyHash(0)
+    val h2 = hirate2.historyHash(2)
+    val h3 = hirate3.historyHash(0)
+    val h4 = hirate3.historyHash(1)
 
-    hirate.updateComment(0, "comment 0").toKifString mustBe Seq(
+    TestKifBranchWriter().branchToKifString(hirate, Set.empty) mustBe("", Set.empty)
+
+    TestKifBranchWriter(Map(h0 -> "comment 0")).branchToKifString(hirate, Set(h0)) mustBe(Seq(
       "*comment 0"
-    ).mkString("\n")
+    ).mkString("\n"), Set.empty)
 
-    hirate.updateComment(0, "com\nment\n 0\nx ").toKifString mustBe Seq(
+    TestKifBranchWriter(Map(h0 -> "comment 0")).branchToKifString(hirate, Set.empty) mustBe("", Set.empty)
+
+    TestKifBranchWriter(Map(h0 -> "com\nment\n 0\nx ")).branchToKifString(hirate, Set(h0)) mustBe(Seq(
       "*com",
       "*ment",
       "* 0",
       "*x "
-    ).mkString("\n")
+    ).mkString("\n"), Set.empty)
 
-    hirate2.updateComment(0, "comment 0").updateComment(2, "comment 2").toKifString mustBe Seq(
+    TestKifBranchWriter(Map(h0 -> "comment 0", h2 -> "comment 2")).branchToKifString(hirate2, Set(h0, h2)) mustBe(Seq(
       "*comment 0",
       "   1 ２六歩(27)",
       "   2 ４二玉(51)",
       "*comment 2"
-    ).mkString("\n")
+    ).mkString("\n"), Set.empty)
 
-    hirate3.updateComment(2, "comment 2").updateComment(3, "comment 3").toKifString mustBe Seq(
+    TestKifBranchWriter(Map(h3 -> "comment 2", h4 -> "comment 3")).branchToKifString(hirate3, Set(h3, h4)) mustBe(Seq(
       "*comment 2",
       "   3 ７六歩(77)",
       "*comment 3"
-    ).mkString("\n")
+    ).mkString("\n"), Set.empty)
+
   }
 
   "KifGameWriter#toKifString" must "describe special moves" in {
@@ -80,10 +92,11 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   it must "describe branches" in {
     val tr1 = Branch().makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
       .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get
-    val br1 = Branch(tr1.history(2), 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get.updateComment(3, "comment\n 3")
+    val br1 = Branch(tr1.history(2), 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
     val br2 = Branch(tr1.history(1), 1).copy(
       finalAction = Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false))))
-    Game(tr1, Vector(br1, br2)).toKifString mustBe Seq(
+    val cm1 = Map(br1.historyHash(1) -> "comment\n 3")
+    Game(tr1, Vector(br1, br2), comments = cm1).toKifString mustBe Seq(
       "手合割：平手",
       "先手：",
       "後手：",
@@ -107,11 +120,12 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ).mkString("\n")
 
     val tr2 = Branch(HIRATE.hash, offset = 10).makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
-      .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get.updateComment(10, "init")
-    val br3 = Branch(tr2.history(2), 12).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get.updateComment(13, "comment\n 13")
+      .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get
+    val br3 = Branch(tr2.history(2), 12).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
     val br4 = Branch(tr2.history(1), 11).copy(
       finalAction = Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false))))
-    Game(tr2, Vector(br3, br4)).toKifString mustBe Seq(
+    val cm2 = Map(tr2.historyHash(0) -> "init", br3.historyHash(1) -> "comment\n 13")
+    Game(tr2, Vector(br3, br4), comments = cm2).toKifString mustBe Seq(
       "手合割：平手",
       "先手：",
       "後手：",
@@ -162,9 +176,9 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   "KifGameReader#splitBranches" must "split branches" in {
     TestKifGameReader.splitBranchesKif(Nil, Nil, Nil) mustBe Nil
     TestKifGameReader.splitBranchesKif(List(("1 ７六歩(77)   ( 0:12/)", 1)), Nil, Nil) mustBe Vector(List(("1 ７六歩(77)   ( 0:12/)", 1)))
-    TestKifGameReader.splitBranchesKif(List(("変化：1手", 1),("1 ７六歩(77)   ( 0:12/)", 1)), Nil, Nil) mustBe
+    TestKifGameReader.splitBranchesKif(List(("変化：1手", 1), ("1 ７六歩(77)   ( 0:12/)", 1)), Nil, Nil) mustBe
       Vector(Nil, List(("1 ７六歩(77)   ( 0:12/)", 1)))
-    TestKifGameReader.splitBranchesKif(List(("1 ７六歩(77)   ( 0:12/)", 1), ("変化：1手", 2),("1 ７六歩(77)   ( 0:12/)", 3)), Nil, Nil) mustBe
+    TestKifGameReader.splitBranchesKif(List(("1 ７六歩(77)   ( 0:12/)", 1), ("変化：1手", 2), ("1 ７六歩(77)   ( 0:12/)", 3)), Nil, Nil) mustBe
       Vector(List(("1 ７六歩(77)   ( 0:12/)", 1)), List(("1 ７六歩(77)   ( 0:12/)", 3)))
   }
 
@@ -234,12 +248,42 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
 
   }
 
-  "KifBranchReader#parseKifString" must "parse moves" in {
-    TestKifBranchReader.parseKifString(List(
-      ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
-    ), HIRATE) mustBe Branch(HIRATE.hash, 0, Vector(
+  "KifBranchReader#parseKifStringAsTrunk" must "parse moves and comments" in {
+    val exp = Branch(HIRATE)
+      .makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
+      .makeMove(MoveBuilderSfenBoard(P83, P84, false)).get
+
+    TestKifBranchReader.parseKifStringAsTrunk(List(
+      ("*c1", 1), ("1 ７六歩(77)   ( 0:12/)", 2), ("*c2", 3), ("2 ８四歩(83)   ( 0:13/)", 4), ("*c3", 5)
+    ), HIRATE) mustBe(Branch(HIRATE.hash, 0, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
+    )), Map(
+      exp.historyHash(0) -> "c1",
+      exp.historyHash(1) -> "c2",
+      exp.historyHash(2) -> "c3"
+    ))
+  }
+
+  "KifBranchReader#parseKifStringAsBranch" must "parse moves and comments" in {
+    val trunk = TestKifBranchReader.parseKifStringAsTrunk(List(
+      ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
+    ), HIRATE)._1
+
+    val lines = List(("*d1", 1), ("2 ３四歩(33)   ( 0:12/)", 2), ("*d2", 3), ("3 ７五歩(76)   ( 0:13/)", 4), ("*d3", 5))
+    val initHash = trunk.history(1)
+    val exp = Branch(HIRATE)
+      .makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
+      .makeMove(MoveBuilderSfenBoard(P33, P34, false)).get
+      .makeMove(MoveBuilderSfenBoard(P76, P75, false)).get
+
+    TestKifBranchReader.parseKifStringAsBranch(lines, trunk, Nil) mustBe(Branch(initHash, 1, Vector(
+      Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, Some(12)),
+      Move(BLACK, Some(P76), P75, PAWN, false, false, None, None, false, Some(13))
+    ), initialHistoryHash = Some(trunk.historyHash(1))), Map(
+      exp.historyHash(1) -> "d1",
+      exp.historyHash(2) -> "d2",
+      exp.historyHash(3) -> "d3"
     ))
   }
 

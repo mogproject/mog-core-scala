@@ -678,9 +678,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
     val g1: Game = Game.parseUsenString(s1)
-      .updateBranch(0)(br => Some(br.updateComments(Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")))).get
-      .updateBranch(1)(br => Some(br.updateComments(Map(2 -> "m2")))).get
-      .updateBranch(2)(br => Some(br.updateComments(Map(2 -> "v2", 3 -> "v3")))).get
+      .updateComment(GamePosition(0, 1), "mv1").get
+      .updateComment(GamePosition(0, 2), "mv2").get
+      .updateComment(GamePosition(0, 3), "mv3").get
+      .updateComment(GamePosition(1, 2), "m2").get
+      .updateComment(GamePosition(2, 2), "v2").get
+      .updateComment(GamePosition(2, 3), "v3").get
 
     (for {
       i <- 0 to 4
@@ -714,15 +717,17 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
     val g1: Game = Game.parseUsenString(s1)
-      .updateBranch(0)(br => Some(br.updateComments(Map(1 -> "mv1", 2 -> "mv2", 3 -> "mv3")))).get
-      .updateBranch(1)(br => Some(br.updateComments(Map(2 -> "m2")))).get
-      .updateBranch(2)(br => Some(br.updateComments(Map(2 -> "v2", 4 -> "v4")))).get
+      .updateComment(GamePosition(0, 1), "mv1").get
+      .updateComment(GamePosition(0, 2), "mv2").get
+      .updateComment(GamePosition(0, 3), "mv3").get
+      .updateComment(GamePosition(2, 4), "v4").get
 
     g1.truncated(GamePosition(0, 3)) mustBe g1
     g1.truncated(GamePosition(0, 2)).trunk.moves.length mustBe 2
-    g1.truncated(GamePosition(0, 2)).trunk.comments mustBe Map(1 -> "mv1", 2 -> "mv2")
-    g1.truncated(GamePosition(2, 3)).branches(2).comments mustBe Map(2 -> "v2")
-    g1.truncated(GamePosition(2, 4)).branches(2).status mustBe GameStatus.Playing
+    g1.truncated(GamePosition(0, 2)).comments mustBe Map(g1.trunk.historyHash(1) -> "mv1", g1.trunk.historyHash(2) -> "mv2", g1.branches(1).historyHash(2) -> "v4")
+    g1.truncated(GamePosition(2, 3)).comments mustBe Map(g1.trunk.historyHash(1) -> "mv1", g1.trunk.historyHash(2) -> "mv2", g1.trunk.historyHash(3) -> "mv3")
+    g1.branches(2).status mustBe GameStatus.IllegallyMoved
+    g1.truncated(GamePosition(3, 0)).branches(2).status mustBe GameStatus.Playing
     g1.truncated(GamePosition(0, 2)).branches.length mustBe 3
     g1.truncated(GamePosition(0, 1)).branches.length mustBe 1
     g1.truncated(GamePosition(0, 0)).branches.length mustBe 1
@@ -868,6 +873,20 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       0 -> Vector(("+2726FU", 0)),
       1 -> Vector(("-3334FU", 8))
     )
+  }
+  it must "get forks when a branch has the same first move as the trunk" in {
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t22jm4o22f281k4be.", // Trunk
+      "3.2jm4o22f27ku1cx9uw." // Branch: 5
+    ).mkString("~")
+
+    val g1: Game = Game.parseUsenString(s1)
+
+    def f(n: Int) = g1.getForkList(n).map { case (pos, vs) => pos -> vs.map { case (m, b) => m.toCsaString -> b } }
+
+    f(0) mustBe Map(7 -> Vector("+7776FU", 1))
+    f(1) mustBe Map(7 -> Vector("+2824HI", 0))
   }
 
   "Game#hasFork" must "return if the position has a fork" in {

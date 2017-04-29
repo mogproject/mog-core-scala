@@ -1,7 +1,7 @@
 package com.mogproject.mogami.core.game
 
-import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
-import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
+import com.mogproject.mogami.core.game.Game.{BranchNo, CommentType, GamePosition, HistoryHash}
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
@@ -15,15 +15,27 @@ import scala.collection.mutable
   */
 case class Game(trunk: Branch = Branch(),
                 branches: Vector[Branch] = Vector.empty,
-                gameInfo: GameInfo = GameInfo()
+                gameInfo: GameInfo = GameInfo(),
+                comments: CommentType = Map.empty
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
   type ForkList = Map[Int, Vector[(Move, BranchNo)]]
   private[this] val forkList: mutable.Map[BranchNo, ForkList] = mutable.Map.empty
 
+  //
+  // helper functions
+  //
   def getBranch(branchNo: BranchNo): Option[Branch] = (branchNo == 0).fold(Some(trunk), branches.get(branchNo - 1))
 
   def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
+
+  private[this] def withGamePosition[A](gamePosition: GamePosition)(f: (Branch, Int) => Option[A]): Option[A] = if (gamePosition.isTrunk) {
+    f(trunk, gamePosition.position)
+  } else {
+    getBranch(gamePosition.branch).flatMap { br =>
+      f((gamePosition.position <= br.offset).fold(trunk, br), gamePosition.position)
+    }
+  }
 
   def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
     val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
@@ -138,39 +150,31 @@ case class Game(trunk: Branch = Branch(),
     * @param gamePosition game position
     * @return None if the game position is invalid
     */
-  def getState(gamePosition: GamePosition): Option[State] = if (gamePosition.branch == 0) {
-    trunk.getState(gamePosition.position)
-  } else {
-    withBranch(gamePosition.branch) { br =>
-      if (gamePosition.position <= br.offset) {
-        trunk.getState(gamePosition.position)
-      } else {
-        br.getState(gamePosition.position)
-      }
-    }.flatten
+  def getState(gamePosition: GamePosition): Option[State] = withGamePosition(gamePosition)(_.getState(_))
+
+  def getHistoryHash(gamePosition: GamePosition): Option[HistoryHash] =
+    withGamePosition(gamePosition)((br, pos) => br.historyHash.get(pos - br.offset))
+
+  //
+  // Comments
+  //
+  def hasComment(gamePosition: GamePosition): Boolean = getHistoryHash(gamePosition).exists(comments.contains)
+
+  def getComment(gamePosition: GamePosition): Option[String] = getHistoryHash(gamePosition).flatMap(comments.get)
+
+  def updateComment(gamePosition: GamePosition, comment: String): Option[Game] = {
+    if (comment.isEmpty)
+      clearComment(gamePosition)
+    else {
+      getHistoryHash(gamePosition).map(h => this.copy(comments = comments.updated(h, comment)))
+    }
   }
 
-  def hasComment(gamePosition: GamePosition): Boolean = if (gamePosition.isTrunk) {
-    trunk.hasComment(gamePosition.position)
-  } else {
-    getBranch(gamePosition.branch).exists(br =>
-      if (gamePosition.position <= br.offset) trunk.hasComment(gamePosition.position) else br.hasComment(gamePosition.position)
-    )
+  def clearComment(gamePosition: GamePosition): Option[Game] = {
+    getHistoryHash(gamePosition).map(h => this.copy(comments = comments - h))
   }
 
-  def getComment(gamePosition: GamePosition): Option[String] = if (gamePosition.isTrunk) {
-    trunk.comments.get(gamePosition.position)
-  } else {
-    getBranch(gamePosition.branch).flatMap(br =>
-      (if (gamePosition.position <= br.offset) trunk else br).comments.get(gamePosition.position)
-    )
-  }
-
-  def getFinalAction(branchNo: BranchNo): Option[SpecialMove] = if (branchNo == 0) {
-    trunk.finalAction
-  } else {
-    getBranch(branchNo).flatMap(_.finalAction)
-  }
+  def getFinalAction(branchNo: BranchNo): Option[SpecialMove] = withBranch(branchNo)(_.finalAction).flatten
 
   def hasFork(gamePosition: GamePosition): Boolean = getForkList(gamePosition.branch).keySet.contains(gamePosition.position)
 
@@ -178,12 +182,20 @@ case class Game(trunk: Branch = Branch(),
     * Create a truncated game at a specific position
     */
   def truncated(gamePosition: GamePosition): Game = {
+    def f(t: Branch, bs: Seq[Branch]): CommentType = {
+      val validKeys = (t +: bs).foldLeft(Set.empty[HistoryHash])(_ ++ _.historyHash)
+      comments.filterKeys(validKeys)
+    }
+
     if (gamePosition.isTrunk) {
       // delete branches if needed
-      copy(trunk = trunk.truncated(gamePosition.position), branches = branches.filter(_.offset <= gamePosition.position))
+      val newTrunk = trunk.truncated(gamePosition.position)
+      val newBranches = branches.filter(_.offset <= gamePosition.position)
+      copy(trunk = newTrunk, branches = newBranches, comments = f(newTrunk, newBranches))
     } else {
       withBranch(gamePosition.branch) { br =>
-        copy(branches = branches.updated(gamePosition.branch, br.truncated(gamePosition.position)))
+        val newBranches = branches.updated(gamePosition.branchIndex, br.truncated(gamePosition.position))
+        copy(branches = newBranches, comments = f(trunk, newBranches))
       }.getOrElse(this)
     }
   }
@@ -193,11 +205,15 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
   type BranchNo = Int // branch number: root = 0
 
-  case class GamePosition(branch: BranchNo, position: Int) {
+  type Position = Int // regarding offset
+
+  case class GamePosition(branch: BranchNo, position: Position) {
     require(branch >= 0, "branch must not be negative")
     require(position >= 0, "position must not be negative")
 
     def isTrunk: Boolean = branch == 0
+
+    def branchIndex: Int = branch - 1
   }
 
   /**
@@ -205,4 +221,5 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
     */
   type HistoryHash = Long
 
+  type CommentType = Map[HistoryHash, String]
 }
