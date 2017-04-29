@@ -78,7 +78,11 @@ case class Branch(initialHash: StateHash,
     history.zipWithIndex.tail.scanLeft(h0) { case (r, (h, i)) => r ^ createHistoryHash(i + offset, h) }
   }
 
-  private[this] def createHistoryHash(position: Int, stateHash: StateHash): HistoryHash = BitOperation.rotateShift(stateHash, position % 63)
+  /**
+    * Numeric hash function
+    */
+  private[this] def createHistoryHash(position: Position, stateHash: StateHash): HistoryHash =
+    BitOperation.rotateShift(stateHash, position % 63) ^ (stateHash * (10000 + position))
 
   /**
     * Create SFEN string
