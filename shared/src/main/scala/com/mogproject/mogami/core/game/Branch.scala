@@ -15,13 +15,13 @@ import com.mogproject.mogami.util.Implicits._
 /**
   * Manages one branch
   *
-  * @param initialHash initial status hash
-  * @param offset offset
-  * @param moves moves
-  * @param finalAction final action
+  * @param initialHash        initial status hash
+  * @param offset             offset
+  * @param moves              moves
+  * @param finalAction        final action
   * @param initialHistoryHash not used when hint is given
-  * @param hint hint
-  * @param stateCache state cache
+  * @param hint               hint
+  * @param stateCache         state cache
   */
 case class Branch(initialHash: StateHash,
                   offset: Int = 0,
@@ -147,7 +147,8 @@ case class Branch(initialHash: StateHash,
         BranchHint(history :+ h, historyHash :+ (historyHash.last ^ createHistoryHash(historyHash.length + offset, h)))
       }))
 
-  def makeMove(move: MoveBuilder): Option[Branch] = move.toMove(lastState, lastMoveTo).flatMap(makeMove)
+  def makeMove(move: MoveBuilder, lastMoveToValue: Option[Square] = lastMoveTo): Option[Branch] =
+    move.toMove(lastState, lastMoveToValue.isDefined.fold(lastMoveToValue, lastMoveTo)).flatMap(makeMove)
 
   /**
     * Check if the position is valid
