@@ -2,7 +2,7 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.SquareConstant._
-import com.mogproject.mogami.core.game.Game.GamePosition
+import com.mogproject.mogami.core.game.Game.{GamePosition, Position}
 import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.state.{State, StateCache}
@@ -817,7 +817,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     val g1: Game = Game.parseUsenString(s1)
 
-    def f(n: Int) = g1.getForkList(n).map { case (pos, vs) => pos -> vs.map { case (m, b) => m.toCsaString -> b } }
+    def f(n: BranchNo) = (for {
+      pos <- 0 to 20
+    } yield pos -> g1.getForks(GamePosition(n, pos)).map { case (m, b) => m.toCsaString -> b }).filter(_._2.nonEmpty).toMap
 
     f(0) mustBe Map(
       0 -> Vector(("+3736FU", 8)),
@@ -878,18 +880,24 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t22jm4o22f281k4be.", // Trunk
-      "3.2jm4o22f27ku1cx9uw." // Branch: 5
+      "3.2jm4o22f27ku1cx9uw." // Branch: 1
     ).mkString("~")
 
     val g1: Game = Game.parseUsenString(s1)
 
-    def f(n: Int) = g1.getForkList(n).map { case (pos, vs) => pos -> vs.map { case (m, b) => m.toCsaString -> b } }
+    def f(n: BranchNo) = (for {
+      pos <- 0 to 20
+    } yield pos -> g1.getForks(GamePosition(n, pos)).map { case (m, b) => m.toCsaString -> b }).filter(_._2.nonEmpty).toMap
 
-    f(0) mustBe Map(7 -> Vector("+7776FU", 1))
-    f(1) mustBe Map(7 -> Vector("+2824HI", 0))
+    f(0) mustBe Map(
+      6 -> Vector(("+7776FU", 1))
+    )
+    f(1) mustBe Map(
+      6 -> Vector(("+2824HI", 0))
+    )
   }
 
-  "Game#hasFork" must "return if the position has a fork" in {
+  "Game#hasFork" must "return wheather the position has a fork" in {
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -964,7 +972,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     val g1: Game = Game.parseUsenString(s1)
 
     g1.createBranch(GamePosition(0, 13), Move(WHITE, Some(P23), P24, PAWN, false, false, None, None, false, None, true)) mustBe None
-    g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)) mustBe None
+
+    // same as a branch's move, but the trunk's move is preserved
+    g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
+      branches = g1.branches :+ Branch(g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)))
+    ))
+
     g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
       branches = g1.branches :+ Branch(g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)))
     ))

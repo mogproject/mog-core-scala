@@ -39,7 +39,9 @@ case class Branch(initialHash: StateHash,
 
   def updateFinalAction(fa: Option[SpecialMove]): Branch = Branch(initialHash, offset, moves, fa, initialHistoryHash, Some(BranchHint(history, historyHash)))
 
-  def getState(pos: Int): Option[State] = history.get(pos - offset).flatMap(stateCache.get)
+  def getStateHash(pos: Position): Option[StateHash] = history.get(pos - offset)
+
+  def getState(pos: Position): Option[State] = history.get(pos - offset).flatMap(stateCache.get)
 
   /**
     * history of state hashes
@@ -53,7 +55,7 @@ case class Branch(initialHash: StateHash,
 
   def initialState: State = stateCache(initialHash)
 
-  def getMove(pos: Int): Option[Move] = moves.get(pos - offset)
+  def getMove(pos: Position): Option[Move] = moves.get(pos - offset)
 
   lazy val lastState: State = stateCache(history.last)
 
