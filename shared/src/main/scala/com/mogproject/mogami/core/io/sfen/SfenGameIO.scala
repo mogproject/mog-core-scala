@@ -1,5 +1,6 @@
 package com.mogproject.mogami.core.io.sfen
 
+import com.mogproject.mogami.core.game.Game.{HistoryHash, Position}
 import com.mogproject.mogami.core.game.{Branch, Game}
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.{Move, MoveBuilderSfen, SpecialMove}
@@ -53,18 +54,26 @@ trait SfenBranchReader {
   /**
     * Parse USEN string as a trunk
     */
-  def parseUsenString(s: String, initialState: State)(implicit stateCache: StateCache): Branch =
-    parseUsenStringHelper(s, _ => stateCache.set(initialState), None)
+  def parseUsenStringAsTrunk(s: String, initialState: State)(implicit stateCache: StateCache): Branch =
+    parseUsenStringHelper(s, _ => stateCache.set(initialState), _ => None, None)
 
   /**
     * Parse USEN string as a branch
     */
-  def parseUsenString(s: String, trunk: Branch)(implicit stateCache: StateCache): Branch =
-    parseUsenStringHelper(s, i => trunk.history(i - trunk.offset), Some(Range(trunk.offset, trunk.offset + trunk.history.length)))
+  def parseUsenStringAsBranch(s: String, trunk: Branch)(implicit stateCache: StateCache): Branch =
+    parseUsenStringHelper(
+      s,
+      pos => trunk.getStateHash(pos).get,
+      pos => trunk.getHistoryHash(pos),
+      Some(Range(trunk.offset, trunk.offset + trunk.history.length))
+    )
 
   // helper function
-  private[this] def parseUsenStringHelper(s: String, initialStateFunc: Int => StateHash, offsetRange: Option[Range])
-                                         (implicit stateCache: StateCache): Branch = {
+  private[this] def parseUsenStringHelper(s: String,
+                                          initialStateFunc: Position => StateHash,
+                                          initialHistoryHashFunc: Position => Option[HistoryHash],
+                                          offsetRange: Option[Range]
+                                         )(implicit stateCache: StateCache): Branch = {
     val tokens = s.split("[.]", 3)
     if (tokens.length != 3) throw new RecordFormatException(1, s"branch description must have three sections: ${s}")
     val Array(os, mvs, fa) = tokens
@@ -76,7 +85,8 @@ trait SfenBranchReader {
     val moves = mvs.grouped(3).map(MoveBuilderSfen.parseUsenString)
 
     // make moves
-    val b = moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset)) { (br, m) =>
+    val initBranch: Branch = Branch(initialStateFunc(offset), offset, initialHistoryHash = initialHistoryHashFunc(offset))
+    val b = moves.foldLeft[Branch](initBranch) { (br, m) =>
       br.makeMove(m).getOrElse(throw new RecordFormatException(1, s"Invalid move: ${m.toUsenString}"))
     }
 
@@ -95,8 +105,8 @@ trait SfenGameReader {
     if (tokens.length < 2) throw new RecordFormatException(1, s"game description must have at least two sections: ${s}")
 
     val initialState = State.parseUsenString(tokens(0))
-    val trunk = Branch.parseUsenString(tokens(1), initialState)
-    val branches = tokens.drop(2).map(ss => Branch.parseUsenString(ss, trunk)).toVector
+    val trunk = Branch.parseUsenStringAsTrunk(tokens(1), initialState)
+    val branches = tokens.drop(2).map(ss => Branch.parseUsenStringAsBranch(ss, trunk)).toVector
     Game(trunk, branches)
   }
 }
@@ -109,8 +119,6 @@ trait SfenBranchWriter {
   def moves: Vector[Move]
 
   def finalAction: Option[SpecialMove]
-
-  def comments: Map[Int, String]
 
   /**
     * Make Sfen string

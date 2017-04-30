@@ -21,31 +21,63 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     g003.trunk.moves.length mustBe 117
     g003.branches.map(_.offset) mustBe Seq(69, 69, 49, 33)
     g003.branches.map(_.moves.length) mustBe Seq(9, 7, 13, 9)
-    g003.trunk.hasComment(0) mustBe true
-    g003.trunk.comments.size mustBe 17
-    g003.trunk.comments.keySet mustBe Set(0, 32, 33, 46, 49, 56, 64, 69, 72, 76, 83, 100, 105, 109, 111, 113, 117)
-    g003.branches(2).comments mustBe Map(
-      52 -> Seq("[Taichi_NAKAMURA] 次に53銀打の狙いがあります。",
-        "\"You are threatening Silver drop to 53 ",
-        "here\"").mkString("\n"),
-      53 -> "[Archon] I was worried about bishop drop 77",
-      54 -> Seq(
-        "[Archon] I see, and without king to defend from ",
-        "earliermove",
-        "( \"なるほど、本譜のように玉が守っていないので。 \")",
-        "",
-        "[Taichi_NAKAMURA] そうですね。実戦の進行は上手の駒の連結が良くなってしまいました。",
-        "\"Yes. In the game, my pieces were connected ",
-        "tighter.\"",
-        ""
-      ).mkString("\n"),
-      62 -> Seq("[Taichi_NAKAMURA] 駒の働きや連結を意識するともっと上達すると思います。",
-        "\"You will improve a lot more, if you think ",
-        "more about pieces' connection and their efficiencies.\""
-      ).mkString("\n")
+    g003.hasComment(GamePosition(0, 0)) mustBe true
+    g003.comments.size mustBe 27
+    g003.comments.keySet mustBe Set(
+      g003.trunk.historyHash(0),
+      g003.trunk.historyHash(32),
+      g003.trunk.historyHash(33),
+      g003.trunk.historyHash(46),
+      g003.trunk.historyHash(49),
+      g003.trunk.historyHash(56),
+      g003.trunk.historyHash(64),
+      g003.trunk.historyHash(69),
+      g003.trunk.historyHash(72),
+      g003.trunk.historyHash(76),
+      g003.trunk.historyHash(83),
+      g003.trunk.historyHash(100),
+      g003.trunk.historyHash(105),
+      g003.trunk.historyHash(109),
+      g003.trunk.historyHash(111),
+      g003.trunk.historyHash(113),
+      g003.trunk.historyHash(117),
+      g003.branches(0).getHistoryHash(70).get,
+      g003.branches(0).getHistoryHash(71).get,
+      g003.branches(0).getHistoryHash(78).get,
+      g003.branches(1).getHistoryHash(72).get,
+      g003.branches(1).getHistoryHash(76).get,
+      g003.branches(2).getHistoryHash(52).get,
+      g003.branches(2).getHistoryHash(53).get,
+      g003.branches(2).getHistoryHash(54).get,
+      g003.branches(2).getHistoryHash(62).get,
+      g003.branches(3).getHistoryHash(42).get
     )
+    g003.comments(g003.branches(2).historyHash(3)) mustBe Seq(
+      "[Taichi_NAKAMURA] 次に53銀打の狙いがあります。",
+      "\"You are threatening Silver drop to 53 ",
+      "here\""
+    ).mkString("\n")
+    g003.comments(g003.branches(2).historyHash(4)) mustBe "[Archon] I was worried about bishop drop 77"
+    g003.comments(g003.branches(2).historyHash(5)) mustBe Seq(
+      "[Archon] I see, and without king to defend from ",
+      "earliermove",
+      "( \"なるほど、本譜のように玉が守っていないので。 \")",
+      "",
+      "[Taichi_NAKAMURA] そうですね。実戦の進行は上手の駒の連結が良くなってしまいました。",
+      "\"Yes. In the game, my pieces were connected ",
+      "tighter.\"",
+      ""
+    ).mkString("\n")
+    g003.comments(g003.branches(2).historyHash(13)) mustBe Seq(
+      "[Taichi_NAKAMURA] 駒の働きや連結を意識するともっと上達すると思います。",
+      "\"You will improve a lot more, if you think ",
+      "more about pieces' connection and their efficiencies.\""
+    ).mkString("\n")
 
-    Game.parseKifString(g003.toKifString).toUsenString mustBe g003.toUsenString
+    // toKifString can change the branch order
+    Game.parseKifString(g003.toKifString).toUsenString.sum mustBe g003.toUsenString.sum
+    Game.parseKifString(g003.toKifString).toUsenString mustBe Game.parseKifString(Game.parseKifString(g003.toKifString).toKifString).toUsenString
+    Game.parseKifString(g003.toKifString).toKifString mustBe Game.parseKifString(Game.parseKifString(g003.toKifString).toKifString).toKifString
 
     Game.parseKifString(loadFile("kif/game/004.kif")).trunk.moves.length mustBe 223
 

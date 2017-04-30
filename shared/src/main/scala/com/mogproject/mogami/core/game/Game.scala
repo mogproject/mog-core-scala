@@ -1,48 +1,57 @@
 package com.mogproject.mogami.core.game
 
-import com.mogproject.mogami.core.game.Game.{BranchNo, GamePosition}
-import com.mogproject.mogami.core.state.StateCache.Implicits.DefaultStateCache
+import com.mogproject.mogami.core.game.Game.{BranchNo, CommentType, GamePosition, HistoryHash}
+import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.{State, StateCache}
-import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.util.Implicits._
-
-import scala.collection.mutable
 
 /**
   * Game
   */
 case class Game(trunk: Branch = Branch(),
                 branches: Vector[Branch] = Vector.empty,
-                gameInfo: GameInfo = GameInfo()
+                gameInfo: GameInfo = GameInfo(),
+                comments: CommentType = Map.empty
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
-  type ForkList = Map[Int, Vector[(Move, BranchNo)]]
-  private[this] val forkList: mutable.Map[BranchNo, ForkList] = mutable.Map.empty
+  type ForkList = Map[HistoryHash, Map[Move, BranchNo]]
 
+  //
+  // helper functions
+  //
   def getBranch(branchNo: BranchNo): Option[Branch] = (branchNo == 0).fold(Some(trunk), branches.get(branchNo - 1))
 
   def withBranch[A](branchNo: BranchNo)(f: Branch => A): Option[A] = getBranch(branchNo).map(f)
 
+  private[this] def withGamePosition[A](gamePosition: GamePosition)(f: (Branch, Int) => Option[A]): Option[A] = if (gamePosition.isTrunk) {
+    f(trunk, gamePosition.position)
+  } else {
+    getBranch(gamePosition.branch).flatMap { br =>
+      f((gamePosition.position < br.offset).fold(trunk, br), gamePosition.position)
+    }
+  }
+
+  /**
+    * Create a new branch
+    *
+    * This is eligible when
+    *   - the position is not the last
+    *   - the position is on the trunk --or-- the move is new
+    */
   def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
     val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
-    val forks = getForkList(gamePosition.branch)
 
-    val ok = moveOnThisBranch.exists(_ != move) && forks.get(gamePosition.position).forall(_.forall(_._1 != move))
+    val ok = moveOnThisBranch.exists(_ != move) && (gamePosition.isTrunk || getForks(gamePosition).forall(_._1 != move))
 
     if (ok) {
       (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
-        println(trunk.getState(gamePosition.position - trunk.offset).get.toCsaString)
-        println(move.toCsaString)
         Some(Branch(trunk.history(gamePosition.position - trunk.offset), gamePosition.position, Vector(move)))
       } else {
         val diff = gamePosition.position - br.offset
-        (br.moves.take(diff) :+ move).foreach(x => println(x.toCsaString))
-        println(trunk.history(br.offset - trunk.offset))
-        println(trunk.getState(br.offset).get.toCsaString)
-
-        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff), hint = Some(BranchHint(br.history.take(diff + 1)))).makeMove(move)
+        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
+          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
       }) map { newBranch =>
         copy(branches = branches :+ newBranch)
       }
@@ -73,60 +82,6 @@ case class Game(trunk: Branch = Branch(),
   }
 
   /**
-    * @param branchNo map of offset -> {vector of (move, branch number)
-    * @return
-    */
-  protected[game] def getForkList(branchNo: BranchNo): ForkList = forkList.getOrElse(branchNo, {
-    // update stored value
-    val ls = createForkList(branchNo)
-    forkList.update(branchNo, ls)
-    ls
-  })
-
-  protected[game] def createForkList(branchNo: BranchNo): ForkList = {
-    val m: Map[(Int, Move), BranchNo] = if (branchNo == 0) {
-      findForksOnTrunk(trunk.offset + trunk.moves.length)
-    } else {
-      withBranch(branchNo) { br =>
-        // find parent == trunk
-        val preceding = findForksOnTrunk(br.offset)
-
-        // add trunk as a fork
-        val trunkFork = if (trunk.moves.isDefinedAt(br.offset)) Map((br.offset, trunk.moves(br.offset)) -> 0) else Map.empty
-
-        // find brother nodes
-        val brothers = branches.zipWithIndex.filter { case (b, i) => i != branchNo - 1 && b.offset == br.offset }
-        preceding ++ trunkFork ++ findForksOnBrotherNodes(br.history, brothers)
-      }.getOrElse(Map.empty)
-    }
-
-    m.groupBy(_._1._1).map { case (k, v) => k -> v.map { case ((_, mv), br) => (mv, br) }.toSeq.sortBy(_._2).toVector }
-  }
-
-  private[this] def findForksOnTrunk(offsetLimit: Int): Map[(Int, Move), BranchNo] = {
-    branches.zipWithIndex.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
-      (br.offset, br.moves.headOption) match {
-        case (os, Some(mv)) if os < offsetLimit && !sofar.contains((os, mv)) => sofar.updated((os, mv), i + 1)
-        case _ => sofar // already set the same offset/move pair or no moves
-      }
-    }
-  }
-
-  private[this] def findForksOnBrotherNodes(baseHistory: Vector[StateHash], brothers: Vector[(Branch, Int)]): Map[(Int, Move), BranchNo] = {
-    brothers.foldLeft(Map.empty[(Int, Move), BranchNo]) { case (sofar, (br, i)) =>
-      baseHistory.zip(br.history).drop(1).indexWhere { case (a, b) => a != b } match {
-        case -1 =>
-          println(s"Error: Identical branch: ${i}")
-          sofar
-        case index if !sofar.contains((br.offset + index, br.moves(index))) => sofar.updated((br.offset + index, br.moves(index)), i + 1)
-        case _ => sofar // already set the same offset/move
-      }
-    }
-  }
-
-  def getForks(gamePosition: GamePosition): Vector[(Move, BranchNo)] = getForkList(gamePosition.branch).getOrElse(gamePosition.position, Vector.empty)
-
-  /**
     * Get all moves from the trunk's start position
     *
     * @param branchNo branch number (trunk:0)
@@ -143,52 +98,84 @@ case class Game(trunk: Branch = Branch(),
     * @param gamePosition game position
     * @return None if the game position is invalid
     */
-  def getState(gamePosition: GamePosition): Option[State] = if (gamePosition.branch == 0) {
-    trunk.getState(gamePosition.position)
-  } else {
-    withBranch(gamePosition.branch) { br =>
-      if (gamePosition.position <= br.offset) {
-        trunk.getState(gamePosition.position)
-      } else {
-        br.getState(gamePosition.position)
+  def getState(gamePosition: GamePosition): Option[State] = withGamePosition(gamePosition)(_.getState(_))
+
+  def getHistoryHash(gamePosition: GamePosition): Option[HistoryHash] =
+    withGamePosition(gamePosition)((br, pos) => br.historyHash.get(pos - br.offset))
+
+  def getMove(gamePosition: GamePosition): Option[Move] = withGamePosition(gamePosition)(_.getMove(_))
+
+  //
+  // Comments
+  //
+  def hasComment(gamePosition: GamePosition): Boolean = getHistoryHash(gamePosition).exists(comments.contains)
+
+  def getComment(gamePosition: GamePosition): Option[String] = getHistoryHash(gamePosition).flatMap(comments.get)
+
+  def updateComment(gamePosition: GamePosition, comment: String): Option[Game] = {
+    if (comment.isEmpty)
+      clearComment(gamePosition)
+    else {
+      getHistoryHash(gamePosition).map(h => this.copy(comments = comments.updated(h, comment)))
+    }
+  }
+
+  def clearComment(gamePosition: GamePosition): Option[Game] = {
+    getHistoryHash(gamePosition).map(h => this.copy(comments = comments - h))
+  }
+
+  //
+  // Forks
+  //
+  private[this] lazy val forkList: ForkList = {
+    ((trunk, -1) +: branches.zipWithIndex).foldLeft(Map.empty[HistoryHash, Map[Move, BranchNo]]) { case (m, (b, i)) =>
+      val branchNo = i + 1
+      b.getNextMoveList.foldLeft(m) { case (mm, (h, mv)) =>
+        mm.get(h) match {
+          case Some(ss) if ss.contains(mv) => mm // existing move
+          case Some(ss) => mm.updated(h, ss.updated(mv, branchNo)) // existing hash, new move
+          case None => mm.updated(h, Map(mv -> branchNo)) // new hash
+        }
       }
-    }.flatten
+    }.filter(_._2.size > 1)
   }
 
-  def hasComment(gamePosition: GamePosition): Boolean = if (gamePosition.isTrunk) {
-    trunk.hasComment(gamePosition.position)
-  } else {
-    getBranch(gamePosition.branch).exists(br =>
-      if (gamePosition.position <= br.offset) trunk.hasComment(gamePosition.position) else br.hasComment(gamePosition.position)
-    )
-  }
+  def getForks(gamePosition: GamePosition): Vector[(Move, BranchNo)] = withBranch(gamePosition.branch) { br =>
+    (for {
+      h <- getHistoryHash(gamePosition).toVector
+      mm <- forkList.get(h).toVector
+      (m, b) <- mm
+      mv <- getMove(gamePosition)
+      if (gamePosition.position < br.offset).fold(0, gamePosition.branch) != b
+      if m != mv
+    } yield (m, b)).sortBy(_._2)
+  }.getOrElse(Vector.empty)
 
-  def getComment(gamePosition: GamePosition): Option[String] = if (gamePosition.isTrunk) {
-    trunk.comments.get(gamePosition.position)
-  } else {
-    getBranch(gamePosition.branch).flatMap(br =>
-      (if (gamePosition.position <= br.offset) trunk else br).comments.get(gamePosition.position)
-    )
-  }
+  def hasFork(gamePosition: GamePosition): Boolean = getHistoryHash(gamePosition).exists(forkList.contains)
 
-  def getFinalAction(branchNo: BranchNo): Option[SpecialMove] = if (branchNo == 0) {
-    trunk.finalAction
-  } else {
-    getBranch(branchNo).flatMap(_.finalAction)
-  }
-
-  def hasFork(gamePosition: GamePosition): Boolean = getForkList(gamePosition.branch).keySet.contains(gamePosition.position)
+  //
+  //
+  //
+  def getFinalAction(branchNo: BranchNo): Option[SpecialMove] = withBranch(branchNo)(_.finalAction).flatten
 
   /**
     * Create a truncated game at a specific position
     */
   def truncated(gamePosition: GamePosition): Game = {
+    def f(t: Branch, bs: Seq[Branch]): CommentType = {
+      val validKeys = (t +: bs).foldLeft(Set.empty[HistoryHash])(_ ++ _.historyHash)
+      comments.filterKeys(validKeys)
+    }
+
     if (gamePosition.isTrunk) {
       // delete branches if needed
-      copy(trunk = trunk.truncated(gamePosition.position), branches = branches.filter(_.offset <= gamePosition.position))
+      val newTrunk = trunk.truncated(gamePosition.position)
+      val newBranches = branches.filter(_.offset <= gamePosition.position)
+      copy(trunk = newTrunk, branches = newBranches, comments = f(newTrunk, newBranches))
     } else {
       withBranch(gamePosition.branch) { br =>
-        copy(branches = branches.updated(gamePosition.branch, br.truncated(gamePosition.position)))
+        val newBranches = branches.updated(gamePosition.branchIndex, br.truncated(gamePosition.position))
+        copy(branches = newBranches, comments = f(trunk, newBranches))
       }.getOrElse(this)
     }
   }
@@ -198,11 +185,21 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
   type BranchNo = Int // branch number: root = 0
 
-  case class GamePosition(branch: BranchNo, position: Int) {
+  type Position = Int // regarding offset
+
+  case class GamePosition(branch: BranchNo, position: Position) {
     require(branch >= 0, "branch must not be negative")
     require(position >= 0, "position must not be negative")
 
     def isTrunk: Boolean = branch == 0
+
+    def branchIndex: Int = branch - 1
   }
 
+  /**
+    * A hash value of a sequence of moves. This differenciates the same state with different histories.
+    */
+  type HistoryHash = Long
+
+  type CommentType = Map[HistoryHash, String]
 }
