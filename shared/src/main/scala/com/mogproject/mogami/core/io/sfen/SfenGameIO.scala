@@ -1,5 +1,6 @@
 package com.mogproject.mogami.core.io.sfen
 
+import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.game.Game.{HistoryHash, Position}
 import com.mogproject.mogami.core.game.{Branch, Game}
 import com.mogproject.mogami.core.io.RecordFormatException
@@ -55,7 +56,7 @@ trait SfenBranchReader {
     * Parse USEN string as a trunk
     */
   def parseUsenStringAsTrunk(s: String, initialState: State)(implicit stateCache: StateCache): Branch =
-    parseUsenStringHelper(s, _ => stateCache.set(initialState), _ => None, None)
+    parseUsenStringHelper(s, _ => stateCache.set(initialState), _ => None, _ => None, None)
 
   /**
     * Parse USEN string as a branch
@@ -65,6 +66,7 @@ trait SfenBranchReader {
       s,
       pos => trunk.getStateHash(pos).get,
       pos => trunk.getHistoryHash(pos),
+      pos => trunk.getMove(pos - 1).map(_.to),
       Some(Range(trunk.offset, trunk.offset + trunk.history.length))
     )
 
@@ -72,6 +74,7 @@ trait SfenBranchReader {
   private[this] def parseUsenStringHelper(s: String,
                                           initialStateFunc: Position => StateHash,
                                           initialHistoryHashFunc: Position => Option[HistoryHash],
+                                          lastMoveFunc: Position => Option[Square],
                                           offsetRange: Option[Range]
                                          )(implicit stateCache: StateCache): Branch = {
     val tokens = s.split("[.]", 3)
@@ -86,8 +89,10 @@ trait SfenBranchReader {
 
     // make moves
     val initBranch: Branch = Branch(initialStateFunc(offset), offset, initialHistoryHash = initialHistoryHashFunc(offset))
-    val b = moves.foldLeft[Branch](initBranch) { (br, m) =>
-      br.makeMove(m).getOrElse(throw new RecordFormatException(1, s"Invalid move: ${m.toUsenString}"))
+    val initLastMoveTo = lastMoveFunc(offset)
+
+    val b = moves.zipWithIndex.foldLeft[Branch](initBranch) { case (br, (m, i)) =>
+      br.makeMove(m, (i == 0).fold(initLastMoveTo, None)).getOrElse(throw new RecordFormatException(1, s"Invalid move: ${m.toUsenString}"))
     }
 
     // set final action

@@ -1,9 +1,8 @@
 package com.mogproject.mogami.core.io.sfen
 
-import com.mogproject.mogami.core.Player.BLACK
-import com.mogproject.mogami.core.Ptype.KING
-import com.mogproject.mogami.core.Square
+import com.mogproject.mogami._
 import com.mogproject.mogami.core.game.{Game, GameGen}
+import com.mogproject.mogami.core.move.Movement.Upward
 import com.mogproject.mogami.core.move.{IllegalMove, Move, Resign}
 import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -64,6 +63,20 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
     g3.trunk.historyHash(0) mustBe g3.branches(8).historyHash(0)
     g3.branches(3).historyHash(4) mustBe g3.branches(5).historyHash(4)
     g3.branches(3).historyHash(4) mustNot be(g3.branches(4).historyHash(4))
+  }
+  it must "create moves correctly" in {
+    val s1 = "4RB1k1_5s3_7n1_5s1LP_9_7r1_9_9_6K2.b.b4g2s3n3l17p~0.0elbi4bnm3s42em5sk0i51i4bri050bj014k291.~3.1j42em5sk0i5050bs0."
+    val g1 = TestSfenGameReader.parseUsenString(s1)
+
+    g1.branches.length mustBe 1
+    g1.branches(0).moves mustBe Vector(
+      Move(WHITE, Some(Square(12)), Square(20), SILVER, false, true, Some(Upward), Some(KNIGHT), false, None, true),
+      Move(BLACK, Some(Square(19)), Square(20), PBISHOP, false, true, None, Some(SILVER), true, None, true),
+      Move(WHITE, Some(Square(46)), Square(28), ROOK, false, false, None, Some(LANCE), false, None, true),
+      Move(BLACK, Some(Square(4)), Square(2), PROOK, true, false, None, Some(LANCE), true, None, true),
+      Move(WHITE, Some(Square(1)), Square(9), KING, false, false, None, None, false, None, true),
+      Move(BLACK, None, Square(18), SILVER, false, false, None, None, true, None, true)
+    )
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val s = g.toUsenString
