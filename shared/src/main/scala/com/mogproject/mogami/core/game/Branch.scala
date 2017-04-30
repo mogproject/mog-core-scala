@@ -12,9 +12,16 @@ import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.util.BitOperation
 import com.mogproject.mogami.util.Implicits._
 
-
 /**
   * Manages one branch
+  *
+  * @param initialHash initial status hash
+  * @param offset offset
+  * @param moves moves
+  * @param finalAction final action
+  * @param initialHistoryHash not used when hint is given
+  * @param hint hint
+  * @param stateCache state cache
   */
 case class Branch(initialHash: StateHash,
                   offset: Int = 0,

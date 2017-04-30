@@ -975,15 +975,20 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     // same as a branch's move, but the trunk's move is preserved
     g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)))
-    ))
-
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)),
+        initialHistoryHash = g1.getHistoryHash(GamePosition(0, 12))
+      )))
     g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)))
-    ))
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)),
+        initialHistoryHash = g1.getHistoryHash(GamePosition(0, 12))
+      )))
     g1.createBranch(GamePosition(0, 1), Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(1), 1, Vector(Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)))
-    ))
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(1), 1, Vector(Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)),
+        initialHistoryHash = g1.getHistoryHash(GamePosition(0, 1))
+      )))
     g1.createBranch(GamePosition(2, 16), Move(WHITE, Some(P82), P85, ROOK, false, false, None, None, false, None, true)) mustBe None
     g1.createBranch(GamePosition(2, 15), Move(WHITE, Some(P82), P85, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
       branches = g1.branches :+ Branch(g1.trunk.history(11), 11, Vector(
@@ -1007,26 +1012,39 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )
     g1.createBranch(GamePosition(5, 0), Move(BLACK, Some(P37), P36, PAWN, false, false, None, None, false, None, true)) mustBe None
     g1.createBranch(GamePosition(5, 0), Move(BLACK, Some(P47), P46, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(0), 0, Vector(
-        Move(BLACK, Some(P47), P46, PAWN, false, false, None, None, false, None, true)
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(0), 0,
+        Vector(Move(BLACK, Some(P47), P46, PAWN, false, false, None, None, false, None, true)),
+        initialHistoryHash = g1.getHistoryHash(GamePosition(0, 0))
       )))
-    )
     g1.createBranch(GamePosition(5, 1), Move(WHITE, Some(P82), P52, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(1), 1, Vector(
-        Move(WHITE, Some(P82), P52, ROOK, false, false, None, None, false, None, true)
-      )))
-    )
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(1), 1,
+        Vector(Move(WHITE, Some(P82), P52, ROOK, false, false, None, None, false, None, true)),
+        initialHistoryHash = g1.getHistoryHash(GamePosition(0, 1)))
+    ))
     g1.createBranch(GamePosition(5, 3), Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(3), 3, Vector(
-        Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)
-      )))
-    )
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(3), 3,
+        Vector(Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)))
+    ))
     g1.createBranch(GamePosition(5, 4), Move(BLACK, Some(P17), P16, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(3), 3, Vector(
-        Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, None, true),
-        Move(BLACK, Some(P17), P16, PAWN, false, false, None, None, false, None, true)
-      )))
-    )
+      branches = g1.branches :+ Branch(
+        g1.trunk.history(3), 3,
+        Vector(
+          Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, None, true),
+          Move(BLACK, Some(P17), P16, PAWN, false, false, None, None, false, None, true)
+        ))
+    ))
+
+    val s2 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y22jm.~"
+    ).mkString("~")
+    val g2: Game = Game.parseUsenString(s2)
+    val g2a = g2.createBranch(GamePosition(0, 1), Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, None, true)).get
+
+    g2a.trunk.historyHash(1) mustBe g2a.branches(0).historyHash(0)
   }
 
   "Game#deleteBranch" must "delete a branch" in {
