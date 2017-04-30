@@ -34,54 +34,6 @@ case class Game(trunk: Branch = Branch(),
   }
 
   /**
-    * Create a new branch
-    *
-    * This is eligible when
-    *   - the position is not the last
-    *   - the position is on the trunk --or-- the move is new
-    */
-  def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
-    val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
-
-    val ok = moveOnThisBranch.exists(_ != move) && (gamePosition.isTrunk || getForks(gamePosition).forall(_._1 != move))
-
-    if (ok) {
-      (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
-        Some(Branch(trunk.history(gamePosition.position - trunk.offset), gamePosition.position, Vector(move)))
-      } else {
-        val diff = gamePosition.position - br.offset
-        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
-          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
-      }) map { newBranch =>
-        copy(branches = branches :+ newBranch)
-      }
-    } else {
-      // the position is the last position of the current branch, or the fork already exists
-      None
-    }
-  }.flatten
-
-  def deleteBranch(branchNo: BranchNo): Option[Game] = if (branchNo == 0 || !branches.isDefinedAt(branchNo - 1)) {
-    None // trunk cannot be deleted
-  } else {
-    Some(copy(branches = branches.patch(branchNo - 1, Nil, 1)))
-  }
-
-  def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
-    if (branchNo == 0) {
-      f(trunk).map(tr => this.copy(trunk = tr))
-    } else {
-      for {
-        br <- getBranch(branchNo)
-        index = branchNo - 1
-        nxt <- f(br)
-      } yield {
-        this.copy(branches = branches.updated(index, nxt))
-      }
-    }
-  }
-
-  /**
     * Get all moves from the trunk's start position
     *
     * @param branchNo branch number (trunk:0)
@@ -152,6 +104,60 @@ case class Game(trunk: Branch = Branch(),
   }.getOrElse(Vector.empty)
 
   def hasFork(gamePosition: GamePosition): Boolean = getHistoryHash(gamePosition).exists(forkList.contains)
+
+  /**
+    * Create a new branch
+    *
+    * This is eligible when
+    *   - the position is not the last
+    *   - the position is on the trunk --or-- the move is new
+    */
+  def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
+    val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
+
+    val ok = moveOnThisBranch.exists(_ != move) && (gamePosition.isTrunk || getForks(gamePosition).forall(_._1 != move))
+
+    if (ok) {
+      (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
+        Some(Branch(
+          trunk.history(gamePosition.position - trunk.offset),
+          gamePosition.position,
+          Vector(move),
+          None,
+          getHistoryHash(gamePosition)
+        ))
+      } else {
+        val diff = gamePosition.position - br.offset
+        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
+          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
+      }) map { newBranch =>
+        copy(branches = branches :+ newBranch)
+      }
+    } else {
+      // the position is the last position of the current branch, or the fork already exists
+      None
+    }
+  }.flatten
+
+  def deleteBranch(branchNo: BranchNo): Option[Game] = if (branchNo == 0 || !branches.isDefinedAt(branchNo - 1)) {
+    None // trunk cannot be deleted
+  } else {
+    Some(copy(branches = branches.patch(branchNo - 1, Nil, 1)))
+  }
+
+  def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
+    if (branchNo == 0) {
+      f(trunk).map(tr => this.copy(trunk = tr))
+    } else {
+      for {
+        br <- getBranch(branchNo)
+        index = branchNo - 1
+        nxt <- f(br)
+      } yield {
+        this.copy(branches = branches.updated(index, nxt))
+      }
+    }
+  }
 
   //
   //
