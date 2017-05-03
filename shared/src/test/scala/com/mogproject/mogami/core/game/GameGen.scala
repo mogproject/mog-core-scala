@@ -1,5 +1,6 @@
 package com.mogproject.mogami.core.game
 
+import com.mogproject.mogami.GamePosition
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
 import com.mogproject.mogami.core.state.{State, StateGen}
@@ -18,7 +19,7 @@ object GameGen {
     finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
   } yield {
     val moves = movesStream(state).take(n)
-    val trunk = Branch(state).copy(moves= moves.toVector)
+    val trunk = Branch(state).copy(moves = moves.toVector)
     val t = if (trunk.lastState.isMated) trunk else trunk.copy(finalAction = finalAction)
     Game(t, gameInfo = gameInfo)
   }
@@ -44,6 +45,44 @@ object GameGen {
   private[this] def randomMove(s: State, lastMoveTo: Option[Square]): Option[Move] = {
     val moves = s.legalMoves(lastMoveTo)
     if (moves.isEmpty) None else Gen.oneOf(moves).sample
+  }
+
+  private[this] def gamePositions(numBranches: Int, maxMoves: Int): Gen[GamePosition] = for {
+    br <- Gen.choose(0, 1 + numBranches)
+    mv <- Gen.choose(0, maxMoves)
+  } yield GamePosition(br, mv)
+
+  private[this] def comments(numBranches: Int, maxMoves: Int): Gen[(GamePosition, String)] = for {
+    p <- gamePositions(numBranches, maxMoves)
+    s <- Gen.alphaNumStr
+  } yield p -> s
+
+  def gamesWithBranch: Gen[Game] = for {
+    gameInfo <- GameInfoGen.infos
+    state <- StateGen.statesWithFullPieces
+    numTrunkMoves <- Gen.choose(0, 50)
+    numBranches <- Gen.choose(0, 5)
+    branchPositions <- Gen.listOfN(numBranches, Gen.choose(0, numTrunkMoves))
+    branchNumMoves <- Gen.listOfN(numBranches, Gen.choose(0, 20))
+    finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
+  } yield {
+    val moves = movesStream(state).take(numTrunkMoves)
+    val trunk = Branch(state).copy(moves = moves.toVector)
+    val t = if (trunk.lastState.isMated) trunk else trunk.copy(finalAction = finalAction)
+    val branches = branchNumMoves.zip(branchPositions).map { case (m, p) =>
+      val pos = trunk.offset + math.min(trunk.moves.length, p)
+      val trunkMoves = movesStream(trunk.getState(pos).getOrElse(trunk.initialState)).take(m)
+      trunk.deriveNewBranch(pos).get.copy(moves = trunkMoves.toVector)
+    }.filter(_.moves.nonEmpty).toVector
+    Game(t, branches, gameInfo = gameInfo)
+  }
+
+  def gamesWithBranchAndComment: Gen[Game] = for {
+    g <- gamesWithBranch
+    numComments <- Gen.choose(0, 30)
+    comments <- Gen.listOfN(numComments, comments(g.branches.length, 50))
+  } yield {
+    comments.foldLeft(g) { case (gg, (p, s)) => gg.updateComment(p, s).getOrElse(gg) }
   }
 
 }
