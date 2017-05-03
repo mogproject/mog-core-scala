@@ -447,6 +447,19 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )))
     Game.parseKifString(gg.toKifString) mustBe gg
   }
+  it must "restore games with branches and comments" in forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
+    val ts = g.gameInfo.tags
+    val g1 = g.copy(gameInfo = GameInfo(Map(
+      'blackName -> ts.getOrElse('blackName, ""),
+      'whiteName -> ts.getOrElse('whiteName, "")
+    )))
+    val g2 = Game.parseKifString(g1.toKifString)
+
+    g1.trunk mustBe g2.trunk
+    g1.branches.map(_.offset).sorted mustBe g2.branches.map(_.offset).sorted
+    g1.branches.sortBy(_.toSfenString).zip(g2.branches.sortBy(_.toSfenString)).foreach { case (a, b) => a mustBe b }
+    g1.gameInfo mustBe g2.gameInfo
+  }
 
   "Game#status" must "return Playing when playing" in {
     Game().trunk.status mustBe Playing
