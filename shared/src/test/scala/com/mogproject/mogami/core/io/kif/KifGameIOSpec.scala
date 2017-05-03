@@ -249,7 +249,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   }
 
   "KifBranchReader#parseKifStringAsTrunk" must "parse moves and comments" in {
-    val exp = Branch(HIRATE)
+    val exp1 = Branch(HIRATE)
       .makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
       .makeMove(MoveBuilderSfenBoard(P83, P84, false)).get
 
@@ -259,9 +259,21 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
     )), Map(
-      exp.historyHash(0) -> "c1",
-      exp.historyHash(1) -> "c2",
-      exp.historyHash(2) -> "c3"
+      exp1.historyHash(0) -> "c1",
+      exp1.historyHash(1) -> "c2",
+      exp1.historyHash(2) -> "c3"
+    ))
+
+    TestKifBranchReader.parseKifStringAsTrunk(List(
+      ("*c1", 1), ("1 ７六歩(77)   ( 0:12/)", 2), ("*c2", 3), ("2 ８四歩(83)   ( 0:13/)", 4), ("*c3", 5),
+      ("3 投了 (02:03/)", 6), ("*c4", 7), ("*c5", 8)
+    ), HIRATE) mustBe(Branch(HIRATE.hash, 0, Vector(
+      Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
+      Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
+    ), Some(Resign(Some(123)))), Map(
+      exp1.historyHash(0) -> "c1",
+      exp1.historyHash(1) -> "c2",
+      exp1.historyHash(2) -> "c3\nc4\nc5"
     ))
   }
 

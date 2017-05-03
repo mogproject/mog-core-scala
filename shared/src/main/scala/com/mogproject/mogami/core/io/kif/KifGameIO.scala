@@ -93,7 +93,9 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like with KifBranchWr
     val t = Seq(getHeader + "\n", "手数----指手----消費時間--", trunkStr)
 
     /** @note to keep the compatibility with KIF Format, sort the branches by offset from the largest to the smallest */
-    val (b, _) = branches.sortBy(br => (br.offset, br.hashCode())).foldLeft((List.empty[String], commentsSofar)) { case ((xs, cm), br) =>
+    val (b, _) = branches
+      .sortBy(br => (br.offset, br.moves.map(_.toKifString).mkString("\n")))
+      .foldLeft((List.empty[String], commentsSofar)) { case ((xs, cm), br) =>
       val (s, nc) = branchToKifString(br, cm)
       (s"\n\n変化：${br.offset + 1}手\n" + s :: xs, nc)
     }
@@ -167,13 +169,21 @@ trait KifBranchReader extends KifGameIO {
       case _ => 0 -> 0
     }.getOrElse(0 -> 0)
 
-    val comments = parseComments(converted)
-
     val (br, lastMoveTo) = createBranch(offset, offsetLineNo)
 
     // parse moves
     val newBranch = parseMoves(br, lastMoveTo, converted)
-    val newComment = comments.flatMap { case (pos, s) => newBranch.historyHash.get(pos - br.offset).map(_ -> s) }
+    val lastPosition = newBranch.offset + newBranch.moves.length
+
+    // parse comments
+    val comments = parseComments(converted)
+
+    // merge overrun comments
+    val s = comments.filter(_._1 >= lastPosition).toSeq.sorted.map(_._2).mkString("\n")
+    val mergedComments = if (s.isEmpty) comments else comments + (lastPosition -> s)
+
+    // convert comment keys to hashes
+    val newComment = mergedComments.flatMap { case (pos, s) => newBranch.historyHash.get(pos - br.offset).map(_ -> s) }
     (newBranch, newComment)
   }
 
@@ -209,7 +219,7 @@ trait KifBranchReader extends KifGameIO {
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, None) => // ends without errors
         sofar
-      case ((n, Some((_, x)), _) :: Nil, None) if !isNormalMoveKif(x) => // ends with a special move
+      case ((n, Some((_, x)), _) :: ys, None) if !isNormalMoveKif(x) && ys.forall(_._3.isDefined) => // ends with a special move (+comments)
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Resign(tm)
           case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
