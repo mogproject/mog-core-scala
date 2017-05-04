@@ -88,4 +88,31 @@ trait Benchmark {
       }
     }.print()
   }
+//
+//  def benchCalcAttackBB(state: State): Unit = {
+//    println("benchCalcAttackBB")
+//
+//    withBenchmark {
+//      var i = 0
+//      while (i < 10000) {
+//        state.calculateAttackBBOnBoard
+//        i += 1
+//      }
+//    }.print()
+//  }
+//
+//  def benchCalcAttackBBDiff(state: State, move: MoveBuilderSfen): Unit = {
+//    val m = move.toMove(state).get
+//    val newOcc = state.makeMove(m).get.occupancy
+//
+//    println("benchCalcAttackBBDiff")
+//
+//    withBenchmark {
+//      var i = 0
+//      while (i < 10000) {
+//        state.getUpdatedAttackBBOnBoard(m, newOcc)
+//        i += 1
+//      }
+//    }.print()
+//  }
 }

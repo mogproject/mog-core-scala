@@ -139,9 +139,9 @@ case class State(turn: Player = BLACK,
     val occPce = Array.fill(32)(BitBoard.empty)
 
     board.foreach { case (sq, p) =>
-        occAll = occAll.set(sq)
-        occOwn(p.owner.id) = occOwn(p.owner.id).set(sq)
-        occPce(p.id) = occPce(p.id).set(sq)
+      occAll = occAll.set(sq)
+      occOwn(p.owner.id) = occOwn(p.owner.id).set(sq)
+      occPce(p.id) = occPce(p.id).set(sq)
     }
     (occAll, occOwn.toVector, occPce.toVector)
   }
@@ -161,9 +161,9 @@ case class State(turn: Player = BLACK,
   def getRangedPieces(player: Player): Seq[(Square, Piece)] = board.filter { case (_, p) => p.owner == player && p.isRanged }.toSeq
 
   /**
-    * Attack bitboards
+    * Attack bitboards of ALL on-board pieces
     */
-  lazy val attackBBOnBoard: Map[Player, Map[Square, BitBoard]] = {
+  lazy val attackBBOnBoard: Map[Player, Map[Square, BitBoard]] = hint.map(_.attackBBOnBoard).getOrElse {
     val m = (for ((sq, piece@Piece(owner, _)) <- board) yield {
       (owner, sq) -> Attack.get(piece, Some(sq), occupancy, occupancy(Piece(owner, PAWN)))
     }).filter(_._2.nonEmpty).groupBy(_._1._1).mapValues(_.map { case ((_, s), b) => s -> b })
@@ -171,6 +171,9 @@ case class State(turn: Player = BLACK,
     Map(BLACK -> Map.empty[Square, BitBoard], WHITE -> Map.empty[Square, BitBoard]) ++ m
   }
 
+  /**
+    * Attack bitboards of the turn-to-move player's hands
+    */
   lazy val attackBBInHand: Map[Hand, BitBoard] = for {
     (h, num) <- hand if h.owner == turn && num > 0
   } yield {
@@ -258,7 +261,6 @@ case class State(turn: Player = BLACK,
     * Get all legal moves.
     *
     * @param lastMoveTo last move to
-    *
     * @note This method can be relatively expensive.
     * @return list of legal moves
     */
@@ -285,8 +287,11 @@ case class State(turn: Player = BLACK,
     */
   def makeMove(move: Move): Option[State] = isValidMove(move).option {
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
+    val newBoard = releaseBoard(board) + (move.to -> move.newPiece)
+
     val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
     val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
+    val newHand = (releaseHand andThen obtainHand) (hand)
 
     val newOccs = getUpdatedOccupancy(move)
 
@@ -295,9 +300,10 @@ case class State(turn: Player = BLACK,
       newOccs._1,
       newOccs._2,
       newOccs._3,
-      unusedPtypeCount
+      unusedPtypeCount,
+      getUpdatedAttackBBOnBoard(move, newOccs._1)
     )
-    State(!turn, releaseBoard(board) + (move.to -> move.newPiece), (releaseHand andThen obtainHand) (hand), Some(hint))
+    State(!turn, newBoard, newHand, Some(hint))
   }
 
   private[this] def getUpdatedOccupancy(move: Move): (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {
@@ -325,6 +331,25 @@ case class State(turn: Player = BLACK,
   private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
     val a = board.values.map(_.ptype.demoted).foldLeft(Map.empty[Ptype, Int]) { case (m, pt) => MapUtil.incrementMap(m, pt) }
     hand.foldLeft(a) { case (m, (h, n)) => m.updated(h.ptype, m.getOrElse(h.ptype, 0) + n) }
+  }
+
+  private[this] def getUpdatedAttackBBOnBoard(move: Move, occAll: BitBoard): Map[Player, Map[Square, BitBoard]] = {
+    val removeMoveFrom: Map[Square, BitBoard] => Map[Square, BitBoard] = m => if (move.isDrop) m else m - move.from.get
+    val removeCaptured: Map[Square, BitBoard] => Map[Square, BitBoard] = m => if (move.hasCapture) m - move.to else m
+    val addMoveTo: Map[Square, BitBoard] => Map[Square, BitBoard] = m => m.updated(move.to, Attack.get(move.newPiece, Some(move.to), occAll, BitBoard.empty))
+
+    val affectedBB = move.from.foldLeft(BitBoard.ident(move.to)) { case (bb, sq) => bb.set(sq) }
+    val initialMap = Map(
+      turn -> (removeMoveFrom andThen addMoveTo) (attackBBOnBoard(turn)),
+      !turn -> removeCaptured(attackBBOnBoard(!turn))
+    )
+
+    // re-calculate ranged pieces
+    board.foldLeft(initialMap) {
+      case (m, (sq, p)) if p.isRanged && !affectedBB.get(sq) && (attackBBOnBoard(p.owner)(sq) & affectedBB).nonEmpty =>
+        m.updated(p.owner, m(p.owner).updated(sq, Attack.get(p, Some(sq), occAll, BitBoard.empty)))
+      case (m, _) => m
+    }
   }
 
   lazy val unusedPtypeCount: Map[Ptype, Int] = hint.map(_.unusedPtypeCount).getOrElse(MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0))
@@ -426,4 +451,5 @@ case class StateHint(hash: StateHash,
                      occupancyAll: BitBoard,
                      occupancyByOwner: Vector[BitBoard],
                      occupancyByPiece: Vector[BitBoard],
-                     unusedPtypeCount: Map[Ptype, Int])
+                     unusedPtypeCount: Map[Ptype, Int],
+                     attackBBOnBoard: Map[Player, Map[Square, BitBoard]])

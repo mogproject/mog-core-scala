@@ -1,6 +1,7 @@
 package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.move.MoveBuilderSfen
@@ -31,5 +32,8 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     benchMakeMove(s, m)
     benchLegalMoves(s, m)
     benchToSfenString(s)
+
+//    benchCalcAttackBB(HIRATE)
+//    benchCalcAttackBBDiff(HIRATE, MoveBuilderSfen(Left(P77), P76, false))
   }
 }
