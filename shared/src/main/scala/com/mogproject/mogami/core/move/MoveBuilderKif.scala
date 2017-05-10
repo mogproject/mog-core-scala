@@ -16,7 +16,7 @@ sealed trait MoveBuilderKif extends MoveBuilder with KifLike
 
 
 object MoveBuilderKif extends KifFactory[MoveBuilderKif] {
-  private[this] val patternTime: Regex = """([^ ]+)(?:[ ]+[(][ ]*(\d+):[ ]*(\d+)[/](?:[ ]*(\d+):[ ]*(\d+):[ ]*(\d+))?[)])?[+]?""".r
+  private[this] val patternTime: Regex = """([^ ]+)(?:[ ]+[(][ ]*(\d+):[ ]*(\d+)[ ]*[/](?:[ ]*(\d+):[ ]*(\d+):[ ]*(\d+))?[)])?[+]?""".r
   private[this] val pattern: Regex = """(.[　一二三四五六七八九]?)([成]?.)([成打]?)(?:[(]([1-9]{2})[)])?""".r
 
   def parseTime(line: Line): (Line, Option[Int]) = line match {
