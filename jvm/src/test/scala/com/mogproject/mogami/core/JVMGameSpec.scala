@@ -119,6 +119,9 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
 
     val s7 = loadFile("kif/game/007.kif")
     Game.parseKifString(s7).toKifString mustBe s7
+
+    val s8 = loadFile("kif/game/008.kif")
+    Game.parseKifString(s8).trunk.moves.length mustBe 168
   }
 
   "Game#parseKi2String" must "create games from files" in {
