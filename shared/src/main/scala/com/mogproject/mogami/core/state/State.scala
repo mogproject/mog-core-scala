@@ -2,7 +2,7 @@ package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
+import com.mogproject.mogami.core.move.{MoveBuilderCsaBoard, MoveBuilderCsaHand, MoveBuilderSfenBoard, MoveBuilderSfenHand}
 import com.mogproject.mogami.core.{Hand, Player, Ptype}
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
@@ -397,6 +397,28 @@ case class State(turn: Player = BLACK,
     * Check if the in-hand piece is non-empty.
     */
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
+
+  /**
+    * Create a Move instance from the next state
+
+    * @param nextState next state
+    * @param lastMoveTo last move-to
+    * @return None if there is no valid move
+    */
+  def createMoveFromNextState(nextState: State, lastMoveTo: Option[Square] = None): Option[Move] ={
+    val moveBuilder = ((board.keySet -- nextState.board.keySet).headOption, (nextState.board.toSet -- board.toSet).headOption) match {
+      case (None, Some((to, newPiece))) => Some(MoveBuilderCsaHand(turn, to, newPiece.ptype))
+      case (Some(from), Some((to, newPiece))) => Some(MoveBuilderCsaBoard(turn, from, to, newPiece.ptype))
+      case _ => None
+    }
+
+    for {
+      mb <- moveBuilder
+      mv <- mb.toMove(this, lastMoveTo)
+      nxt <- makeMove(mv)
+      if nxt == nextState // verify
+    } yield mv
+  }
 }
 
 object State extends CsaStateReader with SfenStateReader with KifStateReader {

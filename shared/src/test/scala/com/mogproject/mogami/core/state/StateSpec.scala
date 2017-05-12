@@ -1098,4 +1098,176 @@ class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyC
     State.HANDICAP_3_PIECE.unusedPtypeCount mustBe State.capacity.keys.map(_ -> 0).toMap ++ Map(ROOK -> 1, BISHOP -> 1, LANCE -> 1)
     State.HANDICAP_THREE_PAWNS.unusedPtypeCount mustBe Map(KING -> 0, ROOK -> 1, BISHOP -> 1, GOLD -> 2, SILVER -> 2, KNIGHT -> 2, LANCE -> 2, PAWN -> 6)
   }
+
+  "State#createMoveFromNextState" must "create Move" in {
+    val states = Seq(
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+        "P2 * -HI *  *  *  *  * -KA * ",
+        "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  *  *  *  *  *  *  *  * ",
+        "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU",
+        "P8 * +KA *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+        "P2 * -HI *  *  *  *  * -KA * ",
+        "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU",
+        "P4 *  *  *  *  *  *  *  *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 * +KA *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+",
+        "P-",
+        "-"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+        "P2 * -HI *  *  *  *  * -KA * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 * +KA *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+        "P2 * -HI *  *  *  *  * +KA * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-",
+        "-"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY",
+        "P2 *  *  *  *  *  * -HI+KA * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU-KI+UM-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA00GI",
+        "P-",
+        "-"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU * -KI-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA00GI",
+        "P-00KA",
+        "+"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU * -KI-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU+GI-FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-00KA",
+        "-"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU * -KI-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU+GI-FU-FU",
+        "P4 *  *  *  *  *  * -FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 * -KA *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-",
+        "+"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU * -KI-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  * +NG-FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU * +FU+FU+FU+FU+FU+FU",
+        "P8 * -KA *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-",
+        "-"
+      ),
+      Seq(
+        "P1-KY-KE-GI-KI-OU * -KI-KE-KY",
+        "P2 *  *  *  *  *  * -HI *  * ",
+        "P3-FU-FU-FU-FU-FU-FU * -FU-FU",
+        "P4 *  *  *  *  * +NG-FU *  * ",
+        "P5 *  *  *  *  *  *  *  *  * ",
+        "P6 *  * +FU *  *  *  *  *  * ",
+        "P7+FU+FU-UM+FU+FU+FU+FU+FU+FU",
+        "P8 *  *  *  *  *  *  * +HI * ",
+        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY",
+        "P+00KA",
+        "P-",
+        "+"
+      )
+    ).map(s => State.parseCsaString(s.mkString("\n")))
+    states(0).createMoveFromNextState(states(1), None) mustBe Some(Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false))
+    states(1).createMoveFromNextState(states(2), Some(P76)) mustBe Some(Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false))
+    states(2).createMoveFromNextState(states(3), Some(P34)) mustBe Some(Move(BLACK, Some(P88), P22, BISHOP, false, false, None, Some(BISHOP), false))
+    states(3).createMoveFromNextState(states(4), Some(P22)) mustBe Some(Move(WHITE, Some(P82), P32, ROOK, false, false, None, None, false))
+    states(4).createMoveFromNextState(states(5), Some(P32)) mustBe Some(Move(BLACK, Some(P22), P31, PBISHOP, true, false, None, Some(SILVER), false))
+    states(5).createMoveFromNextState(states(6), Some(P31)) mustBe Some(Move(WHITE, Some(P41), P31, GOLD, false, true, None, Some(PBISHOP), false))
+    states(6).createMoveFromNextState(states(7), Some(P31)) mustBe Some(Move(BLACK, None, P33, SILVER, false, false, None, None, false))
+    states(7).createMoveFromNextState(states(8), Some(P33)) mustBe Some(Move(WHITE, None, P88, BISHOP, false, false, None, None, false))
+    states(8).createMoveFromNextState(states(9), Some(P88)) mustBe Some(Move(BLACK, Some(P33), P44, PSILVER, true, false, None, None, false))
+    states(9).createMoveFromNextState(states(10), Some(P44)) mustBe Some(Move(WHITE, Some(P88), P77, PBISHOP, true, false, None, None, true))
+
+    // error cases
+    states(0).createMoveFromNextState(states(3), None) mustBe None
+  }
 }
