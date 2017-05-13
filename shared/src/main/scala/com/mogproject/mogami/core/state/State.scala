@@ -2,7 +2,7 @@ package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io._
-import com.mogproject.mogami.core.move.{MoveBuilderSfenBoard, MoveBuilderSfenHand}
+import com.mogproject.mogami.core.move.{MoveBuilderCsaBoard, MoveBuilderCsaHand, MoveBuilderSfenBoard, MoveBuilderSfenHand}
 import com.mogproject.mogami.core.{Hand, Player, Ptype}
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
@@ -262,15 +262,15 @@ case class State(turn: Player = BLACK,
     *
     * @param lastMoveTo last move to
     * @note This method can be relatively expensive.
-    * @return list of legal moves
+    * @return vector of legal moves
     */
-  def legalMoves(lastMoveTo: Option[Square]): Seq[Move] = (
+  def legalMoves(lastMoveTo: Option[Square]): Vector[Move] = (
     for {
       (from, bb) <- legalMovesBB
       to <- bb.toList
       promote <- getPromotionList(from, to)
       mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this, lastMoveTo)
-    } yield mv).toSeq
+    } yield mv).toVector
 
   /** *
     * Check if the state is mated.
@@ -289,11 +289,11 @@ case class State(turn: Player = BLACK,
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val newBoard = releaseBoard(board) + (move.to -> move.newPiece)
 
-    val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
-    val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-    val newHand = (releaseHand andThen obtainHand) (hand)
+        val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
+        val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
+        val newHand = (releaseHand andThen obtainHand) (hand)
 
-    val newOccs = getUpdatedOccupancy(move)
+        val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
       hash ^ StateHash.getDifference(hand, move),
@@ -397,12 +397,37 @@ case class State(turn: Player = BLACK,
     * Check if the in-hand piece is non-empty.
     */
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
+
+  /**
+    * Create a Move instance from the next state
+
+    * @param nextState next state
+    * @param lastMoveTo last move-to
+    * @return None if there is no valid move
+    */
+  def createMoveFromNextState(nextState: State, lastMoveTo: Option[Square] = None): Option[Move] ={
+    val moveBuilder = ((board.keySet -- nextState.board.keySet).headOption, (nextState.board.toSet -- board.toSet).headOption) match {
+      case (None, Some((to, newPiece))) => Some(MoveBuilderCsaHand(turn, to, newPiece.ptype))
+      case (Some(from), Some((to, newPiece))) => Some(MoveBuilderCsaBoard(turn, from, to, newPiece.ptype))
+      case _ => None
+    }
+
+    for {
+      mb <- moveBuilder
+      mv <- mb.toMove(this, lastMoveTo)
+      nxt <- makeMove(mv)
+      if nxt == nextState // verify
+    } yield mv
+  }
 }
 
 object State extends CsaStateReader with SfenStateReader with KifStateReader {
 
   type BoardType = Map[Square, Piece]
   type HandType = Map[Hand, Int]
+
+  // workaround for IntelliJ IDEA
+  override def parseSfenString(s: String): State = super.parseSfenString(s)
 
   // board or hand
   type MoveFrom = Either[Square, Hand]

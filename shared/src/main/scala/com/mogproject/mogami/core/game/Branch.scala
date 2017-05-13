@@ -106,7 +106,7 @@ case class Branch(initialHash: StateHash,
       case Some(TimeUp(_)) => TimedUp
       case _ =>
         if (lastState.isMated) {
-          if (lastMove.exists(m => m.isCheck && m.isDrop && m.oldPtype == PAWN))
+          if (lastMove.exists(m => m.isCheck && m.isPawnDrop))
             Uchifuzume
           else
             Mated

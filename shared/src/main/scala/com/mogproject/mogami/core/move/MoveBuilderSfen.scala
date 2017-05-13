@@ -1,6 +1,6 @@
 package com.mogproject.mogami.core.move
 
-import com.mogproject.mogami._
+import com.mogproject.mogami.{MoveFrom, _}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.io.sfen.{SfenFactory, SfenLike, UsenFactory, UsenLike}
 import com.mogproject.mogami.core.state.State
@@ -77,6 +77,9 @@ object MoveBuilderSfen extends SfenFactory[MoveBuilderSfen] with UsenFactory[Mov
       MoveBuilderSfenHand(h.ptype, to)
   }
 
+  def apply(from: Square, to: Square, promote: Boolean = false): MoveBuilderSfen = MoveBuilderSfenBoard(from, to, promote)
+
+  def apply(ptype: Ptype, to: Square): MoveBuilderSfen = MoveBuilderSfenHand(ptype, to)
 }
 
 case class MoveBuilderSfenBoard(from: Square, to: Square, promote: Boolean) extends MoveBuilderSfen {

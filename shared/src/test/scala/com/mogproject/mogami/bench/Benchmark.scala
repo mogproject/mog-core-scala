@@ -3,6 +3,7 @@ package com.mogproject.mogami.bench
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.mate.MateSolver
 
 /**
   * Shared benchmark utility
@@ -88,6 +89,17 @@ trait Benchmark {
       }
     }.print()
   }
+
+  def benchMateSolver(state: State): Unit = {
+    println("benchMateSolver")
+
+    var ret: Option[Seq[Move]] = None
+    withBenchmark {
+      ret = MateSolver.solve(state, timeLimitMillis = 60000)
+    }.print()
+    println(ret.map(_.map(_.toJapaneseNotationString)))
+  }
+
 //
 //  def benchCalcAttackBB(state: State): Unit = {
 //    println("benchCalcAttackBB")

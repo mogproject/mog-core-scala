@@ -19,6 +19,17 @@ trait StateCache {
   def get(hash: StateHash): Option[State]
 
   def apply(hash: StateHash): State = get(hash).getOrElse(throw new CacheNotFoundException(f"failed to look up: hash=0x${hash}%016x"))
+
+  def refresh(keep: Set[StateHash]): Unit
+
+  def clear(): Unit
+
+  /**
+    * Number of keys
+    */
+  def numKeys: Int
+
+  def hasKey(hash: StateHash): Boolean
 }
 
 /**
@@ -39,6 +50,15 @@ class ThreadUnsafeStateCache() extends StateCache {
 
   override def get(hash: StateHash): Option[State] = storage(hash.toInt & (partitionSize - 1)).get(hash)
 
+  override def refresh(keep: Set[StateHash]): Unit = storage.foreach { st =>
+    (st.keySet -- keep).foreach(st.remove)
+  }
+
+  override def clear(): Unit = storage.foreach(_.clear())
+
+  override def numKeys: Int = storage.map(_.size).sum
+
+  override def hasKey(hash: StateHash): Boolean = storage(hash.toInt & (partitionSize - 1)).contains(hash)
 }
 
 object StateCache {

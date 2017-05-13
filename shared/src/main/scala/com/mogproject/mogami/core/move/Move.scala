@@ -1,7 +1,6 @@
 package com.mogproject.mogami.core.move
 
-import com.mogproject.mogami._
-import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.{MoveFrom, _}
 import com.mogproject.mogami.core.io.csa.CsaLike
 import com.mogproject.mogami.core.io.kif.{Ki2Like, KifLike}
 import com.mogproject.mogami.core.io.sfen.{SfenLike, UsenLike}
@@ -62,6 +61,8 @@ case class Move(player: Player,
   def newPiece: Piece = Piece(player, newPtype)
 
   def isDrop: Boolean = from.isEmpty
+
+  def isPawnDrop: Boolean = from.isEmpty && newPtype == PAWN
 
   def isAmbiguous: Boolean = movement.isDefined
 
