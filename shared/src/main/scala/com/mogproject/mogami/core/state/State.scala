@@ -426,6 +426,9 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
   type BoardType = Map[Square, Piece]
   type HandType = Map[Hand, Int]
 
+  // workaround for IntelliJ IDEA
+  override def parseSfenString(s: String): State = super.parseSfenString(s)
+
   // board or hand
   type MoveFrom = Either[Square, Hand]
 

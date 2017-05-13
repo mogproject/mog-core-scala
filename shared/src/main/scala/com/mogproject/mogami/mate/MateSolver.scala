@@ -80,7 +80,7 @@ object MateSolver {
                   if (checkMoves.isEmpty) {
                     f(removeVerified(sofar), Nil, isUnProven = false) // no solution
                   } else {
-                    f(checkMoves.toList.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
+                    f(sortMoves(checkMoves).toList.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
                   }
               }
             }
@@ -89,7 +89,7 @@ object MateSolver {
             //
             // defender's turn
             //
-            val legalMoves = st.legalMoves(None).toList
+            val legalMoves = st.legalMoves(None)
 
             if (legalMoves.isEmpty) {
               if (stateCache.get(sofar.tail.head.head).get.createMoveFromNextState(st).get.isPawnDrop) {
@@ -98,7 +98,7 @@ object MateSolver {
                 f(removeVerified(sofar), if (solution.isEmpty) sofar.map(_.head) else solution, isUnProven)
               }
             } else {
-              f(legalMoves.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
+              f(sortMoves(legalMoves).toList.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
             }
         }
       }
@@ -110,5 +110,9 @@ object MateSolver {
   def findImmediateCheckmate(state: State, checkMoves: Seq[Move]): Option[State] = {
     val mvs = checkMoves.filter(mv => !mv.isPawnDrop)
     if (mvs.isEmpty) None else mvs.view.map(mv => state.makeMove(mv).get).find(_.isMated)
+  }
+
+  def sortMoves(moves: Seq[Move]): Seq[Move] = {
+    moves.sortBy(mv => (mv.captured.isEmpty, !mv.isDrop, !mv.promote))
   }
 }
