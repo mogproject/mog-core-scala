@@ -13,8 +13,8 @@ object MateSolver {
 
   val calculated: mutable.Map[StateHash, StateHash] = mutable.Map.empty
 
-  def solve(state: State, lastMoveTo: Option[Square] = None, maxDepth: Int = 7, timeLimitMillis: Long = 10000)(implicit stateCache: StateCache): Option[Seq[Move]] = {
-    1 to maxDepth by 2 map { n =>
+  def solve(state: State, lastMoveTo: Option[Square] = None, maxDepth: Int = 9, timeLimitMillis: Long = 10000)(implicit stateCache: StateCache): Option[Seq[Move]] = {
+    3 to maxDepth by 2 map { n =>
       val startTime = System.currentTimeMillis()
       val ret = depthFirstSearch(state, n)
       val endTime = System.currentTimeMillis()
@@ -42,6 +42,9 @@ object MateSolver {
   protected[mate] def removeVerified(xss: List[List[StateHash]]): List[List[StateHash]] =
     if (xss.isDefinedAt(1) && xss(1).length == 1) removeVerified(xss.drop(2)) else removeParentNode(xss)
 
+  protected[mate] def removeVerifiedThis(xss: List[List[StateHash]]): List[List[StateHash]] =
+    if (xss.headOption.exists(_.length == 1)) removeVerified(xss.tail) else removeLeaf(xss)
+
   @tailrec
   final protected[mate] def removeLeaf(xss: List[List[StateHash]]): List[List[StateHash]] =
     if (xss.isEmpty)
@@ -65,13 +68,23 @@ object MateSolver {
             //
             // attacker's turn
             //
-            val checkMoves = st.legalMoves(None).filter(_.isCheck).toList
-
-            if (checkMoves.isEmpty || depth > maxDepth) {
-              f(removeVerified(sofar), Nil, depth > maxDepth) // no solution
+            if (depth > maxDepth) {
+              f(removeVerified(sofar), Nil, isUnProven = true)
             } else {
-              f(checkMoves.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
+              val checkMoves = st.legalMoves(None).filter(_.isCheck)
+
+              findImmediateCheckmate(st, checkMoves) match {
+                case Some(s) => // found an immediate checkmate
+                  f(removeVerifiedThis(sofar), if (solution.isEmpty) stateCache.set(s) :: sofar.map(_.head) else solution, isUnProven)
+                case None =>
+                  if (checkMoves.isEmpty) {
+                    f(removeVerified(sofar), Nil, isUnProven = false) // no solution
+                  } else {
+                    f(checkMoves.toList.flatMap(st.makeMove).map(stateCache.set) :: sofar, solution, isUnProven)
+                  }
+              }
             }
+
           case st =>
             //
             // defender's turn
@@ -92,5 +105,10 @@ object MateSolver {
     }
 
     f(List(List(stateCache.set(initialState))), Nil, isUnProven = false)
+  }
+
+  def findImmediateCheckmate(state: State, checkMoves: Seq[Move]): Option[State] = {
+    val mvs = checkMoves.filter(mv => !mv.isPawnDrop)
+    if (mvs.isEmpty) None else mvs.view.map(mv => state.makeMove(mv).get).find(_.isMated)
   }
 }

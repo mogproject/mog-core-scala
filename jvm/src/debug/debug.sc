@@ -3,49 +3,14 @@ import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 import com.mogproject.mogami.mate.MateSolver
 
-val s1 = State.parseCsaString(Seq(
-  "P1 *  *  *  *  *  * -KY *  * ",
-  "P2 *  *  *  *  *  * -KY-OU * ",
-  "P3 *  *  *  *  *  *  * -KY+FU",
-  "P4 *  *  *  *  * -FU *  * +TO",
-  "P5 *  *  *  *  *  *  *  *  * ",
-  "P6 *  *  *  *  *  *  *  *  * ",
-  "P7 *  *  *  *  *  *  *  *  * ",
-  "P8 *  *  *  *  *  *  *  *  * ",
-  "P9 *  *  *  *  *  *  *  *  * ",
-  "P+00KA00KI",
-  "P-00HI00KA00GI00GI00GI00KE00KE00KE00KE" +
-    "00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU" +
-    "00FU00FU",
-  "+"
-).mkString("\n"))
 
+val s1 = State.parseSfenString("4k4/9/9/9/3+PP4/9/9/9/9 b 4G2r2b4s4n4l16p") // mate in 9
+val s2 = State.parseSfenString("8k/7p1/1r7/5bS2/7N1/9/9/9/9 b RSNLb4g2s2n3l17p") // mate in 7
 
+val r1 = MateSolver.solve(s1)
+r1.get.map(_.toJapaneseNotationString)
 
-val s2 = State.parseCsaString(
-  """
-    |P1 *  *  *  *  * +KA * -KE *.
-    |P2 *  *  *  *  *  *  *  * -OU
-    |P3 *  *  *  *  *  * +HI-FU-FU
-    |P4 *  *  *  *  *  *  *  *  *.
-    |P5 *  *  *  *  *  *  *  *  *.
-    |P6 *  *  *  *  *  *  *  *  *.
-    |P7 *  *  *  *  *  *  *  *  *.
-    |P8 *  *  *  *  *  *  *  *  *.
-    |P9 *  *  *  *  *  *  *  *  *.
-    |P+
-    |P-00HI00KA00KI00KI00KI00KI00GI00GI00GI00GI00KE00KE00KE00KY00KY00KY00KY00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU00FU
-    |+""".stripMargin
-)
-
-val s3 = State.parseSfenString("1+P2Ss2l/1+S5b1/k1p4p1/1p+r1G2n1/p7p/P1N2S3/KPP1PP+pBP/7+r1/LNg6 b GNL2Pgl3p")
-
-
-val r = MateSolver.solve(s3)
-r.map(_.toJapaneseNotationString)
-
-
-
-
+val r2 = MateSolver.solve(s2)
+r2.get.map(_.toJapaneseNotationString)
 
 
