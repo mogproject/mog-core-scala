@@ -79,5 +79,14 @@ object StateHash {
     }) ^ turnWhiteConstant ^ get(move.newPiece, move.to)
   }
 
+  /**
+    * Get the next state hash from a move
+    *
+    * @param state current state
+    * @param move move
+    * @return None if the hash value is not found
+    */
+  def getNextStateHash(state: State, move: Move): StateHash = state.hash ^ getDifference(state.hand, move)
+
   def isSamePlayer(a: StateHash, b: StateHash): Boolean = ((a ^ b) & turnWhiteConstant) == 0L
 }

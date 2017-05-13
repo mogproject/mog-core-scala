@@ -93,9 +93,11 @@ trait Benchmark {
   def benchMateSolver(state: State): Unit = {
     println("benchMateSolver")
 
+    var ret: Option[Seq[Move]] = None
     withBenchmark {
-      MateSolver.solve(state, maxDepth = 9, timeLimitMillis = 300000)
+      ret = MateSolver.solve(state, timeLimitMillis = 60000)
     }.print()
+    println(ret.map(_.map(_.toJapaneseNotationString)))
   }
 
 //

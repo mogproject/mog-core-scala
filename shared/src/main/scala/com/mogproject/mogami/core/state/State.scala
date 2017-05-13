@@ -262,15 +262,15 @@ case class State(turn: Player = BLACK,
     *
     * @param lastMoveTo last move to
     * @note This method can be relatively expensive.
-    * @return list of legal moves
+    * @return vector of legal moves
     */
-  def legalMoves(lastMoveTo: Option[Square]): Seq[Move] = (
+  def legalMoves(lastMoveTo: Option[Square]): Vector[Move] = (
     for {
       (from, bb) <- legalMovesBB
       to <- bb.toList
       promote <- getPromotionList(from, to)
       mv <- from.fold(MoveBuilderSfenBoard(_, to, promote), p => MoveBuilderSfenHand(p.ptype, to)).toMove(this, lastMoveTo)
-    } yield mv).toSeq
+    } yield mv).toVector
 
   /** *
     * Check if the state is mated.
@@ -289,11 +289,11 @@ case class State(turn: Player = BLACK,
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val newBoard = releaseBoard(board) + (move.to -> move.newPiece)
 
-    val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
-    val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-    val newHand = (releaseHand andThen obtainHand) (hand)
+        val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
+        val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
+        val newHand = (releaseHand andThen obtainHand) (hand)
 
-    val newOccs = getUpdatedOccupancy(move)
+        val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
       hash ^ StateHash.getDifference(hand, move),
