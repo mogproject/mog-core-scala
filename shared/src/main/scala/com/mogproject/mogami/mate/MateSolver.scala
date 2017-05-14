@@ -11,7 +11,8 @@ import scala.annotation.tailrec
 object MateSolver {
   implicit lazy val mateSolverStateCache = new ThreadUnsafeStateCache()
 
-  // statistics
+  // flags and statistics
+  private[this] var timeout: Boolean = false
   private[this] var numComputedNodes: Int = 0
   private[this] var timeoutCounter: Int = 0
   private[this] var timeLimit: Long = 0
@@ -21,6 +22,7 @@ object MateSolver {
     numComputedNodes = 0
     timeoutCounter = 0
     timeLimit = System.currentTimeMillis() + timeLimitMillis
+    timeout = false
 
     solveImpl(state, lastMoveTo, maxDepth, timeLimitMillis)
   }
@@ -42,7 +44,7 @@ object MateSolver {
     None // depth limit exceeded
   }
 
-  private[this] def checkTimeout(): Boolean = (timeoutCounter & 2047) == 0 && System.currentTimeMillis() > timeLimit
+  private[this] def checkTimeout(): Boolean = (timeoutCounter & 1023) == 0 && System.currentTimeMillis() > timeLimit
 
   private[this] def refreshStateCache(keep: => Set[StateHash]): Unit =
     if ((timeoutCounter & 2047) == 0 && mateSolverStateCache.numKeys > 100000) mateSolverStateCache.refresh(keep)
@@ -67,10 +69,12 @@ object MateSolver {
 
   def depthFirstSearch(initialState: State, maxDepth: Int): Option[List[StateHash]] = {
 
+    @tailrec
     def f(sofar: List[List[StateHash]], solution: List[StateHash], isUnProven: Boolean): Option[List[StateHash]] = {
       timeoutCounter += 1
 
-      if (checkTimeout()) {
+      if (timeout || checkTimeout()) {
+        timeout = true // necessary for Javascript
         None
       } else {
         refreshStateCache(sofar.flatten.toSet ++ solution)
