@@ -193,6 +193,13 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
   type Position = Int // regarding offset
 
+  // workaround for IntelliJ IDEA
+  override def parseSfenString(s: String)(implicit stateCache: StateCache): Game = super.parseSfenString(s)
+  override def parseUsenString(s: String)(implicit stateCache: StateCache): Game = super.parseUsenString(s)
+  override def parseKifString(nel: NonEmptyLines): Game = super.parseKifString(nel)
+  override def parseKi2String(nel: NonEmptyLines): Game = super.parseKi2String(nel)
+  override def parseCsaString(nel: NonEmptyLines): Game = super.parseCsaString(nel)
+
   case class GamePosition(branch: BranchNo, position: Position) {
     require(branch >= 0, "branch must not be negative")
     require(position >= 0, "position must not be negative")
