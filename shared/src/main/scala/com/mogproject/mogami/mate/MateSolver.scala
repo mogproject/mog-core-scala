@@ -97,7 +97,9 @@ object MateSolver {
 
                 findImmediateCheckmate(st, checkMoves) match {
                   case Some(s) => // found an immediate checkmate
-                    f(removeVerifiedThis(sofar), if (solution.isEmpty) mateSolverStateCache.set(s) :: sofar.map(_.head) else solution, isUnProven)
+                    // println(s"im: ${depth + 1}")
+                    // take a longer solution
+                    f(removeVerifiedThis(sofar), if (solution.length <= depth) mateSolverStateCache.set(s) :: sofar.map(_.head) else solution, isUnProven)
                   case None =>
                     if (checkMoves.isEmpty) {
                       f(removeVerified(sofar), Nil, isUnProven = isUnProven) // no solution
@@ -119,7 +121,9 @@ object MateSolver {
                 if (mateSolverStateCache.get(sofar.tail.head.head).get.createMoveFromNextState(st).get.isPawnDrop) {
                   f(removeParentNode(sofar), Nil, isUnProven) // Uchifuzume
                 } else {
-                  f(removeVerified(sofar), if (solution.isEmpty) sofar.map(_.head) else solution, isUnProven)
+                  // found a solution
+                  // println(s"fd: ${depth}")
+                  f(removeVerified(sofar), if (solution.length < depth) sofar.map(_.head) else solution, isUnProven)
                 }
               } else {
                 // println(s"df ${depth}: " + sortMoves(legalMoves).map(_.toJapaneseNotationString))
