@@ -3,7 +3,6 @@ package com.mogproject.mogami.mate
 import com.mogproject.mogami._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 /**
   *
@@ -27,7 +26,8 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
       "4k4/9/4P4/9/9/9/9/9/9 b G2r2b3g4s4n4l17p",
       "9/9/7B1/6R2/3rg4/4k4/9/4PP3/9 b b3g4s4n4l16p",
       "6Rsk/7r1/8+P/9/9/9/9/9/9 b GN2b3g3s3n4l17p",
-      "5B1n1/8k/6Rpp/9/9/9/9/9/9 b rb4g4s3n4l16p"
+      "5B1n1/8k/6Rpp/9/9/9/9/9/9 b rb4g4s3n4l16p",
+      "4R1lk1/5s3/6+B2/7rP/9/9/9/9/6K2 b Sb4g2s4n3l17p"
     ).map(State.parseSfenString)
 
     MateSolver.solve(s(0)).map(_.map(_.toCsaString)) mustBe Some(List("+0052KI"))
@@ -38,6 +38,7 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
       Some(List("+4123KA", "-1222OU", "+3332RY", "-2211OU", "+2312UM")),
       Some(List("+4123KA", "-1222OU", "+3332RY", "-2211OU", "+3212RY"))
     ).contains(MateSolver.solve(s(3)).map(_.map(_.toCsaString))) mustBe true
+    MateSolver.solve(s(4)).map(_.map(_.toCsaString)) mustBe Some(List("+5131RY", "-4231GI", "+0012GI", "-2112OU", "+0013KY", "-1221OU", "+1311NY"))
   }
   it must "return empty seq when there is no solution" in {
 

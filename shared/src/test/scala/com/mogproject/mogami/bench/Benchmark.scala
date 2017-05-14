@@ -95,7 +95,7 @@ trait Benchmark {
 
     var ret: Option[Seq[Move]] = None
     withBenchmark {
-      ret = MateSolver.solve(state, timeLimitMillis = 60000)
+      ret = MateSolver.solve(state, timeLimitMillis = 2 * 60 * 1000)
     }.print()
     println(ret.map(_.map(_.toJapaneseNotationString)))
   }
