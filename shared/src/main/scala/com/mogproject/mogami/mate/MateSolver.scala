@@ -97,14 +97,14 @@ object MateSolver {
 
                 findImmediateCheckmate(st, checkMoves) match {
                   case Some(s) => // found an immediate checkmate
-                    // println(s"im: ${depth + 1}")
+//                     println(s"im: ${depth + 1}")
                     // take a longer solution
                     f(removeVerifiedThis(sofar), if (solution.length <= depth) mateSolverStateCache.set(s) :: sofar.map(_.head) else solution, isUnProven)
                   case None =>
                     if (checkMoves.isEmpty) {
                       f(removeVerified(sofar), Nil, isUnProven = isUnProven) // no solution
                     } else {
-                      // println(s"at ${depth}: " + sortMoves(checkMoves).map(_.toJapaneseNotationString))
+//                       println(s"at ${depth}: " + sortMoves(checkMoves).map(_.toJapaneseNotationString))
                       // numComputedNodes += checkMoves.length
                       f(sortMoves(checkMoves).toList.map(mv => makeMove(st, mv)) :: sofar, solution, isUnProven)
                     }
@@ -119,14 +119,14 @@ object MateSolver {
 
               if (legalMoves.isEmpty) {
                 if (mateSolverStateCache.get(sofar.tail.head.head).get.createMoveFromNextState(st).get.isPawnDrop) {
-                  f(removeParentNode(sofar), Nil, isUnProven) // Uchifuzume
+                  f(removeLeaf(sofar), Nil, isUnProven) // Uchifuzume
                 } else {
                   // found a solution
-                  // println(s"fd: ${depth}")
+//                   println(s"fd: ${depth}")
                   f(removeVerified(sofar), if (solution.length < depth) sofar.map(_.head) else solution, isUnProven)
                 }
               } else {
-                // println(s"df ${depth}: " + sortMoves(legalMoves).map(_.toJapaneseNotationString))
+//                 println(s"df ${depth}: " + sortMoves(legalMoves).map(_.toJapaneseNotationString))
                 // numComputedNodes += legalMoves.length
                 f(sortMoves(legalMoves).toList.map(mv => makeMove(st, mv)) :: sofar, solution, isUnProven)
               }
