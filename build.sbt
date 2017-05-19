@@ -10,7 +10,7 @@ lazy val mogCore = crossProject.in(file("."))
     inThisBuild(List(
       organization := "com.mogproject",
       scalaVersion := "2.12.0",
-      crossScalaVersions := Seq("2.11.11")
+      crossScalaVersions := Seq("2.11.11", "2.12.0")
     )),
     name := "mog-core-scala",
     version := "0.1-SNAPSHOT",
@@ -19,7 +19,8 @@ lazy val mogCore = crossProject.in(file("."))
       "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test
     ),
     scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    crossPaths := false
   )
   .jvmSettings(
     initialCommands in console in Test :=
@@ -41,3 +42,4 @@ lazy val mogCore = crossProject.in(file("."))
 
 lazy val mogCoreJVM = mogCore.jvm
 lazy val mogCoreJS = mogCore.js
+
