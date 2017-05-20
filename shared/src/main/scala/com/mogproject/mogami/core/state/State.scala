@@ -250,7 +250,7 @@ case class State(turn: Player = BLACK,
     * @return map of the square from MoveFrom and attack bitboard
     */
   lazy val legalMovesBB: Map[MoveFrom, BitBoard] = {
-    val m = if (isChecked)
+    val m: Map[MoveFrom, BitBoard] = if (isChecked)
       getEscapeMoves
     else
       getNonSuicidalMovesOnBoard.map { case (k, v) => Left(k) -> v } ++ attackBBInHand.map { case (k, v) => Right(k) -> v }
