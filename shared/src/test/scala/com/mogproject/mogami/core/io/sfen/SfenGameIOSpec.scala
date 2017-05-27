@@ -63,6 +63,12 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
     g3.trunk.historyHash(0) mustBe g3.branches(8).historyHash(0)
     g3.branches(3).historyHash(4) mustBe g3.branches(5).historyHash(4)
     g3.branches(3).historyHash(4) mustNot be(g3.branches(4).historyHash(4))
+
+    val s4 = "~0.6y20io5t2."
+    val g4 = TestSfenGameReader.parseUsenString(s4)
+    g4.trunk.moves.length mustBe 3
+    g4.branches.length mustBe 0
+    g4.toUsenString mustBe s4
   }
   it must "create moves correctly" in {
     val s1 = "4RB1k1_5s3_7n1_5s1LP_9_7r1_9_9_6K2.b.b4g2s3n3l17p~0.0elbi4bnm3s42em5sk0i51i4bri050bj014k291.~3.1j42em5sk0i5050bs0."
