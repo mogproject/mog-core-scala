@@ -70,6 +70,8 @@ case class Branch(initialHash: StateHash,
 
   def lastMoveTo: Option[Square] = lastMove.map(_.to)
 
+  def lastLegalMoves: Vector[Move] = lastState.legalMoves(lastMoveTo)
+  
   private[this] def createHistory(): Vector[StateHash] = {
     moves.scanLeft(Some(initialHash): Option[StateHash]) { (h, m) =>
       for {
