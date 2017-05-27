@@ -109,7 +109,7 @@ trait SfenGameReader {
     val tokens = s.split("~")
     if (tokens.length < 2) throw new RecordFormatException(1, s"game description must have at least two sections: ${s}")
 
-    val initialState = State.parseUsenString(tokens(0))
+    val initialState = tokens(0).isEmpty.fold(State.HIRATE, State.parseUsenString(tokens(0))) // the first token can be empty
     val trunk = Branch.parseUsenStringAsTrunk(tokens(1), initialState)
     val branches = tokens.drop(2).map(ss => Branch.parseUsenStringAsBranch(ss, trunk)).toVector
     Game(trunk, branches)
@@ -155,5 +155,11 @@ trait SfenGameWriter extends SfenLike with UsenLike {
     */
   override def toSfenString: String = trunk.toSfenString
 
-  override def toUsenString: String = (Seq(trunk.initialState.toUsenString, trunk.toUsenString) ++ branches.map(_.toUsenString)).mkString("~")
+  /**
+    * @note Trunk initial can be omitted if it is the same as the HIRATE state.
+    */
+  override def toUsenString: String = {
+    val trunkInitial = (trunk.initialState == State.HIRATE).fold("", trunk.initialState.toUsenString)
+    (Seq(trunkInitial, trunk.toUsenString) ++ branches.map(_.toUsenString)).mkString("~")
+  }
 }

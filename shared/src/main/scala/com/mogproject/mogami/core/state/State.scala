@@ -289,11 +289,11 @@ case class State(turn: Player = BLACK,
     val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
     val newBoard = releaseBoard(board) + (move.to -> move.newPiece)
 
-        val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
-        val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-        val newHand = (releaseHand andThen obtainHand) (hand)
+    val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
+    val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
+    val newHand = (releaseHand andThen obtainHand) (hand)
 
-        val newOccs = getUpdatedOccupancy(move)
+    val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
       hash ^ StateHash.getDifference(hand, move),
@@ -400,12 +400,12 @@ case class State(turn: Player = BLACK,
 
   /**
     * Create a Move instance from the next state
-
-    * @param nextState next state
+    *
+    * @param nextState  next state
     * @param lastMoveTo last move-to
     * @return None if there is no valid move
     */
-  def createMoveFromNextState(nextState: State, lastMoveTo: Option[Square] = None): Option[Move] ={
+  def createMoveFromNextState(nextState: State, lastMoveTo: Option[Square] = None): Option[Move] = {
     val moveBuilder = ((board.keySet -- nextState.board.keySet).headOption, (nextState.board.toSet -- board.toSet).headOption) match {
       case (None, Some((to, newPiece))) => Some(MoveBuilderCsaHand(turn, to, newPiece.ptype))
       case (Some(from), Some((to, newPiece))) => Some(MoveBuilderCsaBoard(turn, from, to, newPiece.ptype))
@@ -428,6 +428,8 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
 
   // workaround for IntelliJ IDEA
   override def parseSfenString(s: String): State = super.parseSfenString(s)
+
+  override def parseUsenString(s: String): State = super.parseUsenString(s)
 
   // board or hand
   type MoveFrom = Either[Square, Hand]
