@@ -5,7 +5,6 @@ import com.mogproject.mogami.core.game.Game.{CommentType, HistoryHash, Position}
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.{State, StateCache, StateConstant}
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
@@ -96,9 +95,9 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like with KifBranchWr
     val (b, _) = branches
       .sortBy(br => (br.offset, br.moves.map(_.toKifString).mkString("\n")))
       .foldLeft((List.empty[String], commentsSofar)) { case ((xs, cm), br) =>
-      val (s, nc) = branchToKifString(br, cm)
-      (s"\n\n変化：${br.offset + 1}手\n" + s :: xs, nc)
-    }
+        val (s, nc) = branchToKifString(br, cm)
+        (s"\n\n変化：${br.offset + 1}手\n" + s :: xs, nc)
+      }
 
     (t ++ b).filter(_.nonEmpty).mkString("", "\n", "\n")
   }
@@ -160,7 +159,7 @@ trait KifBranchReader extends KifGameIO {
     *
     * @param createBranch a function that create a Branch instance and 'lastMoveTo' from an offset number
     */
-  private[this] def parseKifString(lines: Lines, createBranch: (Int, LineNo) => (Branch, Option[Square])): (Branch, CommentType) = {
+  private[this] def parseKifString(lines: Lines, createBranch: (Int, LineNo) => (Branch, Option[Square]))(implicit stateCache: StateCache): (Branch, CommentType) = {
     // convert lines
     val converted = convertLines(lines)
 
@@ -212,7 +211,7 @@ trait KifBranchReader extends KifGameIO {
     f(input, Map.empty, 0, Nil)
   }
 
-  protected[kif] def parseMoves(initialBranch: Branch, initialLastMoveTo: Option[Square], input: List[LineInput]): Branch = {
+  protected[kif] def parseMoves(initialBranch: Branch, initialLastMoveTo: Option[Square], input: List[LineInput])(implicit stateCache: StateCache): Branch = {
     @tailrec
     def f(ls: List[LineInput], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal) match {
       case (Nil, Some((_, mv))) => // ends with implicit illegal move
@@ -250,7 +249,7 @@ trait KifBranchReader extends KifGameIO {
 
 }
 
-trait KifGameReader extends KifBranchReader with KifGameIO with KifFactory[Game] with Ki2Factory[Game] {
+trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[Game] with Ki2GameFactory[Game] {
 
   private[this] def isNormalMoveKi2(s: String): Boolean = s.headOption.exists(c => Player.symbolTable.mkString.contains(c))
 
@@ -319,7 +318,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifFactory[Game]
     * @param footer       not used
     * @return Game instance
     */
-  protected[kif] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+  protected[kif] def parseMovesKif(initialState: State, lines: Lines, footer: Option[Line]): StateCache => Game = { implicit cache =>
     val ls = splitBranchesKif(lines.toList, Nil, Nil)
     val (trunk, trunkComments) = parseKifStringAsTrunk(ls.headOption.getOrElse(Nil), initialState)
     val (branches, branchComments) = ls.drop(1).foldLeft((List.empty[Branch], List.empty[CommentType])) { case ((bs, cs), ln) =>
@@ -341,7 +340,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifFactory[Game]
     case (ln :: xs, _) => splitBranchesKif(xs, sofar, ln :: remainder)
   }
 
-  protected[kif] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+  protected[kif] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line]): StateCache => Game = { implicit cache =>
     @tailrec
     def f(ls: List[Line], illegal: Option[(Line, Move)], sofar: Branch): Branch = (ls, illegal, footer) match {
       case (Nil, Some((_, mv)), Some((x, n))) if x.contains(IllegalMove.ki2Keyword) => // ends with explicit illegal move
@@ -382,8 +381,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifFactory[Game]
 
   private[this] val parserKi2 = new RecordParser(sectionSplitterKi2, parseGameInfo, parseInitialState, parseMovesKi2)
 
-  override def parseKifString(nel: NonEmptyLines): Game = parserKif.parse(nel)
+  override def parseKifString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = parserKif.parse(nel)
 
-  override def parseKi2String(nel: NonEmptyLines): Game = parserKi2.parse(nel)
+  override def parseKi2String(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = parserKi2.parse(nel)
 
 }

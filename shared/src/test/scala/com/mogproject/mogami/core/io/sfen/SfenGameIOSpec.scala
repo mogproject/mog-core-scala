@@ -4,7 +4,7 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.game.{Game, GameGen}
 import com.mogproject.mogami.core.move.Movement.Upward
 import com.mogproject.mogami.core.move.{IllegalMove, Move, Resign}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.core.state.StateCache
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -12,7 +12,7 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
 
   object TestSfenGameReader extends SfenGameReader
 
-  "SfenGameReader#parseUsenString" must "parse games" in {
+  "SfenGameReader#parseUsenString" must "parse games" in StateCache.withCache { implicit cache =>
     val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2."
     val s2 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
 
@@ -70,7 +70,7 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
     g4.branches.length mustBe 0
     g4.toUsenString mustBe s4
   }
-  it must "create moves correctly" in {
+  it must "create moves correctly" in StateCache.withCache { implicit cache =>
     val s1 = "4RB1k1_5s3_7n1_5s1LP_9_7r1_9_9_6K2.b.b4g2s3n3l17p~0.0elbi4bnm3s42em5sk0i51i4bri050bj014k291.~3.1j42em5sk0i5050bs0."
     val g1 = TestSfenGameReader.parseUsenString(s1)
 
@@ -84,9 +84,11 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
       Move(BLACK, None, Square(18), SILVER, false, false, None, None, true, None, true)
     )
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
-    val s = g.toUsenString
-    Game.parseUsenString(s).toUsenString mustBe s
+  it must "restore games" in StateCache.withCache { implicit cache =>
+    forAll(GameGen.games, minSuccessful(10)) { g =>
+      val s = g.toUsenString
+      Game.parseUsenString(s).toUsenString mustBe s
+    }
   }
 
 }

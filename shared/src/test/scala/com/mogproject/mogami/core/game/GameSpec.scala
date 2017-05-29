@@ -221,9 +221,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n-3334KI"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n-\n+7776FU"))
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
+  it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) mustBe g
-  }
+  }}
   it must "ignore comments" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
@@ -262,12 +262,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 B "))
     assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx"))
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
+  it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     StateCache.withCache { implicit cache =>
       val s = g.toSfenString
       Game.parseSfenString(s).toSfenString mustBe s
     }
-  }
+  }}
 
   "Game#toKifString" must "describe some games" in StateCache.withCache { implicit cache =>
     dataForTest.map(_.toKifString) zip kifForTest foreach { case (a, b) => a must be(b) }
@@ -441,15 +441,15 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "%TORYO,T32"
     ).mkString("\n"))
   }
-  it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
+  it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val gg = g.copy(newGameInfo = GameInfo(Map(
       'blackName -> ts.getOrElse('blackName, ""),
       'whiteName -> ts.getOrElse('whiteName, "")
     )))
     Game.parseKifString(gg.toKifString) mustBe gg
-  }
-  it must "restore games with branches and comments" in forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
+  }}
+  it must "restore games with branches and comments" in StateCache.withCache { implicit cache => forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val g1 = g.copy(newGameInfo = GameInfo(Map(
       'blackName -> ts.getOrElse('blackName, ""),
@@ -461,7 +461,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.branches.map(_.offset).sorted mustBe g2.branches.map(_.offset).sorted
     g1.branches.sortBy(_.toSfenString).zip(g2.branches.sortBy(_.toSfenString)).foreach { case (a, b) => a mustBe b }
     g1.gameInfo mustBe g2.gameInfo
-  }
+  }}
 
   "Game#status" must "return Playing when playing" in StateCache.withCache { implicit cache =>
     Game().trunk.status mustBe Playing

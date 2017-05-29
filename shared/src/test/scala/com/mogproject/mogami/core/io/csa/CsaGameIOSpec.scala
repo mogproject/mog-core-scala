@@ -6,7 +6,6 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -37,7 +36,7 @@ class CsaGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     "+"
   )
 
-  "CsaGameWriter#toCsaString" must "describe special moves" in {
+  "CsaGameWriter#toCsaString" must "describe special moves" in StateCache.withCache { implicit cache =>
     createGame(HIRATE, finalAction = Some(Resign())).toCsaString mustBe (hirateState ++ Seq("%TORYO")).mkString("\n")
     createGame(HIRATE, finalAction = Some(Resign(Some(123)))).toCsaString mustBe (hirateState ++ Seq("%TORYO,T123")).mkString("\n")
     createGame(HIRATE, finalAction = Some(TimeUp())).toCsaString mustBe (hirateState ++ Seq("%TIME_UP")).mkString("\n")
@@ -50,18 +49,18 @@ class CsaGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ))).toCsaString mustBe (hirateState ++ Seq("+5951OU,T123", "%ILLEGAL_MOVE")).mkString("\n")
   }
 
-  "CsaGameReader#parseMovesCsa" must "parse normal moves" in {
-    TestCsaGameReader.parseMoves(HIRATE, Nil, None) mustBe Game()
+  "CsaGameReader#parseMovesCsa" must "parse normal moves" in StateCache.withCache { implicit cache =>
+    TestCsaGameReader.parseMoves(HIRATE, Nil, None)(cache) mustBe Game()
   }
-  it must "parse special moves" in {
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TORYO")), None) mustBe createGame(HIRATE, finalAction = Some(Resign()))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TORYO,T123")), None) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TIME_UP")), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("%TIME_UP", "T123")), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("+5951OU", "%ILLEGAL_MOVE")), None) mustBe createGame(HIRATE,
+  it must "parse special moves" in StateCache.withCache { implicit cache =>
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign()))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO,T123")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP", "T123")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU", "%ILLEGAL_MOVE")), None)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestCsaGameReader.parseMoves(HIRATE, TestCsaGameReader.normalizeCsaString(List("+5951OU,T123", "%ILLEGAL_MOVE")), None) mustBe createGame(HIRATE,
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU,T123", "%ILLEGAL_MOVE")), None)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
   }
