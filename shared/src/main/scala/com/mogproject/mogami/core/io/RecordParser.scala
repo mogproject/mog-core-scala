@@ -2,7 +2,6 @@ package com.mogproject.mogami.core.io
 
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.core.game.{Game, GameInfo}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 
 /**
   *
@@ -17,6 +16,6 @@ class RecordParser(sectionSplitter: NonEmptyLines => (Lines, NonEmptyLines, Line
     val gameInfo = gameInfoParser(gi)
     val initialState = initialStateParser(st)
     val g = moveParser(initialState, mv, sp)
-    g.copy(gameInfo = gameInfo)
+    g.copy(newGameInfo = gameInfo)
   }
 }

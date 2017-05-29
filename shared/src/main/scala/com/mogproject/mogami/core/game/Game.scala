@@ -1,7 +1,6 @@
 package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami.core.game.Game.{BranchNo, CommentType, GamePosition, HistoryHash}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
@@ -10,13 +9,25 @@ import com.mogproject.mogami.util.Implicits._
 /**
   * Game
   */
-case class Game(trunk: Branch = Branch(),
+case class Game(trunkOption: Option[Branch] = None,
                 branches: Vector[Branch] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 comments: CommentType = Map.empty
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
+  val trunk: Branch = trunkOption.getOrElse(Branch())
+
   type ForkList = Map[HistoryHash, Map[Move, BranchNo]]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Game => this.trunk == that.trunk && this.branches == that.branches && this.gameInfo == that.gameInfo && this.comments == that.comments
+    case _ => false
+  }
+
+  def copy(newTrunk: Branch = this.trunk,
+           newBranches: Vector[Branch] = this.branches,
+           newGameInfo: GameInfo = this.gameInfo,
+           newComments: CommentType = this.comments) = Game(Some(newTrunk), newBranches, newGameInfo, newComments)
 
   //
   // helper functions
@@ -68,12 +79,12 @@ case class Game(trunk: Branch = Branch(),
     if (comment.isEmpty)
       clearComment(gamePosition)
     else {
-      getHistoryHash(gamePosition).map(h => this.copy(comments = comments.updated(h, comment)))
+      getHistoryHash(gamePosition).map(h => this.copy(newComments = comments.updated(h, comment)))
     }
   }
 
   def clearComment(gamePosition: GamePosition): Option[Game] = {
-    getHistoryHash(gamePosition).map(h => this.copy(comments = comments - h))
+    getHistoryHash(gamePosition).map(h => this.copy(newComments = comments - h))
   }
 
   //
@@ -131,7 +142,7 @@ case class Game(trunk: Branch = Branch(),
         Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
           hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
       }) map { newBranch =>
-        copy(branches = branches :+ newBranch)
+        copy(newBranches = branches :+ newBranch)
       }
     } else {
       // the position is the last position of the current branch, or the fork already exists
@@ -142,19 +153,19 @@ case class Game(trunk: Branch = Branch(),
   def deleteBranch(branchNo: BranchNo): Option[Game] = if (branchNo == 0 || !branches.isDefinedAt(branchNo - 1)) {
     None // trunk cannot be deleted
   } else {
-    Some(copy(branches = branches.patch(branchNo - 1, Nil, 1)))
+    Some(copy(newBranches = branches.patch(branchNo - 1, Nil, 1)))
   }
 
   def updateBranch(branchNo: BranchNo)(f: Branch => Option[Branch]): Option[Game] = {
     if (branchNo == 0) {
-      f(trunk).map(tr => this.copy(trunk = tr))
+      f(trunk).map(tr => this.copy(newTrunk = tr))
     } else {
       for {
         br <- getBranch(branchNo)
         index = branchNo - 1
         nxt <- f(br)
       } yield {
-        this.copy(branches = branches.updated(index, nxt))
+        this.copy(newBranches = branches.updated(index, nxt))
       }
     }
   }
@@ -177,11 +188,11 @@ case class Game(trunk: Branch = Branch(),
       // delete branches if needed
       val newTrunk = trunk.truncated(gamePosition.position)
       val newBranches = branches.filter(_.offset <= gamePosition.position)
-      copy(trunk = newTrunk, branches = newBranches, comments = f(newTrunk, newBranches))
+      copy(newTrunk = newTrunk, newBranches = newBranches, newComments = f(newTrunk, newBranches))
     } else {
       withBranch(gamePosition.branch) { br =>
         val newBranches = branches.updated(gamePosition.branchIndex, br.truncated(gamePosition.position))
-        copy(branches = newBranches, comments = f(trunk, newBranches))
+        copy(newBranches = newBranches, newComments = f(trunk, newBranches))
       }.getOrElse(this)
     }
   }
@@ -189,15 +200,29 @@ case class Game(trunk: Branch = Branch(),
 
 object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
+  def apply(trunk: Branch)(implicit stateCache: StateCache): Game = new Game(Some(trunk))
+
+  def apply(trunk: Branch, branches: Vector[Branch])(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches)
+
+  def apply(trunk: Branch, branches: Vector[Branch], comments: CommentType)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches, comments = comments)
+
+  def apply(trunk: Branch, gameInfo: GameInfo)(implicit stateCache: StateCache): Game = new Game(Some(trunk), gameInfo = gameInfo)
+
+  def apply(trunk: Branch, branches: Vector[Branch], gameInfo: GameInfo)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches, gameInfo)
+
   type BranchNo = Int // branch number: root = 0
 
   type Position = Int // regarding offset
 
   // workaround for IntelliJ IDEA
   override def parseSfenString(s: String)(implicit stateCache: StateCache): Game = super.parseSfenString(s)
+
   override def parseUsenString(s: String)(implicit stateCache: StateCache): Game = super.parseUsenString(s)
+
   override def parseKifString(nel: NonEmptyLines): Game = super.parseKifString(nel)
+
   override def parseKi2String(nel: NonEmptyLines): Game = super.parseKi2String(nel)
+
   override def parseCsaString(nel: NonEmptyLines): Game = super.parseCsaString(nel)
 
   case class GamePosition(branch: BranchNo, position: Position) {

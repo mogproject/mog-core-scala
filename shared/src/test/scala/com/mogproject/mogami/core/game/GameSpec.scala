@@ -7,7 +7,6 @@ import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant._
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -25,7 +24,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
                 (implicit stateCache: StateCache): Game =
     Game(Branch(stateCache.set(initialState), 0, moves, finalAction), Vector.empty, gameInfo)
 
-  val dataForTest = Seq(
+  def dataForTest(implicit stateCache: StateCache) = Seq(
     createGame(stateEmpty, Vector(), GameInfo()),
     createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)
@@ -54,6 +53,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
         'startTime -> "", 'endTime -> "", 'timeLimit -> "", 'opening -> "")
     ))
   )
+
   val csaForTest = Seq(
     "P1 *  *  *  *  *  *  *  *  * \n" +
       "P2 *  *  *  *  *  *  *  *  * \n" +
@@ -151,10 +151,10 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       |""".stripMargin
   )
 
-  "Game#toCsaString" must "describe some games" in {
+  "Game#toCsaString" must "describe some games" in StateCache.withCache { implicit cache =>
     dataForTest.map(_.toCsaString) zip csaForTest foreach { case (a, b) => a must be(b) }
   }
-  "Game#parseCsaString" must "work in normal cases" in {
+  "Game#parseCsaString" must "work in normal cases" in StateCache.withCache { implicit cache =>
     csaForTest.map(Game.parseCsaString) zip dataForTest foreach { case (a, b) => a mustBe b }
     Game.parseCsaString("+") mustBe createGame(stateEmpty, Vector(), GameInfo())
     Game.parseCsaString("-") mustBe createGame(stateEmptyInv, Vector(), GameInfo())
@@ -193,7 +193,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       ),
       GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))
   }
-  it must "throw an exception when in error cases" in {
+  it must "throw an exception when in error cases" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseCsaString(""))
     assertThrows[RecordFormatException](Game.parseCsaString(" "))
     assertThrows[RecordFormatException](Game.parseCsaString("x" * 1000))
@@ -203,18 +203,18 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     assertThrows[RecordFormatException](Game.parseCsaString("V1\nP+00OU\n+"))
     assertThrows[RecordFormatException](Game.parseCsaString("PI\n+\nN+\n+7776FU"))
   }
-  it must "throw an exception when game info is invalid" in {
+  it must "throw an exception when game info is invalid" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseCsaString("$XXX:XXX\nPI\n-\n-5152OU,T2345\n+5958OU"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN=yyy\nPI\n-\n-5152OU,T2345\n+5958OU"))
   }
-  it must "throw an exception when initial state is invalid" in {
+  it must "throw an exception when initial state is invalid" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+7776FU"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nPI\nPI"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nP\nP"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\nP+00FU\n-\n-5152OU,T2345\n+5958OU"))
   }
-  it must "throw an exception when moves are invalid" in {
+  it must "throw an exception when moves are invalid" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+1234AB"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU,TT"))
     assertThrows[RecordFormatException](Game.parseCsaString("N+xxx\nN-yyy\nPI\n+\n+7776FU\n+7675FU"))
@@ -224,13 +224,13 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) mustBe g
   }
-  it must "ignore comments" in {
+  it must "ignore comments" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
     ), GameInfo())
   }
-  it must "parse special moves" in {
+  it must "parse special moves" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,+,+7776FU,T2,%TORYO,T3") mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(2))
     ), finalAction = Some(Resign(Some(3))))
@@ -242,17 +242,17 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     ), finalAction = Some(Pause))
   }
 
-  "Game#toSfenString" must "describe some games" in {
+  "Game#toSfenString" must "describe some games" in StateCache.withCache { implicit cache =>
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
   }
-  "Game#parseSfenString" must "create games in normal cases" in {
+  "Game#parseSfenString" must "create games in normal cases" in StateCache.withCache { implicit cache =>
     sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
-      g.copy(gameInfo = GameInfo(), trunk = g.trunk.copy(moves = g.trunk.moves.map(_.copy(elapsedTime = None))))
+      g.copy(newGameInfo = GameInfo(), newTrunk = g.trunk.copy(moves = g.trunk.moves.map(_.copy(elapsedTime = None))))
     ) foreach { case (a, b) =>
       a mustBe b
     }
   }
-  it must "throw an exception in error cases" in {
+  it must "throw an exception in error cases" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseSfenString(""))
     assertThrows[RecordFormatException](Game.parseSfenString(" "))
     assertThrows[RecordFormatException](Game.parseSfenString("x" * 1000))
@@ -263,15 +263,17 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     assertThrows[RecordFormatException](Game.parseSfenString("9/9/9/9/9/9/9/9/9 b - xxxx"))
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
-    val s = g.toSfenString
-    Game.parseSfenString(s).toSfenString mustBe s
+    StateCache.withCache { implicit cache =>
+      val s = g.toSfenString
+      Game.parseSfenString(s).toSfenString mustBe s
+    }
   }
 
-  "Game#toKifString" must "describe some games" in {
+  "Game#toKifString" must "describe some games" in StateCache.withCache { implicit cache =>
     dataForTest.map(_.toKifString) zip kifForTest foreach { case (a, b) => a must be(b) }
   }
 
-  "Game#parseKifString" must "create games in normal cases" in {
+  "Game#parseKifString" must "create games in normal cases" in StateCache.withCache { implicit cache =>
     val s =
       """#KIF version=2.0 encoding=UTF-8
         |開始日時：2017/03/07
@@ -441,7 +443,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   it must "restore games" in forAll(GameGen.games, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
-    val gg = g.copy(gameInfo = GameInfo(Map(
+    val gg = g.copy(newGameInfo = GameInfo(Map(
       'blackName -> ts.getOrElse('blackName, ""),
       'whiteName -> ts.getOrElse('whiteName, "")
     )))
@@ -449,7 +451,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   }
   it must "restore games with branches and comments" in forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
-    val g1 = g.copy(gameInfo = GameInfo(Map(
+    val g1 = g.copy(newGameInfo = GameInfo(Map(
       'blackName -> ts.getOrElse('blackName, ""),
       'whiteName -> ts.getOrElse('whiteName, "")
     )))
@@ -461,7 +463,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.gameInfo mustBe g2.gameInfo
   }
 
-  "Game#status" must "return Playing when playing" in {
+  "Game#status" must "return Playing when playing" in StateCache.withCache { implicit cache =>
     Game().trunk.status mustBe Playing
     Game.parseCsaString("PI\n+\n+7776FU\n-5152OU\n+8833UM").trunk.status mustBe Playing
     Game.parseCsaString(Seq(
@@ -479,7 +481,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+0012FU"
     ).mkString("\n")).trunk.status mustBe Playing
   }
-  it must "return Mated when mated" in {
+  it must "return Mated when mated" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  * +KI",
@@ -535,7 +537,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+0013FU"
     ).mkString("\n")).trunk.status mustBe Mated
   }
-  it must "return Illegal when perpetual check" in {
+  it must "return Illegal when perpetual check" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -587,7 +589,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-2718GI"
     ).mkString("\n")).trunk.status mustBe PerpetualCheck
   }
-  it must "return Illegal when uchifuzume" in {
+  it must "return Illegal when uchifuzume" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -603,7 +605,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "+0012FU"
     ).mkString("\n")).trunk.status mustBe Uchifuzume
   }
-  it must "return Drawn when repetition" in {
+  it must "return Drawn when repetition" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  *  * ",
@@ -633,12 +635,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-2111OU"
     ).mkString("\n")).trunk.status mustBe Drawn
   }
-  it must "tell special moves" in {
+  it must "tell special moves" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,+,+7776FU,%TORYO").trunk.status mustBe Resigned
     Game.parseCsaString("PI,+,+7776FU,%TIME_UP").trunk.status mustBe TimedUp
     Game.parseCsaString("PI,+,+7775FU,%ILLEGAL_MOVE").trunk.status mustBe IllegallyMoved
   }
-  it must "tell resigned even though the state is mated" in {
+  it must "tell resigned even though the state is mated" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(Seq(
       "P1 *  *  *  *  *  *  *  * -OU",
       "P2 *  *  *  *  *  *  *  * +KI",
@@ -654,7 +656,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     ).mkString("\n")).trunk.status mustBe Resigned
   }
 
-  "Game#getAllMoves" must "get all moves" in {
+  "Game#getAllMoves" must "get all moves" in StateCache.withCache { implicit cache =>
     Game().getAllMoves(0) mustBe Vector.empty
 
     val s1 = "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-~0.6y20io5t2.~2.7ku1im.~2.7bq1im.r~0..i9i8"
@@ -684,7 +686,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.getAllMoves(-1) mustBe Vector.empty
   }
 
-  "Game#hasComment" must "return if a position has a comment" in {
+  "Game#hasComment" must "return if a position has a comment" in StateCache.withCache { implicit cache =>
     Game().hasComment(GamePosition(0, 0)) mustBe false
     Game().hasComment(GamePosition(0, 1)) mustBe false
     Game().hasComment(GamePosition(1, 0)) mustBe false
@@ -710,7 +712,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )
   }
 
-  "Game#getFinalAction" must "return final actions" in {
+  "Game#getFinalAction" must "return final actions" in StateCache.withCache { implicit cache =>
     Game().getFinalAction(0) mustBe None
     Game().getFinalAction(1) mustBe None
 
@@ -723,7 +725,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.getFinalAction(3) mustBe Some(IllegalMove(Move(BLACK, Some(Square(76)), Square(4), KING, false, false, None, None, false, None, false)))
   }
 
-  "Game#truncated" must "return truncated games" in {
+  "Game#truncated" must "return truncated games" in StateCache.withCache { implicit cache =>
     Game().truncated(GamePosition(0, 0)) mustBe Game()
     Game().truncated(GamePosition(0, 1)) mustBe Game()
     Game().truncated(GamePosition(1, 0)) mustBe Game()
@@ -746,7 +748,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.truncated(GamePosition(0, 0)).branches.length mustBe 1
   }
 
-  "Game#getState" must "return state" in {
+  "Game#getState" must "return state" in StateCache.withCache { implicit cache =>
     Game().getState(GamePosition(0, 0)) mustBe Some(HIRATE)
     Game().getState(GamePosition(0, 1)) mustBe None
     Game().getState(GamePosition(1, 0)) mustBe None
@@ -800,7 +802,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g2.getState(GamePosition(2, 27)) mustBe None
   }
 
-  "Game#getForkList" must "return fork list" in {
+  "Game#getForkList" must "return fork list" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -889,7 +891,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       1 -> Vector(("-3334FU", 8))
     )
   }
-  it must "get forks when a branch has the same first move as the trunk" in {
+  it must "get forks when a branch has the same first move as the trunk" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t22jm4o22f281k4be.", // Trunk
@@ -910,7 +912,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )
   }
 
-  "Game#hasFork" must "return wheather the position has a fork" in {
+  "Game#hasFork" must "return wheather the position has a fork" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -935,7 +937,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.hasFork(GamePosition(99, 0)) mustBe false
   }
 
-  "Game#getForks" must "return forks at the position" in {
+  "Game#getForks" must "return forks at the position" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -967,7 +969,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.getForks(GamePosition(99, 0)) mustBe Vector.empty
   }
 
-  "Game#createBranch" must "create a new branch" in {
+  "Game#createBranch" must "create a new branch" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -988,23 +990,23 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     // same as a branch's move, but the trunk's move is preserved
     g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P26, ROOK, false, false, None, None, false, None, true)),
         initialHistoryHash = g1.getHistoryHash(GamePosition(0, 12))
       )))
     g1.createBranch(GamePosition(0, 12), Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(12), 12, Vector(Move(BLACK, Some(P24), P27, ROOK, false, false, None, None, false, None, true)),
         initialHistoryHash = g1.getHistoryHash(GamePosition(0, 12))
       )))
     g1.createBranch(GamePosition(0, 1), Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(1), 1, Vector(Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)),
         initialHistoryHash = g1.getHistoryHash(GamePosition(0, 1))
       )))
     g1.createBranch(GamePosition(2, 16), Move(WHITE, Some(P82), P85, ROOK, false, false, None, None, false, None, true)) mustBe None
     g1.createBranch(GamePosition(2, 15), Move(WHITE, Some(P82), P85, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(11), 11, Vector(
+      newBranches = g1.branches :+ Branch(g1.trunk.history(11), 11, Vector(
         Move(WHITE, Some(P21), P33, KNIGHT, false, false, None, None, false, None, true),
         Move(BLACK, Some(P24), P34, ROOK, false, false, None, Some(PAWN), false, None, true),
         Move(WHITE, Some(P85), P86, PAWN, false, false, None, None, false, None, true),
@@ -1015,7 +1017,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.createBranch(GamePosition(2, 8), Move(BLACK, Some(P88), P77, BISHOP, false, false, None, None, false, None, true)) mustBe None
     g1.createBranch(GamePosition(5, 6), Move(BLACK, Some(P28), P24, ROOK, false, true, None, Some(PAWN), false, None, true)) mustBe None
     g1.createBranch(GamePosition(5, 7), Move(WHITE, Some(P84), P85, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(g1.trunk.history(3), 3, Vector(
+      newBranches = g1.branches :+ Branch(g1.trunk.history(3), 3, Vector(
         Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, None, true),
         Move(BLACK, Some(P25), P24, PAWN, false, false, None, None, false, None, true),
         Move(WHITE, Some(P23), P24, PAWN, false, true, None, Some(PAWN), false, None, true),
@@ -1025,24 +1027,24 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )
     g1.createBranch(GamePosition(5, 0), Move(BLACK, Some(P37), P36, PAWN, false, false, None, None, false, None, true)) mustBe None
     g1.createBranch(GamePosition(5, 0), Move(BLACK, Some(P47), P46, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(0), 0,
         Vector(Move(BLACK, Some(P47), P46, PAWN, false, false, None, None, false, None, true)),
         initialHistoryHash = g1.getHistoryHash(GamePosition(0, 0))
       )))
     g1.createBranch(GamePosition(5, 1), Move(WHITE, Some(P82), P52, ROOK, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(1), 1,
         Vector(Move(WHITE, Some(P82), P52, ROOK, false, false, None, None, false, None, true)),
         initialHistoryHash = g1.getHistoryHash(GamePosition(0, 1)))
     ))
     g1.createBranch(GamePosition(5, 3), Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(3), 3,
         Vector(Move(WHITE, Some(P13), P14, PAWN, false, false, None, None, false, None, true)))
     ))
     g1.createBranch(GamePosition(5, 4), Move(BLACK, Some(P17), P16, PAWN, false, false, None, None, false, None, true)) mustBe Some(g1.copy(
-      branches = g1.branches :+ Branch(
+      newBranches = g1.branches :+ Branch(
         g1.trunk.history(3), 3,
         Vector(
           Move(WHITE, Some(P33), P34, PAWN, false, false, None, None, false, None, true),
@@ -1060,7 +1062,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g2a.trunk.historyHash(1) mustBe g2a.branches(0).historyHash(0)
   }
 
-  "Game#deleteBranch" must "delete a branch" in {
+  "Game#deleteBranch" must "delete a branch" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
       "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
@@ -1078,9 +1080,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     val g1: Game = Game.parseUsenString(s1)
 
     g1.deleteBranch(0) mustBe None
-    g1.deleteBranch(1) mustBe Some(g1.copy(branches = g1.branches.drop(1)))
-    g1.deleteBranch(3) mustBe Some(g1.copy(branches = g1.branches.take(2) ++ g1.branches.drop(3)))
-    g1.deleteBranch(9) mustBe Some(g1.copy(branches = g1.branches.take(8)))
+    g1.deleteBranch(1) mustBe Some(g1.copy(newBranches = g1.branches.drop(1)))
+    g1.deleteBranch(3) mustBe Some(g1.copy(newBranches = g1.branches.take(2) ++ g1.branches.drop(3)))
+    g1.deleteBranch(9) mustBe Some(g1.copy(newBranches = g1.branches.take(8)))
     g1.deleteBranch(10) mustBe None
   }
 }

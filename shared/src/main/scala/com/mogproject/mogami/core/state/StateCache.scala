@@ -69,4 +69,10 @@ object StateCache {
 
   }
 
+  /**
+    * Work with a temporary cache system
+    */
+  def withCache[A](execution: StateCache => A): A = {
+    execution(new ThreadUnsafeStateCache())
+  }
 }
