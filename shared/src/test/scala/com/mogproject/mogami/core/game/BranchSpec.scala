@@ -2,7 +2,6 @@ package com.mogproject.mogami.core.game
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.game.Game.HistoryHash
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -19,7 +18,7 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Branch(stateCache.set(initialState), offset, moves, finalAction, initialHistoryHash)
 
 
-  "Braanch#historyHash" must "create unique hash values for sequences" in {
+  "Braanch#historyHash" must "create unique hash values for sequences" in StateCache.withCache { implicit cache =>
     val h0 = createBranch(HIRATE)
     createBranch(HIRATE, 1).historyHash mustNot be(h0)
     createBranch(HIRATE, 62).historyHash mustNot be(h0)

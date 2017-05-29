@@ -116,7 +116,7 @@ trait CsaStateReader extends CsaFactory[state.State] {
     }
   }
 
-  def parseCsaString(nel: NonEmptyLines): State = {
+  override def parseCsaString(nel: NonEmptyLines): State = {
     @tailrec
     def f(ls: List[Line], sofar: Result, usedInit: Boolean, usedAll: Boolean): state.State = {
       (ls, usedInit, usedAll) match {

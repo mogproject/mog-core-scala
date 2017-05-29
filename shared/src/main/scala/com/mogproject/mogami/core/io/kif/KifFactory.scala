@@ -1,29 +1,36 @@
 package com.mogproject.mogami.core.io.kif
 
-import com.mogproject.mogami.core.io.{Lines, NonEmptyLines, RecordFormatException}
+import com.mogproject.mogami.core.io.{IOFactoryLike, Lines, NonEmptyLines}
+import com.mogproject.mogami.core.state.StateCache
 
-/**
-  *
-  */
-trait KifFactory[T <: KifLike] {
-
+object KifFactory {
   /**
     * @note do not ignore comments (* or #) here
-    * @param s
-    * @return
     */
-  final protected[io] def normalizeKifString(s: Seq[String]): Lines = for {
+  def normalizeString(s: Seq[String]): Lines = for {
     (ln, n) <- s.zipWithIndex // set line numbers
     if ln.nonEmpty
   } yield {
     (ln, n + 1)
   }
+}
 
-  final def parseKifString(s: String): T = parseKifString(normalizeKifString(s.split("\n")))
+trait KifFactory[T <: KifLike] extends IOFactoryLike {
 
-  final def parseKifString(lines: Lines): T =
-    if (lines.isEmpty) throw new RecordFormatException(0, "Empty input") else parseKifString(NonEmptyLines(lines))
+  final def parseKifString(s: String): T = parseKifString(toLines(s, KifFactory.normalizeString))
+
+  final def parseKifString(lines: Lines): T = parseKifString(toNonEmptyLines(lines))
 
   def parseKifString(lines: NonEmptyLines): T
+
+}
+
+trait KifGameFactory[T <: KifLike] extends IOFactoryLike {
+
+  final def parseKifString(s: String)(implicit stateCache: StateCache): T = parseKifString(toLines(s, KifFactory.normalizeString))
+
+  final def parseKifString(lines: Lines)(implicit stateCache: StateCache): T = parseKifString(toNonEmptyLines(lines))
+
+  def parseKifString(lines: NonEmptyLines)(implicit stateCache: StateCache): T
 
 }

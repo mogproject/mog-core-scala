@@ -1,6 +1,7 @@
 package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
+import com.mogproject.mogami.core.state.StateCache
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -9,11 +10,11 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     scala.io.Source.fromFile(s"jvm/src/test/resources/${path}", encoding).mkString.replace("\r", "")
   }
 
-  "Game#parseCsaString" must "create games from files" in {
+  "Game#parseCsaString" must "create games from files" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(loadFile("csa/game/001.csa")).trunk.moves.length mustBe 111
   }
 
-  "Game#parseKifString" must "create games from files" in {
+  "Game#parseKifString" must "create games from files" in StateCache.withCache { implicit cache =>
     Game.parseKifString(loadFile("kif/game/001.kif")).trunk.moves.length mustBe 111
     Game.parseKifString(loadFile("kif/game/002.kif")).trunk.moves.length mustBe 193
 
@@ -124,7 +125,7 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     Game.parseKifString(s8).trunk.moves.length mustBe 168
   }
 
-  "Game#parseKi2String" must "create games from files" in {
+  "Game#parseKi2String" must "create games from files" in StateCache.withCache { implicit cache =>
     Game.parseKi2String(loadFile("ki2/game/001.ki2")).trunk.moves.length mustBe 111
     Game.parseKi2String(loadFile("ki2/game/002.ki2")).trunk.moves.length mustBe 111
   }

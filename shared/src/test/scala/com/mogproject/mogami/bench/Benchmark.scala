@@ -2,7 +2,6 @@ package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.state.State
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.mate.MateSolver
 
 /**
@@ -21,6 +20,8 @@ case class BenchResult(result: Seq[Double]) {
 }
 
 trait Benchmark {
+
+  import com.mogproject.mogami.core.state.StateCache.Implicits._
 
   val benchmarkCount = 3
   val attackRepeat = 10000

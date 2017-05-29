@@ -1,6 +1,5 @@
 package com.mogproject.mogami.core.game
 
-import com.mogproject.mogami.core.Ptype.PAWN
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.game.Game.{HistoryHash, Position}
 import com.mogproject.mogami.core.game.GameStatus.GameStatus

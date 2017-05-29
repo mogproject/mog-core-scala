@@ -3,8 +3,7 @@ package com.mogproject.mogami.core.game
 import com.mogproject.mogami.GamePosition
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
-import com.mogproject.mogami.core.state.{State, StateGen}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.core.state.{State, StateCache, StateGen}
 import org.scalacheck.Gen
 
 /**
@@ -12,7 +11,7 @@ import org.scalacheck.Gen
   */
 object GameGen {
 
-  def games: Gen[Game] = for {
+  def games(implicit stateCache: StateCache): Gen[Game] = for {
     gameInfo <- GameInfoGen.infos
     state <- StateGen.statesWithFullPieces
     n <- Gen.choose(0, 50)
@@ -57,7 +56,7 @@ object GameGen {
     s <- Gen.alphaNumStr
   } yield p -> s
 
-  def gamesWithBranch: Gen[Game] = for {
+  def gamesWithBranch(implicit stateCache: StateCache): Gen[Game] = for {
     gameInfo <- GameInfoGen.infos
     state <- StateGen.statesWithFullPieces
     numTrunkMoves <- Gen.choose(0, 50)
@@ -77,7 +76,7 @@ object GameGen {
     Game(t, branches, gameInfo = gameInfo)
   }
 
-  def gamesWithBranchAndComment: Gen[Game] = for {
+  def gamesWithBranchAndComment(implicit stateCache: StateCache): Gen[Game] = for {
     g <- gamesWithBranch
     numComments <- Gen.choose(0, 30)
     comments <- Gen.listOfN(numComments, comments(g.branches.length, 50))

@@ -8,7 +8,6 @@ import com.mogproject.mogami.core.game.Game.CommentType
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
-import com.mogproject.mogami.core.state.StateCache.Implicits._
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -36,7 +35,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     "手数----指手----消費時間--"
   )
 
-  "KifBranchWriter#toKifString" must "describe comments" in {
+  "KifBranchWriter#toKifString" must "describe comments" in  StateCache.withCache { implicit cache =>
     val hirate = Branch()
     val hirate2 = hirate.makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false)).get
     val hirate3 = Branch(hirate2.lastState.hash, 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
@@ -77,7 +76,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
 
   }
 
-  "KifGameWriter#toKifString" must "describe special moves" in {
+  "KifGameWriter#toKifString" must "describe special moves" in StateCache.withCache { implicit cache =>
     createGame(HIRATE, finalAction = Some(Resign())).toKifString mustBe (hirateState ++ Seq("   1 投了", "")).mkString("\n")
     createGame(HIRATE, finalAction = Some(Resign(Some(123)))).toKifString mustBe (hirateState ++ Seq("   1 投了 (02:03/)", "")).mkString("\n")
     createGame(HIRATE, finalAction = Some(TimeUp())).toKifString mustBe (hirateState ++ Seq("   1 切れ負け", "")).mkString("\n")
@@ -89,7 +88,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)
     ))).toKifString mustBe (hirateState ++ Seq("   1 ５一玉(59) (02:03/)", "   2 反則手", "")).mkString("\n")
   }
-  it must "describe branches" in {
+  it must "describe branches" in StateCache.withCache { implicit cache =>
     val tr1 = Branch().makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false))
       .get.makeMove(MoveBuilderSfenBoard(P26, P25, false)).get
     val br1 = Branch(tr1.history(2), 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
@@ -150,25 +149,25 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ).mkString("\n")
   }
 
-  "KifGameReader#parseMovesKif" must "parse normal moves" in {
-    TestKifGameReader.parseMovesKif(HIRATE, List(), None) mustBe Game()
+  "KifGameReader#parseMovesKif" must "parse normal moves" in StateCache.withCache { implicit cache =>
+    TestKifGameReader.parseMovesKif(HIRATE, List(), None)(cache) mustBe Game()
 
     TestKifGameReader.parseMovesKif(HIRATE, List(
       ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
-    ), None) mustBe createGame(HIRATE, Vector(
+    ), None)(cache) mustBe createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(12)),
       Move(WHITE, Some(P83), P84, PAWN, false, false, None, None, false, Some(13))
     ))
   }
-  it must "parse special moves" in {
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了   ( 2:03/)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け (2:3/1:2:3)", 1)), None) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)", 1), ("2 反則手", 1)), None) mustBe createGame(HIRATE,
+  it must "parse special moves" in StateCache.withCache { implicit cache =>
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了", 1)), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 投了   ( 2:03/)", 1)), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け", 1)), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 切れ負け (2:3/1:2:3)", 1)), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)", 1), ("2 反則手", 1)), None)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)   ( 2:03/)", 1), ("1 反則手   ( 0:0/)", 2)), None) mustBe createGame(HIRATE,
+    TestKifGameReader.parseMovesKif(HIRATE, List(("1 ５一玉(59)   ( 2:03/)", 1), ("1 反則手   ( 0:0/)", 2)), None)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
   }
@@ -182,7 +181,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       Vector(List(("1 ７六歩(77)   ( 0:12/)", 1)), List(("1 ７六歩(77)   ( 0:12/)", 3)))
   }
 
-  "KifGameReader#parseKifString" must "create games" in {
+  "KifGameReader#parseKifString" must "create games" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "N+",
       "N-",
@@ -209,7 +208,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     Game.parseKifString(Game.parseCsaString(s1).toKifString).trunk.moves.length mustBe 6
   }
 
-  "KifGameReader#parseKi2String" must "create games" in {
+  "KifGameReader#parseKi2String" must "create games" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "N+",
       "N-",
@@ -248,7 +247,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
 
   }
 
-  "KifBranchReader#parseKifStringAsTrunk" must "parse moves and comments" in {
+  "KifBranchReader#parseKifStringAsTrunk" must "parse moves and comments" in StateCache.withCache { implicit cache =>
     val exp1 = Branch(HIRATE)
       .makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
       .makeMove(MoveBuilderSfenBoard(P83, P84, false)).get
@@ -277,7 +276,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ))
   }
 
-  "KifBranchReader#parseKifStringAsBranch" must "parse moves and comments" in {
+  "KifBranchReader#parseKifStringAsBranch" must "parse moves and comments" in StateCache.withCache { implicit cache =>
     val trunk = TestKifBranchReader.parseKifStringAsTrunk(List(
       ("1 ７六歩(77)   ( 0:12/)", 1), ("2 ８四歩(83)   ( 0:13/)", 2)
     ), HIRATE)._1

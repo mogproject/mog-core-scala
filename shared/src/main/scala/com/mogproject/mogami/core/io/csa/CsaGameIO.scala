@@ -3,8 +3,7 @@ package com.mogproject.mogami.core.io.csa
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
-import com.mogproject.mogami.core.state.State
-import com.mogproject.mogami.core.state.StateCache.Implicits._
+import com.mogproject.mogami.core.state.{State, StateCache}
 
 import scala.annotation.tailrec
 
@@ -24,7 +23,7 @@ trait CsaGameWriter extends CsaLike {
 /**
   * Reads Csa-formatted game
   */
-trait CsaGameReader extends CsaFactory[Game] {
+trait CsaGameReader extends CsaGameFactory[Game] {
 
   private[this] def isStateText(t: String): Boolean = t.startsWith("P") || t == "+" || t == "-"
 
@@ -57,7 +56,7 @@ trait CsaGameReader extends CsaFactory[Game] {
     * @param footer       not used
     * @return Game instance
     */
-  protected[io] def parseMoves(initialState: State, lines: Lines, footer: Option[Line]): Game = {
+  protected[io] def parseMoves(initialState: State, lines: Lines, footer: Option[Line]): StateCache => Game = { implicit cache =>
     @tailrec
     def f(ls: List[Line], pending: List[Line], illegal: Option[Move], sofar: Branch): Branch = (ls, pending, illegal) match {
       case (ln :: xs, _, _) if ln._1.startsWith("T") => f(xs, pending :+ ln, illegal, sofar)
@@ -97,6 +96,6 @@ trait CsaGameReader extends CsaFactory[Game] {
 
   private[this] val parser = new RecordParser(sectionSplitter, parseGameInfo, State.parseCsaString, parseMoves)
 
-  override def parseCsaString(nel: NonEmptyLines): Game = parser.parse(nel)
+  def parseCsaString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = parser.parse(nel)
 
 }
