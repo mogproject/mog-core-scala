@@ -17,7 +17,7 @@ case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
                  hint: Option[StateHint] = None
-                ) extends CsaLike with SfenLike with KifLike with UsenLike {
+                ) extends CsaLike with SfenLike with KifLike with UsenLike with HtmlStateWriter {
 
   // if a hint is given, skip requirement checks
   if (hint.isEmpty) {
