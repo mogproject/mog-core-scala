@@ -39,4 +39,6 @@ package object io {
 
   type UsenLike = com.mogproject.mogami.core.io.sfen.UsenLike
   type UsenFactory[T <: UsenLike] = com.mogproject.mogami.core.io.sfen.UsenFactory[T]
+
+  type HtmlStateWriter = com.mogproject.mogami.core.io.html.HtmlStateWriter
 }

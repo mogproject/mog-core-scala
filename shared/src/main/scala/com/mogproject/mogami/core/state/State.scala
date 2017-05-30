@@ -17,7 +17,7 @@ case class State(turn: Player = BLACK,
                  board: BoardType = Map.empty,
                  hand: HandType = State.EMPTY_HANDS,
                  hint: Option[StateHint] = None
-                ) extends CsaLike with SfenLike with KifLike with UsenLike {
+                ) extends CsaLike with SfenLike with KifLike with UsenLike with HtmlStateWriter {
 
   // if a hint is given, skip requirement checks
   if (hint.isEmpty) {
@@ -279,6 +279,13 @@ case class State(turn: Player = BLACK,
     */
   def isMated: Boolean = legalMovesBB.isEmpty
 
+  // functions for makeMove
+  private[this] def releaseBoard(move: Move): BoardType => BoardType = move.from.when(sq => b => b - sq)
+
+  private[this] def releaseHand(move: Move): HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
+
+  private[this] def obtainHand(move: Move): HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
+
   /**
     * Make one move.
     *
@@ -286,13 +293,7 @@ case class State(turn: Player = BLACK,
     * @return new state
     */
   def makeMove(move: Move): Option[State] = isValidMove(move).option {
-    val releaseBoard: BoardType => BoardType = move.from.when(sq => b => b - sq)
-    val newBoard = releaseBoard(board) + (move.to -> move.newPiece)
-
-    val releaseHand: HandType => HandType = move.isDrop.when(MapUtil.decrementMap(_, Hand(move.newPiece)))
-    val obtainHand: HandType => HandType = move.capturedPiece.when(p => h => MapUtil.incrementMap(h, Hand(!p.demoted)))
-    val newHand = (releaseHand andThen obtainHand) (hand)
-
+    val (newBoard, newHand) = makeNextPosition(move)
     val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
@@ -304,6 +305,18 @@ case class State(turn: Player = BLACK,
       getUpdatedAttackBBOnBoard(move, newOccs._1)
     )
     State(!turn, newBoard, newHand, Some(hint))
+  }
+
+  /**
+    * Make the next board and hand position from a move
+    *
+    * @param move illegal moves are also acceptable
+    * @return next board and hand
+    */
+  def makeNextPosition(move: Move): (BoardType, HandType) = {
+    val newBoard = releaseBoard(move)(board) + (move.to -> move.newPiece)
+    val newHand = (releaseHand(move) andThen obtainHand(move)) (hand)
+    (newBoard, newHand)
   }
 
   private[this] def getUpdatedOccupancy(move: Move): (BitBoard, Vector[BitBoard], Vector[BitBoard]) = {

@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.game.Game.{HistoryHash, Position}
 import com.mogproject.mogami.core.game.GameStatus.GameStatus
 import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io._
+import com.mogproject.mogami.core.io.html.HtmlBranchWriter
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache, StateHash}
 import com.mogproject.mogami.core.state.StateHash.StateHash
@@ -28,7 +29,7 @@ case class Branch(initialHash: StateHash,
                   finalAction: Option[SpecialMove] = None,
                   initialHistoryHash: Option[HistoryHash] = None,
                   hint: Option[BranchHint] = None)
-                 (implicit stateCache: StateCache) extends SfenBranchWriter {
+                 (implicit stateCache: StateCache) extends SfenBranchWriter with HtmlBranchWriter {
 
   require(history.length == moves.length + 1, s"all moves must be valid: history.length=${history.length}, moves.length=${moves.length}")
 
