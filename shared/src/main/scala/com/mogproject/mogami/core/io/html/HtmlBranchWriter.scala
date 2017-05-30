@@ -27,7 +27,7 @@ trait HtmlBranchWriter {
   private[this] def finalActionToHtml(lastState: Option[State], isJapanese: Boolean): String =
     (finalAction, lastState) match {
       case (Some(IllegalMove(imv)), Some(st)) =>
-        val header = finalActionToString(isJapanese) + ":" + moveToString(imv, isJapanese)
+        val header = finalActionToString(isJapanese) + ": " + moveToString(imv, isJapanese)
         val (newBoard, newHand) = st.makeNextPosition(imv)
         new HtmlStateWriter {
           override val board: BoardType = newBoard
