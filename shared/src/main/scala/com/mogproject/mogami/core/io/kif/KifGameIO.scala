@@ -220,13 +220,14 @@ trait KifBranchReader extends KifGameIO {
         sofar
       case ((n, Some((_, x)), _) :: ys, None) if !isNormalMoveKif(x) && ys.forall(_._3.isDefined) => // ends with a special move (+comments)
         val special = MoveBuilderKif.parseTime((x, n)) match {
-          case ((Resign.kifKeyword, _), tm) => Resign(tm)
-          case ((TimeUp.kifKeyword, _), tm) => TimeUp(tm)
-          case ((TimeUp.kifKeyword2, _), tm) => TimeUp(tm)
-          case ((Pause.kifKeyword, _), _) => Pause
+          case ((Resign.kifKeyword, _), tm) => Some(Resign(tm))
+          case ((TimeUp.kifKeyword, _), tm) => Some(TimeUp(tm))
+          case ((TimeUp.kifKeyword2, _), tm) => Some(TimeUp(tm))
+          case ((Pause.kifKeyword, _), _) => Some(Pause)
+          case ((s, _), _) if s.contains('詰') => None // ignore
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
-        sofar.copy(finalAction = Some(special))
+        special.map(sp => sofar.copy(finalAction = Some(sp))).getOrElse(sofar)
       case ((_, Some((_, x)), _) :: Nil, Some((_, mv))) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case ((n, Some((_, x)), _) :: xs, None) =>
@@ -276,7 +277,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   private[this] def sectionSplitterKif(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
-    val (gi, st, body) = sectionSplitterCommon(nel, { s => !s.startsWith("手数") })
+    val (gi, st, body) = sectionSplitterCommon(nel, { s => !s.startsWith("手数-") })
     (gi, st, body.drop(1), None)
   }
 
@@ -308,7 +309,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
       val (x, n) = nel.lines.last
       presetStates.getOrElse(x.drop(4), throw new RecordFormatException(n, s"unknown preset state: ${x.drop(4)}"))
     } else {
-      State.parseKifString(nel)
+      State.parseKifString(nel.copy(lines = nel.lines.filterNot(_._1.startsWith("手合割："))))
     }
   }
 
