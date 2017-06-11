@@ -38,7 +38,7 @@ trait StateCache {
 class ThreadUnsafeStateCache() extends StateCache {
   private[this] val partitionSize: Int = 1 << 4 // must be 2^n
 
-  private[this] val storage: Vector[mutable.Map[StateHash, State]] = Vector.fill(partitionSize)(mutable.Map.empty)
+  private[this] lazy val storage: Vector[mutable.Map[StateHash, State]] = Vector.fill(partitionSize)(mutable.Map.empty)
 
   override def size: Int = storage.size
 
