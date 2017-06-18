@@ -20,6 +20,7 @@ trait HtmlStateWriter {
     val shogiBody = "shogi-body"
     val shogiHand = "shogi-hand"
     val shogiBoard = "shogi-board"
+    val shogiComment = "shogi-comment"
     val fileIndex = "sb-f"
     val rankIndex = "sb-r"
     val pieceInverted = "sp-i"
@@ -51,13 +52,48 @@ trait HtmlStateWriter {
     (horizontalIndex +: brd).mkString("<tr>", "</tr><tr>", "</tr>")
   }
 
-  def toHtmlString(header: String = "", lastMove: Option[Square] = None): String = Seq(
+  def toHtmlString(header: String = "", lastMove: Option[Square] = None, comment: Option[String] = None): String = Seq(
     s"""<div class="${shogiState}">""",
     s"""<div class="${shogiHeader}">${header}</div>""",
-    s"""<div class=${shogiBody}>""",
+    s"""<div class="${shogiBody}">""",
+    comment.isDefined.fold("""<table><tbody><tr><td>""", ""),
     s"""<div class="${shogiHand}">${createHandString(Player.WHITE)}</div>""",
     s"""<table class="${shogiBoard}"><tbody>${createBoardHtml(lastMove)}</tbody></table>""",
     s"""<div class="${shogiHand}">${createHandString(Player.BLACK)}</div>""",
+    comment.map(c => s"""</td><td class="${shogiComment}"><p>${escape(c)}</p></td></tr></tbody></table>""").getOrElse(""),
     """</div></div>"""
   ).mkString
+
+  /**
+    * Code to escape text HTML nodes. Taken from scala.xml
+    */
+  private[this] def escape(text: String, s: StringBuilder): Unit = {
+    // Implemented per XML spec:
+    // http://www.w3.org/International/questions/qa-controls
+    // imperative code 3x-4x faster than current implementation
+    // dpp (David Pollak) 2010/02/03
+    val len = text.length
+    var pos = 0
+
+    while (pos < len) {
+      text.charAt(pos) match {
+        case '<' => s.append("&lt;")
+        case '>' => s.append("&gt;")
+        case '&' => s.append("&amp;")
+        case '"' => s.append("&quot;")
+        case '\n' => s.append('\n')
+        case '\r' => s.append('\r')
+        case '\t' => s.append('\t')
+        case c if c < ' ' =>
+        case c => s.append(c)
+      }
+      pos += 1
+    }
+  }
+
+  private[this] def escape(text: String): String = {
+    val builder = new StringBuilder
+    escape(text, builder)
+    builder.result()
+  }
 }
