@@ -9,7 +9,8 @@ class HtmlBranchWriterSpec extends FlatSpec with MustMatchers with GeneratorDriv
 
   "HtmlBranchWriter#toHtmlString" must "make html with comments" in {
     StateCache.withCache { implicit cache =>
-      Branch(State.HIRATE).toHtmlString(isJapanese = true, Map(State.HIRATE.hash -> "<comment&123>")) mustBe
+      val br = Branch(State.HIRATE)
+      br.toHtmlString(isJapanese = true, Map(br.historyHash.head -> "<comment&123>")) mustBe
         "<div class=\"shogi-state\"><div class=\"shogi-header\">Start</div><div class=\"shogi-body\"><table><tbody><tr><td><div class=\"shogi-hand\">☖</div>" +
           "<table class=\"shogi-board\"><tbody><tr><td class=\"sb-f\">9</td><td class=\"sb-f\">8</td><td class=\"sb-f\">7</td>" +
           "<td class=\"sb-f\">6</td><td class=\"sb-f\">5</td><td class=\"sb-f\">4</td><td class=\"sb-f\">3</td><td class=\"sb-f\">2</td>" +
