@@ -1,5 +1,6 @@
 package com.mogproject.mogami.core.io.html
 
+import com.mogproject.mogami.core.game.Game.{CommentType, HistoryHash}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.State.{BoardType, HandType}
 import com.mogproject.mogami.core.state.{State, StateCache}
@@ -15,6 +16,8 @@ trait HtmlBranchWriter {
   def moves: Vector[Move]
 
   def history: Vector[StateHash]
+
+  def historyHash: Vector[HistoryHash]
 
   def finalAction: Option[SpecialMove]
 
@@ -37,13 +40,13 @@ trait HtmlBranchWriter {
       case _ => ""
     }
 
-  def toHtmlString(isJapanese: Boolean = true, comments: Map[StateHash, String])(implicit stateCache: StateCache): String = {
-    val stateHistory = history.map(stateCache.get)
+  def toHtmlString(isJapanese: Boolean = true, comments: CommentType)(implicit stateCache: StateCache): String = {
+    val stateHistory = history.map(stateCache.get).zip(historyHash)
     val states = stateHistory.zip(None +: moves.map(Some.apply)).zipWithIndex.map {
-      case ((Some(st), Some(m)), i) => st.toHtmlString(s"#${offset + i}: ${moveToString(m, isJapanese)}", Some(m.to), comments.get(st.hash))
-      case ((Some(st), None), _) => st.toHtmlString(s"Start", None, comments.get(st.hash))
+      case (((Some(st), hh), Some(m)), i) => st.toHtmlString(s"#${offset + i}: ${moveToString(m, isJapanese)}", Some(m.to), comments.get(hh))
+      case (((Some(st), hh), None), _) => st.toHtmlString(s"Start", None, comments.get(hh))
       case _ => ""
     }
-    (states :+ finalActionToHtml(stateHistory.last, isJapanese)).mkString("\n")
+    (states :+ finalActionToHtml(stateHistory.last._1, isJapanese)).mkString("\n")
   }
 }
