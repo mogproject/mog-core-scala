@@ -41,7 +41,7 @@ trait HtmlBranchWriter {
     val stateHistory = history.map(stateCache.get)
     val states = stateHistory.zip(None +: moves.map(Some.apply)).zipWithIndex.map {
       case ((Some(st), Some(m)), i) => st.toHtmlString(s"#${offset + i}: ${moveToString(m, isJapanese)}", Some(m.to), comments.get(st.hash))
-      case ((Some(st), None), _) => st.toHtmlString(s"Start", None)
+      case ((Some(st), None), _) => st.toHtmlString(s"Start", None, comments.get(st.hash))
       case _ => ""
     }
     (states :+ finalActionToHtml(stateHistory.last, isJapanese)).mkString("\n")
