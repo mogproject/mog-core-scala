@@ -40,8 +40,13 @@ case class MoveBuilderKi2(player: Player,
     case Some(Dropped) => Some(None)
     case Some(mvmt) =>
       state.attackBBOnBoard(player).find { case (sq, bb) =>
-        state.board(sq).ptype == oldPtype && bb.get(moveTo) && getMovement(state, Some(sq), moveTo, oldPtype).contains(mvmt)
+        state.board(sq).ptype == oldPtype && bb.get(moveTo) && getMovement(state, Some(sq), moveTo, oldPtype).exists(compareMovement(_, mvmt))
       }.map { case (sq, _) => Some(sq) }
+  }
+
+  private[this] def compareMovement(a: Movement, b: Movement): Boolean = {
+    /** @note allows ambiguity between Upward and Vertical */
+    a == b || a == Movement.Upward && b == Movement.Vertical
   }
 
   override def toMove(state: State, lastMoveTo: Option[Square] = None, isStrict: Boolean): Option[Move] = for {
