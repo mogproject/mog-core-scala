@@ -264,7 +264,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   protected[io] def splitMovesKi2(lines: Lines): Lines = lines.flatMap {
-    case (x, n) if isNormalMoveKi2(x) => x.replaceAll("▲", " ▲").replaceAll("△", " △").split(" ").filter(_.nonEmpty).map((_, n))
+    case (x, n) if isNormalMoveKi2(x) => x.replaceAll("▲", " ▲").replaceAll("[△▽]", " △").split(" ").filter(_.nonEmpty).map((_, n))
     case _ => Seq.empty
   }
 

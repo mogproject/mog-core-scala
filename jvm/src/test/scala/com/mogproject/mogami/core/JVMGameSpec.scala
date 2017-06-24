@@ -132,5 +132,6 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     Game.parseKi2String(loadFile("ki2/game/001.ki2")).trunk.moves.length mustBe 111
     Game.parseKi2String(loadFile("ki2/game/002.ki2")).trunk.moves.length mustBe 111
     Game.parseKi2String(loadFile("ki2/game/003.ki2")).trunk.moves.length mustBe 34
+    Game.parseKi2String(loadFile("ki2/game/004.ki2")).trunk.moves.length mustBe 27
   }
 }
