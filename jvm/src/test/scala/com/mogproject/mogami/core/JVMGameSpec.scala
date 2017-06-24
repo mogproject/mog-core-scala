@@ -131,5 +131,6 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
   "Game#parseKi2String" must "create games from files" in StateCache.withCache { implicit cache =>
     Game.parseKi2String(loadFile("ki2/game/001.ki2")).trunk.moves.length mustBe 111
     Game.parseKi2String(loadFile("ki2/game/002.ki2")).trunk.moves.length mustBe 111
+    Game.parseKi2String(loadFile("ki2/game/003.ki2")).trunk.moves.length mustBe 34
   }
 }

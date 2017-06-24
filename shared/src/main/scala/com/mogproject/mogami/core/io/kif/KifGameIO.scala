@@ -264,7 +264,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   protected[io] def splitMovesKi2(lines: Lines): Lines = lines.flatMap {
-    case (x, n) if isNormalMoveKi2(x) => x.split(" ").filter(_.nonEmpty).map((_, n))
+    case (x, n) if isNormalMoveKi2(x) => x.replaceAll("▲", " ▲").replaceAll("△", " △").split(" ").filter(_.nonEmpty).map((_, n))
     case _ => Seq.empty
   }
 
@@ -272,8 +272,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
     val (header, body) = nel.lines.span { case (x, _) => isHeader(x) }
     val (st, gi) = header.partition(ln => isInitialState(ln._1))
 
-    if (st.isEmpty) throw new RecordFormatException(header.lastOption.map(_._2).getOrElse(0), "initial state must be defined")
-    (gi, NonEmptyLines(st), body)
+    /** @note allows no initial state line (complement with HIRATE) */
+    (gi, NonEmptyLines(st.isEmpty.fold(Seq(("手合割：平手", 0)), st)), body)
   }
 
   private[this] def sectionSplitterKif(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
