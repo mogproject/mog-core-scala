@@ -42,7 +42,7 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
     MateSolver.solve(s(0)) mustBe Some(Nil)
     MateSolver.solve(s(1)) mustBe Some(Nil)
     MateSolver.solve(s(2)) mustBe Some(Nil)
-    MateSolver.solve(s(3)) mustBe Some(Nil)
+    MateSolver.solve(s(3), timeLimitMillis = 240000) mustBe Some(Nil)
   }
   it must "return None when the solver requires more moves or time" in {
     val s = Seq(
@@ -58,7 +58,7 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
       "9/9/6B2/6p2/5n1l1/5p1k1/9/5S+B2/9 b RPr4g3s3n3l15p"
     ).map(State.parseSfenString)
 
-    MateSolver.solve(s(0), timeLimitMillis = 120000).map(_.map(_.toJapaneseNotationString)) mustBe Some(List(
+    MateSolver.solve(s(0), timeLimitMillis = 240000).map(_.map(_.toJapaneseNotationString)) mustBe Some(List(
       "４四角成", "１五玉", "１六馬", "１四玉", "２五馬", "同玉", "２六飛", "１四玉", "１五歩", "同玉", "１六香"
     ))
   }
