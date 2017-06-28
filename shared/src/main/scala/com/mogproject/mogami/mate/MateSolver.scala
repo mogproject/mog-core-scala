@@ -15,6 +15,18 @@ object MateSolver {
   private[this] var timeoutCounter: Int = 0
   private[this] var timeLimit: Long = 0
 
+  /**
+    * Solve a mate.
+    *
+    * @param state           state
+    * @param lastMoveTo      last move to
+    * @param minDepth        minimum depth
+    * @param maxDepth        maximum depth
+    * @param timeLimitMillis time limit
+    * @return Some(List(mv1, mv2, ...)): Found a solution.
+    *         Some(Nil): No solutions.
+    *         None: Time or depth limit exceeded
+    */
   def solve(state: State, lastMoveTo: Option[Square] = None, minDepth: Int = 3, maxDepth: Int = 29, timeLimitMillis: Long = 15000): Option[Seq[Move]] = {
     // initialization
     timeoutCounter = 0
@@ -117,17 +129,25 @@ object MateSolver {
     var candidate = List.empty[Move]
 
     for (mv <- sortMoves(legalMoves)) {
-      searchAttack(mateSolverStateCache.get(makeMove(state, mv)).get, depth - 1) match {
-        case None => return None // Reached the max depth
-        case Some(xs) if xs.nonEmpty =>
-          // Found a solution
-          val len = xs.length
-          if (len > candidateLength) {
-            candidateLength = len
-            candidate = mv :: xs
-          }
-        case Some(Nil) => return Some(Nil) // No solution
+      // incremental search
+      var found = false
+      for (d <- 0 until depth by 2 if !found) {
+        searchAttack(mateSolverStateCache.get(makeMove(state, mv)).get, d) match {
+          case None => // Reached the max depth
+          case Some(xs) if xs.nonEmpty =>
+            // Found a solution
+            val len = xs.length
+            if (len > candidateLength) {
+              candidateLength = len
+              candidate = mv :: xs
+            }
+            found = true
+          case Some(Nil) =>
+            // No solution
+            return Some(Nil)
+        }
       }
+      if (!found) return None // Reached the max depth
     }
     Some(candidate)
   }

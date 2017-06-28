@@ -55,6 +55,7 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     benchMateSolver(s4)
 //    benchMateSolver(s5)
 //    benchMateSolver(s6)
+    benchMateSolver(s7)
     benchMateSolver(s8)
     benchMateSolver(s9)
   }
@@ -91,4 +92,38 @@ benchMateSolver
 - avg: 5.287s, min: 4.402s, max: 6.252s
 
 Some(List(３一飛, １二玉, ３二飛成, １三玉, ２四角, １四玉, １五銀, ２五玉, ３五竜, １六玉, ２六竜))
+
+[2017-06-28] Mac (2.9 GHz Intel Core i7): Incremental search
+
+benchMateSolver
+
+- avg: 1.985s, min: 1.713s, max: 2.391s
+
+Some(List(５二金, 同玉, ５三金, 同玉, ５四と, ４二玉, ４三金, ３一玉, ３二金打))
+benchMateSolver
+
+- avg: 6.504s, min: 5.963s, max: 7.431s
+
+Some(List(３一飛, ２一桂, １二銀, 同玉, ２四桂, １一玉, １二香))
+benchMateSolver
+
+- avg: 54.624s, min: 53.085s, max: 57.543s
+
+Some(List(２三角成, ３一香, ３三桂, 同銀引, 同馬, ２四飛, ３一飛成, 同銀, １二銀, 同玉, １三香, ２一玉, １一香成))
+benchMateSolver
+
+- avg: 91.213s, min: 87.138s, max: 97.839s
+
+Some(List(３二角, 同銀, ３一飛, １二玉, ３二飛成, １三玉, ２四角, １四玉, １五銀, ２五玉, ３五竜, １六玉, ２六竜))
+benchMateSolver
+
+- avg: 0.090s, min: 0.081s, max: 0.108s
+
+Some(List(２三角不成, １一玉, １二歩, ２二玉, ３二飛成))
+benchMateSolver
+
+- avg: 7.914s, min: 7.855s, max: 7.958s
+
+Some(List(３一飛, １二玉, ３二飛成, １三玉, ２四角, １四玉, １五銀, ２五玉, ３五竜, １六玉, ２六竜))
+
  */
