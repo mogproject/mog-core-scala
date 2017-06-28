@@ -412,6 +412,26 @@ case class State(turn: Player = BLACK,
   def hasHand(h: Hand): Boolean = hand.get(h).exists(_ > 0)
 
   /**
+    * Check if Uchifuzume can happen at the next move.
+    *
+    * @return true if Uchifuzume can happen
+    * @note condition:
+    *       - Turn's player can drop a pawn in hand on the front square of the opponent's king
+    *       - The opponent's king cannot move
+    *       - The opponent's pieces do not protect the opponent's king's front square
+    */
+  def isUchifuzumePossible: Boolean = getKing(!turn).exists { opponentKing =>
+    val kingsFrontRank = opponentKing.rank + turn.isBlack.fold(1, -1)
+    (1 <= kingsFrontRank && kingsFrontRank <= 9) && {
+      val kingsFront = Square(opponentKing.file, kingsFrontRank)
+
+      attackBBInHand.get(Hand(turn, PAWN)).exists(_.get(kingsFront)) &&
+        (attackBBOnBoard(!turn)(opponentKing) & ~getAttackBB(turn) & (~occupancy(!turn))).isEmpty &&
+        attackBBOnBoard(!turn).forall { case (sq, bb) => sq == opponentKing || !bb.get(kingsFront) }
+    }
+  }
+
+  /**
     * Create a Move instance from the next state
     *
     * @param nextState  next state

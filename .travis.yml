@@ -16,7 +16,7 @@ scala:
   - 2.12.0
   - 2.11.11
 
-script: "sbt clean coverage mogCoreJVM/test"
+script: "travis_wait 30 sbt clean coverage mogCoreJVM/test"
 
 after_success: "sbt coverageReport coverageAggregate coveralls"
 
