@@ -8,18 +8,6 @@ import org.scalatest.{FlatSpec, MustMatchers}
   *
   */
 class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
-  "MateSolver#removeParentNode" must "return proper lists" in {
-    MateSolver.removeParentNode(Nil) mustBe Nil
-    MateSolver.removeParentNode(List(List(1))) mustBe Nil
-    MateSolver.removeParentNode(List(List(2), List(1))) mustBe Nil
-    MateSolver.removeParentNode(List(List(2, 3), List(1))) mustBe Nil
-    MateSolver.removeParentNode(List(List(3), List(2), List(1))) mustBe Nil
-    MateSolver.removeParentNode(List(List(3, 4), List(2), List(1))) mustBe Nil
-    MateSolver.removeParentNode(List(List(3), List(2, 4), List(1))) mustBe List(List(4), List(1))
-    MateSolver.removeParentNode(List(List(5, 6, 7), List(2, 3, 4), List(1))) mustBe List(List(3, 4), List(1))
-    MateSolver.removeParentNode(List(List(6), List(5), List(3, 4), List(2), List(1))) mustBe List(List(4), List(2), List(1))
-  }
-
   "MateSolver#solve" must "return answers" in {
 
     val s = Seq(
@@ -64,5 +52,14 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
 
     MateSolver.solve(s(0), maxDepth = 3) mustBe None
     MateSolver.solve(s(1), maxDepth = 3) mustBe None
+  }
+  it must "return the longest answer" in {
+    val s = Seq(
+      "9/9/6B2/6p2/5n1l1/5p1k1/9/5S+B2/9 b RPr4g3s3n3l15p"
+    ).map(State.parseSfenString)
+
+    MateSolver.solve(s(0), timeLimitMillis = 60000).map(_.map(_.toJapaneseNotationString)) mustBe Some(List(
+      "４四角成", "１五玉", "１六馬", "１四玉", "２五馬", "同玉", "２六飛", "１四玉", "１五歩", "同玉", "１六香"
+    ))
   }
 }
