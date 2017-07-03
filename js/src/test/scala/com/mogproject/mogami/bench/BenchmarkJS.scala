@@ -5,6 +5,7 @@ import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.move.MoveBuilderSfen
+import com.mogproject.mogami.core.state.StateCache
 
 
 /**
@@ -12,15 +13,20 @@ import com.mogproject.mogami.core.move.MoveBuilderSfen
   */
 object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
   def main(): Unit = {
-//    benchAttack(BP, None, BitBoard.empty, BitBoard.empty)
-//
-//    benchAttack(BP, Some(P55), BitBoard.empty, BitBoard.empty)
-//
-//    benchAttack(BPR, Some(P11), BitBoard.empty, BitBoard.empty)
-//    benchAttack(BPR, Some(P11), BitBoard.full, BitBoard.full)
-//
-//    benchAttack(BPB, Some(P55), BitBoard.empty, BitBoard.empty)
-//    benchAttack(BPB, Some(P55), BitBoard.full, BitBoard.full)
+    benchGameLoad()
+  }
+
+  def misc(): Unit = {
+
+    //    benchAttack(BP, None, BitBoard.empty, BitBoard.empty)
+    //
+    //    benchAttack(BP, Some(P55), BitBoard.empty, BitBoard.empty)
+    //
+    //    benchAttack(BPR, Some(P11), BitBoard.empty, BitBoard.empty)
+    //    benchAttack(BPR, Some(P11), BitBoard.full, BitBoard.full)
+    //
+    //    benchAttack(BPB, Some(P55), BitBoard.empty, BitBoard.empty)
+    //    benchAttack(BPB, Some(P55), BitBoard.full, BitBoard.full)
 
     if (false) {
       benchGameLoading(recordSfen01)
@@ -35,11 +41,40 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
       benchToSfenString(s)
     }
 
-//    benchCalcAttackBB(HIRATE)
-//    benchCalcAttackBBDiff(HIRATE, MoveBuilderSfen(Left(P77), P76, false))
+    //    benchCalcAttackBB(HIRATE)
+    //    benchCalcAttackBBDiff(HIRATE, MoveBuilderSfen(Left(P77), P76, false))
+  }
+
+  def benchGameLoad(): Unit = {
+    val repeat = 100
+
+    println(s"benchGameLoad: different cache")
+
+    withBenchmark {
+      var i = 0
+      while (i < repeat) {
+        StateCache.withCache { implicit cache =>
+          val g = Game.parseUsenString(recordUsen01)
+        }
+        i += 1
+      }
+    }.print()
 
 
+    println(s"benchGameLoad: same cache")
 
+    withBenchmark {
+      var i = 0
+      StateCache.withCache { implicit cache =>
+        while (i < repeat) {
+          val g = Game.parseUsenString(recordUsen01)
+          i += 1
+        }
+      }
+    }.print()
+  }
+
+  def benchMateSolver(): Unit = {
     val s1 = State.parseSfenString("4k4/9/9/9/3+PP4/9/9/9/9 b 4G2r2b4s4n4l16p") // mate in 9
     val s2 = State.parseSfenString("8k/7p1/1r7/5bS2/7N1/9/9/9/9 b RSNLb4g2s2n3l17p") // mate in 7
     val s3 = State.parseSfenString("1+P2Ss2l/1+S5b1/k1p4p1/1p+r1G2n1/p7p/P1N2S3/KPP1PP+pBP/7+r1/LNg6 b GNL2Pgl3p")
@@ -51,10 +86,10 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     val s9 = State.parseSfenString("5n1k1/5ps2/7p1/8N/7P1/9/9/9/9 b RBrb4g3s2n4l15p") // mate in 11
     benchMateSolver(s1)
     benchMateSolver(s2)
-//    benchMateSolver(s3)
+    //    benchMateSolver(s3)
     benchMateSolver(s4)
-//    benchMateSolver(s5)
-//    benchMateSolver(s6)
+    //    benchMateSolver(s5)
+    //    benchMateSolver(s6)
     benchMateSolver(s7)
     benchMateSolver(s8)
     benchMateSolver(s9)
