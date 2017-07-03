@@ -1,7 +1,7 @@
 package com.mogproject.mogami.bench
 
 import com.mogproject.mogami._
-import com.mogproject.mogami.core.state.State
+import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.mate.MateSolver
 
 /**
@@ -21,12 +21,12 @@ case class BenchResult(result: Seq[Double]) {
 
 trait Benchmark {
 
-  import com.mogproject.mogami.core.state.StateCache.Implicits._
+//  import com.mogproject.mogami.core.state.StateCache.Implicits._
 
   val benchmarkCount = 3
   val attackRepeat = 10000
 
-  private[this] def withBenchmark(thunk: => Unit): BenchResult = {
+  protected def withBenchmark(thunk: => Unit): BenchResult = {
     val ret = (1 to benchmarkCount).map { n =>
       val start = System.currentTimeMillis()
       thunk
@@ -39,7 +39,9 @@ trait Benchmark {
     println(s"benchGameLoading: sfen=${sfen}")
 
     withBenchmark {
-      val g = Game.parseSfenString(sfen)
+      StateCache.withCache { implicit cache =>
+        val g = Game.parseSfenString(sfen)
+      }
     }.print()
   }
 

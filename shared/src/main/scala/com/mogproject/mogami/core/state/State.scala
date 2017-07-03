@@ -297,7 +297,7 @@ case class State(turn: Player = BLACK,
     val newOccs = getUpdatedOccupancy(move)
 
     val hint = StateHint(
-      hash ^ StateHash.getDifference(hand, move),
+      StateHash.getNextStateHash(this, move),
       newOccs._1,
       newOccs._2,
       newOccs._3,

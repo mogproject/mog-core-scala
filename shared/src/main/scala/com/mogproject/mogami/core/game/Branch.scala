@@ -71,7 +71,7 @@ case class Branch(initialHash: StateHash,
   def lastMoveTo: Option[Square] = lastMove.map(_.to)
 
   def lastLegalMoves: Vector[Move] = lastState.legalMoves(lastMoveTo)
-  
+
   private[this] def createHistory(): Vector[StateHash] = {
     moves.scanLeft(Some(initialHash): Option[StateHash]) { (h, m) =>
       for {
@@ -142,12 +142,18 @@ case class Branch(initialHash: StateHash,
     case _ => moves
   }
 
-  def makeMove(move: Move): Option[Branch] =
-    (status == Playing && lastState.isValidMove(move))
-      .option(this.copy(moves = moves :+ move, hint = lastState.makeMove(move).map { s =>
-        val h = stateCache.set(s)
-        BranchHint(history :+ h, historyHash :+ (historyHash.last ^ createHistoryHash(historyHash.length + offset, h)))
-      }))
+  def makeMove(move: Move): Option[Branch] = {
+    (StateHash.getNextStateHash(lastState, move) match {
+      case h if stateCache.hasKey(h) => Some(h)
+      case _ if status == Playing => lastState.makeMove(move).map(stateCache.set)
+      case _ => None
+    }).map { h =>
+      this.copy(
+        moves = moves :+ move,
+        hint = Some(BranchHint(history :+ h, historyHash :+ (historyHash.last ^ createHistoryHash(historyHash.length + offset, h))))
+      )
+    }
+  }
 
   def makeMove(move: MoveBuilder, lastMoveToValue: Option[Square] = lastMoveTo): Option[Branch] =
     move.toMove(lastState, lastMoveToValue.isDefined.fold(lastMoveToValue, lastMoveTo)).flatMap(makeMove)
