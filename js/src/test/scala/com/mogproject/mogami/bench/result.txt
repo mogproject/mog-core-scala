@@ -23,6 +23,15 @@ benchGameLoad: same cache
 
 - avg: 0.803s, min: 0.791s, max: 0.826s
 
+[2017-07-10] ScalaJS 0.6.14 -> 0.6.16
+
+benchGameLoad: different cache
+
+- avg: 5.478s, min: 5.207s, max: 5.86s
+
+benchGameLoad: same cache
+
+- avg: 0.752s, min: 0.739s, max: 0.763s
 
 
 #
