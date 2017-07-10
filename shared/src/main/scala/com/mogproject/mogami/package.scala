@@ -5,8 +5,8 @@ package object mogami {
   type Player = com.mogproject.mogami.core.Player
   val Player = com.mogproject.mogami.core.Player
 
-  val BLACK = com.mogproject.mogami.Player.BLACK
-  val WHITE = com.mogproject.mogami.Player.WHITE
+  val BLACK = com.mogproject.mogami.core.Player.BLACK
+  val WHITE = com.mogproject.mogami.core.Player.WHITE
 
   type Ptype = com.mogproject.mogami.core.Ptype
   val Ptype = com.mogproject.mogami.core.Ptype
