@@ -106,6 +106,7 @@ case class Branch(initialHash: StateHash,
       case Some(IllegalMove(_)) => IllegallyMoved
       case Some(Resign(_)) => Resigned
       case Some(TimeUp(_)) => TimedUp
+      case Some(DeclareWin(_)) => Jishogi
       case _ =>
         if (lastState.isMated) {
           if (lastMove.exists(m => m.isCheck && m.isPawnDrop))

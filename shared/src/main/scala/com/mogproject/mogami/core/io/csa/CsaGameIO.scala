@@ -64,6 +64,7 @@ trait CsaGameReader extends CsaGameFactory[Game] {
         val special = MoveBuilderCsa.parseTime(NonEmptyLines(pending)) match {
           case ((Resign.csaKeyword, _), tm) => Resign(tm)
           case ((TimeUp.csaKeyword, _), tm) => TimeUp(tm)
+          case ((DeclareWin.csaKeyword | DeclareWin.csaKeyword2, _), tm) => DeclareWin(tm)
           case ((Pause.csaKeyword, _), _) => Pause
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }

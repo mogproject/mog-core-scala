@@ -23,4 +23,5 @@ object GameStatus {
 
   case object Resigned extends GameStatus
 
+  case object Jishogi extends GameStatus
 }

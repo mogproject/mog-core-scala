@@ -12,6 +12,9 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
 
   "Game#parseCsaString" must "create games from files" in StateCache.withCache { implicit cache =>
     Game.parseCsaString(loadFile("csa/game/001.csa")).trunk.moves.length mustBe 111
+    val g002 = Game.parseCsaString(loadFile("csa/game/002.csa"))
+    g002.trunk.moves.length mustBe 258
+    g002.trunk.status mustBe GameStatus.Jishogi
   }
 
   "Game#parseKifString" must "create games from files" in StateCache.withCache { implicit cache =>
@@ -124,8 +127,20 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     val s8 = loadFile("kif/game/008.kif")
     Game.parseKifString(s8).trunk.moves.length mustBe 168
 
-    val s9 = loadFile("kif/mate/001.kif")
-    Game.parseKifString(s9).trunk.moves.length mustBe 59
+    // Sennichite
+    val s9 = loadFile("kif/game/009.kif")
+    val g009 = Game.parseKifString(s9)
+    g009.trunk.moves.length mustBe 85
+    g009.trunk.status mustBe GameStatus.Drawn
+
+    // Jishogi
+    val s10 = loadFile("kif/game/010.kif")
+    val g010 = Game.parseKifString(s10)
+    g010.trunk.moves.length mustBe 258
+    g010.trunk.status mustBe GameStatus.Jishogi
+
+    val m1 = loadFile("kif/mate/001.kif")
+    Game.parseKifString(m1).trunk.moves.length mustBe 59
   }
 
   "Game#parseKi2String" must "create games from files" in StateCache.withCache { implicit cache =>
@@ -133,5 +148,8 @@ class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropert
     Game.parseKi2String(loadFile("ki2/game/002.ki2")).trunk.moves.length mustBe 111
     Game.parseKi2String(loadFile("ki2/game/003.ki2")).trunk.moves.length mustBe 34
     Game.parseKi2String(loadFile("ki2/game/004.ki2")).trunk.moves.length mustBe 27
+    val g005 = Game.parseKi2String(loadFile("ki2/game/005.ki2"))
+    g005.trunk.moves.length mustBe 258
+    g005.trunk.status mustBe GameStatus.Jishogi
   }
 }

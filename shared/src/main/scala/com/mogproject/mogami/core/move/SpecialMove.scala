@@ -19,6 +19,7 @@ object SpecialMove {
     case Some(Resign.usenKeyword) => Resign()
     case Some(TimeUp.usenKeyword) => TimeUp()
     case Some(Pause.usenKeyword) => Pause
+    case Some(DeclareWin.usenKeyword) => DeclareWin()
     case Some(IllegalMove.usenKeyword) =>
       IllegalMove(MoveBuilderSfen.parseUsenString(s.drop(1)).toMove(lastState, lastMoveTo, isStrict = false).getOrElse(
         throw new RecordFormatException(1, s"invalid illegal move: ${s.drop(1)}")
@@ -130,4 +131,32 @@ case object Pause extends SpecialMove {
   override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, ki2Keyword)
 }
 
-// todo: impl KACHI, [+-]ILLEGAL_ACTION
+
+/**
+  * Declare win
+  *
+  * @param elapsedTime elapsed time
+  */
+case class DeclareWin(elapsedTime: Option[Int] = None) extends SpecialMove {
+  override def toCsaString: String = DeclareWin.csaKeyword + timeToCsaString(elapsedTime)
+
+  override def toKifString: String = DeclareWin.kifKeyword + timeToKifString(elapsedTime)
+
+  override def toUsenString: String = DeclareWin.usenKeyword.toString
+
+  override def toJapaneseNotationString: String = DeclareWin.kifKeyword
+
+  override def toWesternNotationString: String = "Declare Win"
+
+  override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, DeclareWin.kifKeyword)
+
+}
+
+object DeclareWin {
+  val csaKeyword = "%JISHOGI"
+  val csaKeyword2 = "%KACHI"
+  val kifKeyword = "持将棋"
+  val usenKeyword = 'j'
+}
+
+// todo: impl [+-]ILLEGAL_ACTION
