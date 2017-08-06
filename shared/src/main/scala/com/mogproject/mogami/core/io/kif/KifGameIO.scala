@@ -223,8 +223,10 @@ trait KifBranchReader extends KifGameIO {
           case ((Resign.kifKeyword, _), tm) => Some(Resign(tm))
           case ((TimeUp.kifKeyword, _), tm) => Some(TimeUp(tm))
           case ((TimeUp.kifKeyword2, _), tm) => Some(TimeUp(tm))
+          case ((DeclareWin.kifKeyword, _), tm) => Some(DeclareWin(tm))
           case ((Pause.kifKeyword, _), _) => Some(Pause)
           case ((s, _), _) if s.contains('詰') => None // ignore
+          case ((s, _), _) if s.contains("千日手") => None // ignore
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
         special.map(sp => sofar.copy(finalAction = Some(sp))).getOrElse(sofar)
@@ -264,7 +266,7 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   protected[io] def splitMovesKi2(lines: Lines): Lines = lines.flatMap {
-    case (x, n) if isNormalMoveKi2(x) => x.replaceAll("▲", " ▲").replaceAll("[△▽]", " △").split(" ").filter(_.nonEmpty).map((_, n))
+    case (x, n) if isNormalMoveKi2(x) => x.replaceAll("▲", " ▲").replaceAll("[△▽]", " △").replaceAll("　", "").split(" ").filter(_.nonEmpty).map((_, n))
     case _ => Seq.empty
   }
 
@@ -350,17 +352,21 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, None, Some((x, n))) => // ends with a special move except illegal move
         val special = if (x.contains(TimeUp.ki2Keyword)) {
-          TimeUp()
+          Some(TimeUp())
         } else if (x.contains(IllegalMove.ki2Keyword)) {
           throw new RecordFormatException(n, s"unexpected illegal move: ${x}")
         } else if (x.contains("勝ち")) {
-          Resign()
+          Some(Resign())
         } else if (x.contains(Pause.ki2Keyword)) {
-          Pause
+          Some(Pause)
+        } else if (x.contains("千日手")) {
+          None
+        } else if (x.contains(DeclareWin.kifKeyword)) {
+          Some(DeclareWin())
         } else {
           throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
-        sofar.copy(finalAction = Some(special))
+        sofar.copy(finalAction = special)
       case (Nil, None, None) => sofar // ends without errors
       case ((x, n) :: xs, None, _) =>
         val bldr = MoveBuilderKi2.parseKi2String(NonEmptyLines(n, x))
