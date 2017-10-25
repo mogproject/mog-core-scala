@@ -309,7 +309,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
     if (nel.lines.last._1.startsWith("手合割：")) {
       // preset state
       val (x, n) = nel.lines.last
-      presetStates.getOrElse(x.drop(4), throw new RecordFormatException(n, s"unknown preset state: ${x.drop(4)}"))
+      val s = x.drop(4).replaceAll("　", "")
+      presetStates.getOrElse(s, throw new RecordFormatException(n, s"unknown preset state: ${s}"))
     } else {
       State.parseKifString(nel.copy(lines = nel.lines.filterNot(_._1.startsWith("手合割："))))
     }
