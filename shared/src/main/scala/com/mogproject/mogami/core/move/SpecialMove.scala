@@ -40,9 +40,9 @@ case class IllegalMove(move: Move) extends SpecialMove {
 
   override def toUsenString: String = IllegalMove.usenKeyword + move.toUsenString
 
-  override def toJapaneseNotationString: String = IllegalMove.kifKeyword
+  override def toJapaneseNotationString: String = move.toJapaneseNotationString
 
-  override def toWesternNotationString: String = "Illegal Move"
+  override def toWesternNotationString: String = move.toWesternNotationString
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の${IllegalMove.ki2Keyword}勝ち")
