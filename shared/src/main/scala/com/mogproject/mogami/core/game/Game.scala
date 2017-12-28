@@ -4,6 +4,7 @@ import com.mogproject.mogami.core.game.Game.{BranchNo, CommentType, GamePosition
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
+import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.util.Implicits._
 
 /**
@@ -67,6 +68,13 @@ case class Game(trunkOption: Option[Branch] = None,
     withGamePosition(gamePosition)((br, pos) => br.historyHash.get(pos - br.offset))
 
   def getMove(gamePosition: GamePosition): Option[Move] = withGamePosition(gamePosition)(_.getMove(_))
+
+  /**
+    * Get the set of all state hashes being used for this Game instance
+    *
+    * @return set of state hashes (not history hashes)
+    */
+  def getStateHashSet: Set[StateHash] = (trunk +: branches).flatMap(_.history).toSet
 
   //
   // Comments

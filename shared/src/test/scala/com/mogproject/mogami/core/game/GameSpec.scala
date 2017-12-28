@@ -802,6 +802,34 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g2.getState(GamePosition(2, 27)) mustBe None
   }
 
+  "Game#getStateHashSet" must "return set of state caches" in StateCache.withCache { implicit cache =>
+    Game().getStateHashSet mustBe Set(State.HIRATE.hash)
+
+    val s1 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm."
+    ).mkString("~")
+    val g1 = Game.parseUsenString(s1)
+    g1.getStateHashSet.size mustBe 14
+    g1.getStateHashSet must contain(g1.getState(GamePosition(0,10)).get.hash)
+
+    val s2 = Seq(
+      "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
+      "0.6y236e5t24be9qc0e47ku2jm4o22f281kbek3jm.", // Trunk
+      "12.3kk.", // Branch: 1
+      "11.05m3jm5ge7pe22w.", // Branch: 2
+      "8.8uc1cd9yu.", // Branch: 3
+      "3.2jm4o22f281k4be.", // Branch: 4
+      "3.2jm4o22f27ku1cx9uw.", // Branch: 5
+      "3.2jm4o22f281k0e4bek1a43kk.", // Branch: 6
+      "3.0e4.", // Branch: 7
+      "0.72m2jm83m.", // Branch: 8
+      "0.72m36e83m." // Branch: 9
+    ).mkString("~")
+    val g2 = Game.parseUsenString(s2)
+    g2.getStateHashSet.size mustBe 41
+  }
+
   "Game#getForkList" must "return fork list" in StateCache.withCache { implicit cache =>
     val s1 = Seq(
       "lnsgkgsnl_1r5b1_ppppppppp_9_9_9_PPPPPPPPP_1B5R1_LNSGKGSNL.b.-",
