@@ -7,6 +7,7 @@ import com.mogproject.mogami.core.{Hand, Player, Ptype}
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
 
+import scala.collection.mutable
 import scala.util.Try
 
 
@@ -341,11 +342,6 @@ case class State(turn: Player = BLACK,
     (occAll, occOwn.toVector, occPce.toVector)
   }
 
-  private[this] def getUsedPtypeCount: Map[Ptype, Int] = {
-    val a = board.values.map(_.ptype.demoted).foldLeft(Map.empty[Ptype, Int]) { case (m, pt) => MapUtil.incrementMap(m, pt) }
-    hand.foldLeft(a) { case (m, (h, n)) => m.updated(h.ptype, m.getOrElse(h.ptype, 0) + n) }
-  }
-
   private[this] def getUpdatedAttackBBOnBoard(move: Move, occAll: BitBoard): Map[Player, Map[Square, BitBoard]] = {
     val removeMoveFrom: Map[Square, BitBoard] => Map[Square, BitBoard] = m => if (move.isDrop) m else m - move.from.get
     val removeCaptured: Map[Square, BitBoard] => Map[Square, BitBoard] = m => if (move.hasCapture) m - move.to else m
@@ -365,7 +361,17 @@ case class State(turn: Player = BLACK,
     }
   }
 
-  lazy val unusedPtypeCount: Map[Ptype, Int] = hint.map(_.unusedPtypeCount).getOrElse(MapUtil.mergeMaps(State.capacity, getUsedPtypeCount)(_ - _, 0))
+  /**
+    * @note optimized for JS
+    */
+  lazy val unusedPtypeCount: Map[Ptype, Int] = {
+    hint.map(_.unusedPtypeCount).getOrElse {
+      val xs = mutable.Seq(2, 4, 18, 4, 4, 4, 2, 2)
+      board.values.foreach { p => xs(p.ptype.id & 7) -= 1 }
+      hand.foreach { case (h, n) => xs(h.ptype.id & 7) -= n }
+      Map(KING -> xs(0), GOLD -> xs(1), PAWN -> xs(2), LANCE -> xs(3), KNIGHT -> xs(4), SILVER -> xs(5), BISHOP -> xs(6), ROOK -> xs(7))
+    }
+  }
 
   def canAttack(from: Square, to: Square): Boolean = canAttack(Left(from), to)
 
@@ -486,20 +492,35 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
 
   // constant states
   def HIRATE = StateConstant.HIRATE
+
   def MATING_BLACK = StateConstant.MATING_BLACK
+
   def MATING_WHITE = StateConstant.MATING_WHITE
+
   def HANDICAP_LANCE = StateConstant.HANDICAP_LANCE
+
   def HANDICAP_BISHOP = StateConstant.HANDICAP_BISHOP
+
   def HANDICAP_ROOK = StateConstant.HANDICAP_ROOK
+
   def HANDICAP_ROOK_LANCE = StateConstant.HANDICAP_ROOK_LANCE
+
   def HANDICAP_2_PIECE = StateConstant.HANDICAP_2_PIECE
+
   def HANDICAP_3_PIECE = StateConstant.HANDICAP_3_PIECE
+
   def HANDICAP_4_PIECE = StateConstant.HANDICAP_4_PIECE
+
   def HANDICAP_5_PIECE = StateConstant.HANDICAP_5_PIECE
+
   def HANDICAP_6_PIECE = StateConstant.HANDICAP_6_PIECE
+
   def HANDICAP_8_PIECE = StateConstant.HANDICAP_8_PIECE
+
   def HANDICAP_10_PIECE = StateConstant.HANDICAP_10_PIECE
+
   def HANDICAP_THREE_PAWNS = StateConstant.HANDICAP_THREE_PAWNS
+
   def HANDICAP_NAKED_KING = StateConstant.HANDICAP_NAKED_KING
 
 }

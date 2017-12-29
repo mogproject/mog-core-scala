@@ -13,7 +13,8 @@ import com.mogproject.mogami.core.state.StateCache
   */
 object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
   def main(): Unit = {
-    benchGameLoad()
+    //    benchGameLoad()
+    benchState()
   }
 
   def misc(): Unit = {
@@ -93,5 +94,11 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     benchMateSolver(s7)
     benchMateSolver(s8)
     benchMateSolver(s9)
+  }
+
+  def benchState(): Unit = {
+    benchUnusedPtypeCount(State.HIRATE.copy(hint = None))
+    benchUnusedPtypeCount(State())
+    benchUnusedPtypeCount(State.HANDICAP_THREE_PAWNS.copy(hint = None))
   }
 }
