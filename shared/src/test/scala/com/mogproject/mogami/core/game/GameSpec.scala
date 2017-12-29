@@ -1089,6 +1089,13 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
 
     g2a.trunk.historyHash(1) mustBe g2a.branches(0).historyHash(0)
   }
+  it must "return None if a move is invalid" in StateCache.withCache { implicit cache =>
+    val s1 = "~0.7ku."
+    val g1 = Game.parseUsenString(s1)
+    g1.createBranch(GamePosition(0, 0), Move(WHITE, Some(P22), P23, PAWN, false, false, None, None, false, None, true)) mustBe None
+    g1.createBranch(GamePosition(0, 1), Move(WHITE, Some(P22), P23, PAWN, false, false, None, None, false, None, true)) mustBe None
+    g1.createBranch(GamePosition(0, 2), Move(WHITE, Some(P22), P23, PAWN, false, false, None, None, false, None, true)) mustBe None
+  }
 
   "Game#deleteBranch" must "delete a branch" in StateCache.withCache { implicit cache =>
     val s1 = Seq(

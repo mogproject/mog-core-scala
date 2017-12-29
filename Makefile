@@ -18,5 +18,8 @@ bench: clean
 benchJS:
 	${SBT} 'set scalaJSStage in Global := FullOptStage' mogCoreJS/test:run
 
-.PHONY: build test console clean bench benchJS
+merge:
+	git checkout master && git pull && git checkout develop && git merge master && git push
+
+.PHONY: build test console clean bench benchJS merge
 
