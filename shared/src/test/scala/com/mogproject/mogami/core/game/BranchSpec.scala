@@ -18,7 +18,7 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     Branch(stateCache.set(initialState), offset, moves, finalAction, initialHistoryHash)
 
 
-  "Braanch#historyHash" must "create unique hash values for sequences" in StateCache.withCache { implicit cache =>
+  "Branch#historyHash" must "create unique hash values for sequences" in StateCache.withCache { implicit cache =>
     val h0 = createBranch(HIRATE)
     createBranch(HIRATE, 1).historyHash mustNot be(h0)
     createBranch(HIRATE, 62).historyHash mustNot be(h0)
@@ -37,5 +37,24 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
       .makeMove(MoveBuilderSfen.parseSfenString("2e2d")).get
 
     br3.historyHash mustBe br1.historyHash.drop(2)
+  }
+
+  "Branch#trancated" must "return truncated branches" in StateCache.withCache { implicit cache =>
+    val br1 = createBranch(HIRATE)
+    br1.truncated(0) mustBe br1
+    br1.truncated(-1) mustBe br1
+    br1.truncated(1) mustBe br1
+    br1.truncated(2) mustBe br1
+
+    val br2 = createBranch(HIRATE, 3)
+      .makeMove(MoveBuilderSfen.parseSfenString("2g2f")).get
+      .makeMove(MoveBuilderSfen.parseSfenString("8c8d")).get
+      .makeMove(MoveBuilderSfen.parseSfenString("2f2e")).get
+    br2.truncated(2) mustBe createBranch(HIRATE, 3)
+    br2.truncated(3) mustBe createBranch(HIRATE, 3)
+    br2.truncated(4) mustBe createBranch(HIRATE, 3).makeMove(MoveBuilderSfen.parseSfenString("2g2f")).get
+    br2.truncated(5) mustBe createBranch(HIRATE, 3).makeMove(MoveBuilderSfen.parseSfenString("2g2f")).get.makeMove(MoveBuilderSfen.parseSfenString("8c8d")).get
+    br2.truncated(6) mustBe br2
+    br2.truncated(7) mustBe br2
   }
 }

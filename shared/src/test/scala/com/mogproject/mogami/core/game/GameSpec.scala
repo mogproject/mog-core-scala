@@ -746,6 +746,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     g1.truncated(GamePosition(0, 2)).branches.length mustBe 3
     g1.truncated(GamePosition(0, 1)).branches.length mustBe 1
     g1.truncated(GamePosition(0, 0)).branches.length mustBe 1
+
+    val g2 = Game(Branch(HIRATE.hash, 3))
+    g2.truncated(GamePosition(0, 2)) mustBe g2
   }
 
   "Game#getState" must "return state" in StateCache.withCache { implicit cache =>
