@@ -7,6 +7,8 @@ import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.StateHash.StateHash
 import com.mogproject.mogami.util.Implicits._
 
+import scala.util.Try
+
 /**
   * Game
   */
@@ -138,13 +140,13 @@ case class Game(trunkOption: Option[Branch] = None,
 
     if (ok) {
       (if (gamePosition.isTrunk || gamePosition.position < br.offset) {
-        Some(Branch(
+        Try(Branch(
           trunk.history(gamePosition.position - trunk.offset),
           gamePosition.position,
           Vector(move),
           None,
           getHistoryHash(gamePosition)
-        ))
+        )).toOption
       } else {
         val diff = gamePosition.position - br.offset
         Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
