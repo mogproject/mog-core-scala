@@ -103,6 +103,18 @@ trait Benchmark {
     println(ret.map(_.map(_.toJapaneseNotationString)))
   }
 
+  def benchUnusedPtypeCount(state: State): Unit = {
+    println("benchUnusedPtypeCount")
+
+    withBenchmark {
+      var i =0
+      while (i < 100000) {
+        state.unusedPtypeCount
+        i += 1
+      }
+    }.print()
+  }
+
 //
 //  def benchCalcAttackBB(state: State): Unit = {
 //    println("benchCalcAttackBB")
