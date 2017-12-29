@@ -204,7 +204,7 @@ case class Branch(initialHash: StateHash,
     * @param pos the point to truncate
     */
   def truncated(pos: Position): Branch = {
-    val relPos = pos - offset
+    val relPos = math.max(0, pos - offset)
     copy(
       moves = moves.take(relPos),
       finalAction = None,
