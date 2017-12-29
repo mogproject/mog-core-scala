@@ -16,7 +16,7 @@ import scala.util.Try
   * Common interface for Kif and KI2 format
   */
 trait KifGameIO {
-  protected val presetStates: Map[String, State] = Map(
+  protected lazy val presetStates: Map[String, State] = Map(
     "平手" -> StateConstant.HIRATE,
     "香落ち" -> StateConstant.HANDICAP_LANCE,
     "右香落ち" -> StateConstant.HANDICAP_LANCE_RIGHT,
@@ -33,7 +33,7 @@ trait KifGameIO {
     "十枚落ち" -> StateConstant.HANDICAP_10_PIECE
   )
 
-  private[this] val presetFindTable: Map[Int, String] = presetStates.map { case (k, v) => v.hashCode() -> k }
+  private[this] lazy val presetFindTable: Map[Int, String] = presetStates.map { case (k, v) => v.hashCode() -> k }
 
   protected def getPresetLabel(state: State): Option[String] = presetFindTable.get(state.hashCode())
 

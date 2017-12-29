@@ -485,22 +485,22 @@ object State extends CsaStateReader with SfenStateReader with KifStateReader {
   lazy val capacity: Map[Ptype, Int] = Map(PAWN -> 18, LANCE -> 4, KNIGHT -> 4, SILVER -> 4, GOLD -> 4, BISHOP -> 2, ROOK -> 2, KING -> 2)
 
   // constant states
-  lazy val HIRATE = StateConstant.HIRATE
-  lazy val MATING_BLACK = StateConstant.MATING_BLACK
-  lazy val MATING_WHITE = StateConstant.MATING_WHITE
-  lazy val HANDICAP_LANCE = StateConstant.HANDICAP_LANCE
-  lazy val HANDICAP_BISHOP = StateConstant.HANDICAP_BISHOP
-  lazy val HANDICAP_ROOK = StateConstant.HANDICAP_ROOK
-  lazy val HANDICAP_ROOK_LANCE = StateConstant.HANDICAP_ROOK_LANCE
-  lazy val HANDICAP_2_PIECE = StateConstant.HANDICAP_2_PIECE
-  lazy val HANDICAP_3_PIECE = StateConstant.HANDICAP_3_PIECE
-  lazy val HANDICAP_4_PIECE = StateConstant.HANDICAP_4_PIECE
-  lazy val HANDICAP_5_PIECE = StateConstant.HANDICAP_5_PIECE
-  lazy val HANDICAP_6_PIECE = StateConstant.HANDICAP_6_PIECE
-  lazy val HANDICAP_8_PIECE = StateConstant.HANDICAP_8_PIECE
-  lazy val HANDICAP_10_PIECE = StateConstant.HANDICAP_10_PIECE
-  lazy val HANDICAP_THREE_PAWNS = StateConstant.HANDICAP_THREE_PAWNS
-  lazy val HANDICAP_NAKED_KING = StateConstant.HANDICAP_NAKED_KING
+  def HIRATE = StateConstant.HIRATE
+  def MATING_BLACK = StateConstant.MATING_BLACK
+  def MATING_WHITE = StateConstant.MATING_WHITE
+  def HANDICAP_LANCE = StateConstant.HANDICAP_LANCE
+  def HANDICAP_BISHOP = StateConstant.HANDICAP_BISHOP
+  def HANDICAP_ROOK = StateConstant.HANDICAP_ROOK
+  def HANDICAP_ROOK_LANCE = StateConstant.HANDICAP_ROOK_LANCE
+  def HANDICAP_2_PIECE = StateConstant.HANDICAP_2_PIECE
+  def HANDICAP_3_PIECE = StateConstant.HANDICAP_3_PIECE
+  def HANDICAP_4_PIECE = StateConstant.HANDICAP_4_PIECE
+  def HANDICAP_5_PIECE = StateConstant.HANDICAP_5_PIECE
+  def HANDICAP_6_PIECE = StateConstant.HANDICAP_6_PIECE
+  def HANDICAP_8_PIECE = StateConstant.HANDICAP_8_PIECE
+  def HANDICAP_10_PIECE = StateConstant.HANDICAP_10_PIECE
+  def HANDICAP_THREE_PAWNS = StateConstant.HANDICAP_THREE_PAWNS
+  def HANDICAP_NAKED_KING = StateConstant.HANDICAP_NAKED_KING
 
 }
 
