@@ -195,7 +195,7 @@ case class Branch(initialHash: StateHash,
     */
   def deriveNewBranch(pos: Position): Option[Branch] = {
     val index = pos - offset
-    history.get(index).map(h => Branch(h, pos, initialHistoryHash = historyHash.get(index)))
+    history.get(index).map(h => Branch(h, pos, initialHistoryHash = historyHash.get(index), isFreeMode = isFreeMode))
   }
 
   /**

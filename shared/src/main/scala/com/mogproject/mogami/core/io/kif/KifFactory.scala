@@ -27,10 +27,12 @@ trait KifFactory[T <: KifLike] extends IOFactoryLike {
 
 trait KifGameFactory[T <: KifLike] extends IOFactoryLike {
 
-  final def parseKifString(s: String)(implicit stateCache: StateCache): T = parseKifString(toLines(s, KifFactory.normalizeString))
+  final def parseKifString(s: String)(implicit stateCache: StateCache): T = parseKifString(s, isFreeMode = false)
 
-  final def parseKifString(lines: Lines)(implicit stateCache: StateCache): T = parseKifString(toNonEmptyLines(lines))
+  final def parseKifString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): T = parseKifString(toLines(s, KifFactory.normalizeString), isFreeMode)
 
-  def parseKifString(lines: NonEmptyLines)(implicit stateCache: StateCache): T
+  final def parseKifString(lines: Lines, isFreeMode: Boolean)(implicit stateCache: StateCache): T = parseKifString(toNonEmptyLines(lines), isFreeMode)
+
+  def parseKifString(lines: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): T
 
 }

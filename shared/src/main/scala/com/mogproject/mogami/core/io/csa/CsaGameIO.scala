@@ -56,7 +56,7 @@ trait CsaGameReader extends CsaGameFactory[Game] {
     * @param footer       not used
     * @return Game instance
     */
-  protected[io] def parseMoves(initialState: State, lines: Lines, footer: Option[Line]): StateCache => Game = { implicit cache =>
+  protected[io] def parseMoves(initialState: State, lines: Lines, footer: Option[Line], isFreeMode: Boolean): StateCache => Game = { implicit cache =>
     @tailrec
     def f(ls: List[Line], pending: List[Line], illegal: Option[Move], sofar: Branch): Branch = (ls, pending, illegal) match {
       case (ln :: xs, _, _) if ln._1.startsWith("T") => f(xs, pending :+ ln, illegal, sofar)
@@ -91,12 +91,12 @@ trait CsaGameReader extends CsaGameFactory[Game] {
       // $COVERAGE-ON$
     }
 
-    val trunk = f(lines.toList, Nil, None, Branch(initialState))
+    val trunk = f(lines.toList, Nil, None, Branch(initialState, isFreeMode = isFreeMode))
     Game(trunk)
   }
 
   private[this] val parser = new RecordParser(sectionSplitter, parseGameInfo, State.parseCsaString, parseMoves)
 
-  def parseCsaString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = parser.parse(nel)
+  def parseCsaString(nel: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = parser.parse(nel, isFreeMode)
 
 }

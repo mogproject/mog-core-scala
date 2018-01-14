@@ -455,6 +455,14 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     )))
     Game.parseKifString(gg.toKifString) mustBe gg
   }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    val ts = g.gameInfo.tags
+    val gg = g.copy(newGameInfo = GameInfo(Map(
+      'blackName -> ts.getOrElse('blackName, ""),
+      'whiteName -> ts.getOrElse('whiteName, "")
+    )))
+    Game.parseKifString(gg.toKifString, isFreeMode = true) mustBe gg
+  }}
   it must "restore games with branches and comments" in StateCache.withCache { implicit cache => forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val g1 = g.copy(newGameInfo = GameInfo(Map(
