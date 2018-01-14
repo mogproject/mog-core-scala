@@ -24,8 +24,8 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     createBranch(HIRATE, 62).historyHash mustNot be(h0)
     createBranch(HIRATE, 63).historyHash mustNot be(h0)
 
-    val br1 = Branch.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 3c3d 2f2e 8c8d 2e2d")
-    val br2 = Branch.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 8c8d 2f2e 3c3d 2e2d")
+    val br1 = Branch.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 3c3d 2f2e 8c8d 2e2d", false)
+    val br2 = Branch.parseSfenString("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 0 2g2f 8c8d 2f2e 3c3d 2e2d", false)
 
     br1.lastState mustBe br2.lastState
     br1.historyHash.last mustNot be(br2.historyHash.last)

@@ -20,9 +20,9 @@ trait SfenBranchReader {
     *
     * @param s "{board} {turn} {hand} {offset} [{move}...]"
     */
-  def parseSfenString(s: String)(implicit stateCache: StateCache): Branch = {
+  def parseSfenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = {
     val tokens = s.split(" ")
-    parseSfenStringHelper(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash)
+    parseSfenStringHelper(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash, isFreeMode)
   }
 
   /**
@@ -31,16 +31,16 @@ trait SfenBranchReader {
     * @param trunk trunk
     * @param s     "{offset} [{move}...]"
     */
-  def parseSfenString(trunk: Branch, s: String)(implicit stateCache: StateCache): Branch =
-    parseSfenStringHelper(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset))
+  def parseSfenString(trunk: Branch, s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch =
+    parseSfenStringHelper(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset), isFreeMode)
 
   // helper functions
-  private[this] def parseSfenStringHelper(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash)
+  private[this] def parseSfenStringHelper(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash, isFreeMode: Boolean)
                                          (implicit stateCache: StateCache): Branch = {
     val offset = tokens.headOption.map(parseOffset(_, range)).getOrElse(throw new RecordFormatException(1, s"cannot find offset"))
     val moves = tokens.drop(1).map(MoveBuilderSfen.parseSfenString)
 
-    moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset)) { (br, m) =>
+    moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset, isFreeMode = isFreeMode)) { (br, m) =>
       br.makeMove(m).getOrElse(throw new RecordFormatException(1, s"invalid move: ${m.toSfenString}"))
     }
   }
@@ -105,7 +105,7 @@ trait SfenBranchReader {
 }
 
 trait SfenGameReader {
-  def parseSfenString(s: String)(implicit stateCache: StateCache): Game = Game(Branch.parseSfenString(s))
+  def parseSfenString(s: String, isFreeMode: Boolean = false)(implicit stateCache: StateCache): Game = Game(Branch.parseSfenString(s, isFreeMode))
 
   def parseUsenString(s: String, isFreeMode: Boolean = false)(implicit stateCache: StateCache): Game = {
     val tokens = s.split("~")

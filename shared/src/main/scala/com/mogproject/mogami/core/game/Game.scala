@@ -221,7 +221,7 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
   type Position = Int // regarding offset
 
   // workaround for IntelliJ IDEA
-  override def parseSfenString(s: String)(implicit stateCache: StateCache): Game = super.parseSfenString(s)
+  override def parseSfenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseSfenString(s, isFreeMode)
 
   override def parseUsenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseUsenString(s, isFreeMode)
 

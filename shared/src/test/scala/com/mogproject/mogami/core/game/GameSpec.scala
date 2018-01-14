@@ -246,7 +246,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
   }
   "Game#parseSfenString" must "create games in normal cases" in StateCache.withCache { implicit cache =>
-    sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
+    sfenForTest.map(Game.parseSfenString(_, false)) zip dataForTest.map(g =>
       g.copy(newGameInfo = GameInfo(), newTrunk = g.trunk.copy(moves = g.trunk.moves.map(_.copy(elapsedTime = None))))
     ) foreach { case (a, b) =>
       a mustBe b
@@ -266,6 +266,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     StateCache.withCache { implicit cache =>
       val s = g.toSfenString
       Game.parseSfenString(s).toSfenString mustBe s
+    }
+  }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    StateCache.withCache { implicit cache =>
+      val s = g.toSfenString
+      Game.parseSfenString(s, isFreeMode = true).toSfenString mustBe s
     }
   }}
 
