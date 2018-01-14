@@ -209,6 +209,14 @@ case class Game(trunk: Branch,
       }.getOrElse(this)
     }
   }
+
+
+  /**
+    * Drop all elapsed-time information
+    *
+    * @return new Game without elapsed-time information
+    */
+  def dropElapsedTime: Game = copy(newTrunk = trunk.dropElapsedTime, newBranches = branches.map(_.dropElapsedTime))
 }
 
 object Game extends CsaGameReader with SfenGameReader with KifGameReader {

@@ -218,6 +218,13 @@ case class Branch(initialHash: StateHash,
     * Create a map of the history hash and its next move.
     */
   def getNextMoveList: Map[HistoryHash, Move] = historyHash.zip(moves).toMap
+
+  /**
+    * Drop all elapsed-time information
+    *
+    * @return new Branch without elapsed-time information
+    */
+  def dropElapsedTime: Branch = copy(moves = moves.map(_.copy(elapsedTime = None)), finalAction = finalAction.map(_.dropElapsedTime))
 }
 
 object Branch extends SfenBranchReader {

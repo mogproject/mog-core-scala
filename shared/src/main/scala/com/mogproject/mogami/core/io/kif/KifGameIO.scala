@@ -257,6 +257,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
 
   private[this] def isNormalMoveKi2(s: String): Boolean = s.headOption.exists(c => Player.symbolTable.mkString.contains(c))
 
+  private[this] def isFooterKi2(s: String): Boolean = s.startsWith("まで")
+
   private[this] def isInitialState(s: String): Boolean = s match {
     case "  ９ ８ ７ ６ ５ ４ ３ ２ １" => true
     case _ if s.headOption.exists(List('+', '|').contains) => true
@@ -285,8 +287,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   private[this] def sectionSplitterKi2(nel: NonEmptyLines): (Lines, NonEmptyLines, Lines, Option[Line]) = {
-    val (gi, st, body) = sectionSplitterCommon(nel, { s => !isNormalMoveKi2(s) })
-    (gi, st, splitMovesKi2(body), body.lastOption.find(_._1.startsWith("まで")))
+    val (gi, st, body) = sectionSplitterCommon(nel, { s => !isNormalMoveKi2(s) && !isFooterKi2(s) })
+    (gi, st, splitMovesKi2(body), body.lastOption.find(l => isFooterKi2(l._1)))
   }
 
   // todo: implement more traits

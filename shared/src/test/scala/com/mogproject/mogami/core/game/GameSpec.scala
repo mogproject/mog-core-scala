@@ -224,6 +224,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) mustBe g
   }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    Game.parseCsaString(g.toCsaString, isFreeMode = true) mustBe g
+  }}
   it must "ignore comments" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),

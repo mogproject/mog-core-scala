@@ -12,6 +12,8 @@ sealed trait SpecialMove extends CsaLike with KifLike with UsenLike {
   def toKi2String(currentPlayer: Player, numMoves: Int): String
 
   protected def makeKi2String(numMoves: Int, description: String): String = s"まで${numMoves}手で${description}"
+
+  def dropElapsedTime: SpecialMove
 }
 
 object SpecialMove {
@@ -46,6 +48,8 @@ case class IllegalMove(move: Move) extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の${IllegalMove.ki2Keyword}勝ち")
+
+  override def dropElapsedTime: SpecialMove = IllegalMove(move.copy(elapsedTime = None))
 }
 
 object IllegalMove {
@@ -73,6 +77,8 @@ case class Resign(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の勝ち")
+
+  override def dropElapsedTime: SpecialMove = Resign(None)
 }
 
 object Resign {
@@ -99,6 +105,8 @@ case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${TimeUp.ki2Keyword}により${(!currentPlayer).toJapaneseNotationString()}の勝ち")
+
+  override def dropElapsedTime: SpecialMove = TimeUp(None)
 }
 
 object TimeUp {
@@ -129,6 +137,8 @@ case object Pause extends SpecialMove {
   override def toWesternNotationString: String = "Pause"
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, ki2Keyword)
+
+  override def dropElapsedTime: SpecialMove = Pause
 }
 
 
@@ -150,6 +160,7 @@ case class DeclareWin(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, DeclareWin.kifKeyword)
 
+  override def dropElapsedTime: SpecialMove = DeclareWin(None)
 }
 
 object DeclareWin {
