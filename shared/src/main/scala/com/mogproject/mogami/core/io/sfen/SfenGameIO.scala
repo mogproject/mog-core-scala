@@ -114,7 +114,7 @@ trait SfenGameReader {
     val initialState = tokens(0).isEmpty.fold(State.HIRATE, State.parseUsenString(tokens(0))) // the first token can be empty
     val trunk = Branch.parseUsenStringAsTrunk(tokens(1), initialState, isFreeMode)
     val branches = tokens.drop(2).map(ss => Branch.parseUsenStringAsBranch(ss, trunk, isFreeMode)).toVector
-    Game(trunk, branches, isFreeMode)
+    Game(trunk, branches)
   }
 }
 

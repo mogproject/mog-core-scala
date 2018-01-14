@@ -96,5 +96,10 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
 
     g1.trunk.moves.length mustBe 4
   }
-
+  it must "restore free games" in StateCache.withCache { implicit cache =>
+    forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+      val s = g.toUsenString
+      Game.parseUsenString(s, isFreeMode = true).toUsenString mustBe s
+    }
+  }
 }

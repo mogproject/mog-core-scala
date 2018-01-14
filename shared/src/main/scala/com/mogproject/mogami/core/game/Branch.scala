@@ -79,7 +79,7 @@ case class Branch(initialHash: StateHash,
       for {
         hash <- h
         st <- stateCache.get(hash)
-        nxt <- st.makeMove(m)
+        nxt <- st.makeMove(m, !isFreeMode)
       } yield {
         stateCache.set(nxt)
       }

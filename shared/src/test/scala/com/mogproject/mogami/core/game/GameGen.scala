@@ -11,26 +11,30 @@ import org.scalacheck.Gen
   */
 object GameGen {
 
-  def games(implicit stateCache: StateCache): Gen[Game] = for {
+  def games(implicit stateCache: StateCache): Gen[Game] = genGame(isFreeMode = false)
+
+  def freeGames(implicit stateCache: StateCache): Gen[Game] = genGame(isFreeMode = true)
+
+  private[this] def genGame(isFreeMode: Boolean)(implicit stateCache: StateCache): Gen[Game] = for {
     gameInfo <- GameInfoGen.infos
     state <- StateGen.statesWithFullPieces
     n <- Gen.choose(0, 50)
     finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
   } yield {
-    val moves = movesStream(state).take(n)
-    val trunk = Branch(state).copy(moves = moves.toVector)
+    val moves = movesStream(state, isFreeMode = isFreeMode).take(n)
+    val trunk = Branch(state, isFreeMode = isFreeMode).copy(moves = moves.toVector)
     val t = if (trunk.lastState.isMated) trunk else trunk.copy(finalAction = finalAction)
     Game(t, gameInfo = gameInfo)
   }
 
-  private[this] def movesStream(initState: State): Stream[Move] = {
+  private[this] def movesStream(initState: State, isFreeMode: Boolean): Stream[Move] = {
     type Item = (Option[Move], Option[State], Option[Square])
     val initItem: Item = (None, Some(initState), None)
     lazy val xs: Stream[Item] = initItem #:: xs.flatMap {
       case (_, Some(s), lastMoveTo) =>
         (for {
           m <- randomMove(s, lastMoveTo)
-          ss <- s.makeMove(m)
+          ss <- s.makeMove(m, !isFreeMode)
         } yield {
           Stream((Some(m.copy(elapsedTime = randomTime)), Some(ss), Some(m.to)))
         }).getOrElse(Stream((None, None, None)))
@@ -65,12 +69,12 @@ object GameGen {
     branchNumMoves <- Gen.listOfN(numBranches, Gen.choose(0, 20))
     finalAction <- Gen.oneOf(None, None, None, Some(Resign()), Some(TimeUp(Some(1))))
   } yield {
-    val moves = movesStream(state).take(numTrunkMoves)
+    val moves = movesStream(state, isFreeMode = false).take(numTrunkMoves)
     val trunk = Branch(state).copy(moves = moves.toVector)
     val t = if (trunk.lastState.isMated) trunk else trunk.copy(finalAction = finalAction)
     val branches = branchNumMoves.zip(branchPositions).map { case (m, p) =>
       val pos = trunk.offset + math.min(trunk.moves.length, p)
-      val trunkMoves = movesStream(trunk.getState(pos).getOrElse(trunk.initialState)).take(m)
+      val trunkMoves = movesStream(trunk.getState(pos).getOrElse(trunk.initialState), isFreeMode = false).take(m)
       trunk.deriveNewBranch(pos).get.copy(moves = trunkMoves.toVector)
     }.filter(_.moves.nonEmpty).toVector
     Game(t, branches, gameInfo = gameInfo)
