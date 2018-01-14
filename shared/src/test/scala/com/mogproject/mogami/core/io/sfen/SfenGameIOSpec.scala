@@ -90,5 +90,11 @@ class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
       Game.parseUsenString(s).toUsenString mustBe s
     }
   }
+  it must "create games with the free mode" in StateCache.withCache { implicit cache =>
+    val s1 = "~0.7ku8s42i90ia."
+    val g1 = TestSfenGameReader.parseUsenString(s1, isFreeMode = true)
+
+    g1.trunk.moves.length mustBe 4
+  }
 
 }

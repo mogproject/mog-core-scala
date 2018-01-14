@@ -15,10 +15,11 @@ import scala.util.Try
 case class Game(trunkOption: Option[Branch] = None,
                 branches: Vector[Branch] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
-                comments: CommentType = Map.empty
+                comments: CommentType = Map.empty,
+                isFreeMode: Boolean = false
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
 
-  val trunk: Branch = trunkOption.getOrElse(Branch())
+  val trunk: Branch = trunkOption.getOrElse(Branch(isFreeMode))
 
   type ForkList = Map[HistoryHash, Map[Move, BranchNo]]
 
@@ -212,7 +213,7 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
 
   def apply(trunk: Branch)(implicit stateCache: StateCache): Game = new Game(Some(trunk))
 
-  def apply(trunk: Branch, branches: Vector[Branch])(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches)
+  def apply(trunk: Branch, branches: Vector[Branch], isFreeMode: Boolean)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches)
 
   def apply(trunk: Branch, branches: Vector[Branch], comments: CommentType)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches, comments = comments)
 
@@ -227,7 +228,7 @@ object Game extends CsaGameReader with SfenGameReader with KifGameReader {
   // workaround for IntelliJ IDEA
   override def parseSfenString(s: String)(implicit stateCache: StateCache): Game = super.parseSfenString(s)
 
-  override def parseUsenString(s: String)(implicit stateCache: StateCache): Game = super.parseUsenString(s)
+  override def parseUsenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseUsenString(s, isFreeMode)
 
   override def parseKifString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = super.parseKifString(nel)
 

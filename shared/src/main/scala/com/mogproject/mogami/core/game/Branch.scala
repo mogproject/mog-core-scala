@@ -223,7 +223,11 @@ case class Branch(initialHash: StateHash,
 object Branch extends SfenBranchReader {
   def apply()(implicit stateCache: StateCache): Branch = apply(State.HIRATE)
 
-  def apply(state: State)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state))
+  def apply(isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = apply(State.HIRATE, isFreeMode)
+
+  def apply(state: State)(implicit stateCache: StateCache): Branch = apply(state, isFreeMode = false)
+
+  def apply(state: State, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state)).copy(isFreeMode = isFreeMode)
 }
 
 case class BranchHint(history: Vector[StateHash], historyHash: Vector[HistoryHash])
