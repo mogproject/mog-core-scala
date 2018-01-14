@@ -224,7 +224,7 @@ case class Branch(initialHash: StateHash,
     *
     * @return new Branch without elapsed-time information
     */
-  def dropElapsedTime: Branch = copy(moves = moves.map(_.copy(elapsedTime = None)), finalAction = finalAction.map(_.dropElapsedTime))
+  def dropElapsedTime: Branch = copy(moves = moves.map(_.dropElapsedTime), finalAction = finalAction.map(_.dropElapsedTime))
 }
 
 object Branch extends SfenBranchReader {

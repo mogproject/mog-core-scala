@@ -101,4 +101,11 @@ case class Move(player: Player,
   }
 
   def verify: Option[Move] = if (Try(checkRequirement()).isSuccess) Some(copy(isStrict = true)) else None
+
+  /**
+    * Drop elapsed-time information
+    *
+    * @return new Move without elapsed-time information
+    */
+  def dropElapsedTime: Move = copy(elapsedTime = None)
 }
