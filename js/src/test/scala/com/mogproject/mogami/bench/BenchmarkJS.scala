@@ -13,8 +13,9 @@ import com.mogproject.mogami.core.state.StateCache
   */
 object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
   def main(): Unit = {
-    //    benchGameLoad()
-    benchState()
+    misc()
+    benchGameLoad()
+    //    benchState()
   }
 
   def misc(): Unit = {
@@ -29,7 +30,7 @@ object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
     //    benchAttack(BPB, Some(P55), BitBoard.empty, BitBoard.empty)
     //    benchAttack(BPB, Some(P55), BitBoard.full, BitBoard.full)
 
-    if (false) {
+    if (true) {
       benchGameLoading(recordSfen01)
       benchGameLoading(recordSfen02)
       benchGameLoading(recordSfen03)

@@ -22,13 +22,15 @@ import com.mogproject.mogami.util.Implicits._
   * @param initialHistoryHash not used when hint is given
   * @param hint               hint
   * @param stateCache         state cache
+  * @param isFreeMode         do not change turns if true
   */
 case class Branch(initialHash: StateHash,
                   offset: Int = 0,
                   moves: Vector[Move] = Vector.empty,
                   finalAction: Option[SpecialMove] = None,
                   initialHistoryHash: Option[HistoryHash] = None,
-                  hint: Option[BranchHint] = None)
+                  hint: Option[BranchHint] = None,
+                  isFreeMode: Boolean = false)
                  (implicit stateCache: StateCache) extends SfenBranchWriter with HtmlBranchWriter {
 
   require(history.length == moves.length + 1, s"all moves must be valid: history.length=${history.length}, moves.length=${moves.length}")
@@ -77,7 +79,7 @@ case class Branch(initialHash: StateHash,
       for {
         hash <- h
         st <- stateCache.get(hash)
-        nxt <- st.makeMove(m)
+        nxt <- st.makeMove(m, !isFreeMode)
       } yield {
         stateCache.set(nxt)
       }
@@ -146,7 +148,7 @@ case class Branch(initialHash: StateHash,
   def makeMove(move: Move): Option[Branch] = {
     (StateHash.getNextStateHash(lastState, move) match {
       case h if stateCache.hasKey(h) => Some(h)
-      case _ if status == Playing => lastState.makeMove(move).map(stateCache.set)
+      case _ if status == Playing => lastState.makeMove(move, !isFreeMode).map(stateCache.set)
       case _ => None
     }).map { h =>
       this.copy(
@@ -193,7 +195,7 @@ case class Branch(initialHash: StateHash,
     */
   def deriveNewBranch(pos: Position): Option[Branch] = {
     val index = pos - offset
-    history.get(index).map(h => Branch(h, pos, initialHistoryHash = historyHash.get(index)))
+    history.get(index).map(h => Branch(h, pos, initialHistoryHash = historyHash.get(index), isFreeMode = isFreeMode))
   }
 
   /**
@@ -216,12 +218,23 @@ case class Branch(initialHash: StateHash,
     * Create a map of the history hash and its next move.
     */
   def getNextMoveList: Map[HistoryHash, Move] = historyHash.zip(moves).toMap
+
+  /**
+    * Drop all elapsed-time information
+    *
+    * @return new Branch without elapsed-time information
+    */
+  def dropElapsedTime: Branch = copy(moves = moves.map(_.dropElapsedTime), finalAction = finalAction.map(_.dropElapsedTime))
 }
 
 object Branch extends SfenBranchReader {
   def apply()(implicit stateCache: StateCache): Branch = apply(State.HIRATE)
 
-  def apply(state: State)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state))
+  def apply(isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = apply(State.HIRATE, isFreeMode)
+
+  def apply(state: State)(implicit stateCache: StateCache): Branch = apply(state, isFreeMode = false)
+
+  def apply(state: State, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = Branch(stateCache.set(state)).copy(isFreeMode = isFreeMode)
 }
 
 case class BranchHint(history: Vector[StateHash], historyHash: Vector[HistoryHash])

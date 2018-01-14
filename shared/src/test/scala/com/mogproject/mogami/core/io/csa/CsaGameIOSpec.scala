@@ -50,17 +50,17 @@ class CsaGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
   }
 
   "CsaGameReader#parseMovesCsa" must "parse normal moves" in StateCache.withCache { implicit cache =>
-    TestCsaGameReader.parseMoves(HIRATE, Nil, None)(cache) mustBe Game()
+    TestCsaGameReader.parseMoves(HIRATE, Nil, None, isFreeMode = false)(cache) mustBe Game()
   }
   it must "parse special moves" in StateCache.withCache { implicit cache =>
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign()))
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO,T123")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP", "T123")), None)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU", "%ILLEGAL_MOVE")), None)(cache) mustBe createGame(HIRATE,
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign()))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TORYO,T123")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE, finalAction = Some(Resign(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp()))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("%TIME_UP", "T123")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE, finalAction = Some(TimeUp(Some(123))))
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU", "%ILLEGAL_MOVE")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, None, false)))
     )
-    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU,T123", "%ILLEGAL_MOVE")), None)(cache) mustBe createGame(HIRATE,
+    TestCsaGameReader.parseMoves(HIRATE, CsaFactory.normalizeString(List("+5951OU,T123", "%ILLEGAL_MOVE")), None, isFreeMode = false)(cache) mustBe createGame(HIRATE,
       finalAction = Some(IllegalMove(Move(BLACK, Some(P59), P51, KING, false, false, None, None, false, Some(123), false)))
     )
   }

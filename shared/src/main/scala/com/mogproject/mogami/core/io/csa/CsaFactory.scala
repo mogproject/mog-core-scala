@@ -31,10 +31,12 @@ trait CsaFactory[T <: CsaLike] extends IOFactoryLike {
 
 trait CsaGameFactory[T <: CsaLike] extends IOFactoryLike {
 
-  final def parseCsaString(s: String)(implicit stateCache: StateCache): T = parseCsaString(toLines(s, CsaFactory.normalizeString))
+  final def parseCsaString(s: String)(implicit stateCache: StateCache): T = parseCsaString(s, isFreeMode = false)
 
-  final def parseCsaString(lines: Lines)(implicit stateCache: StateCache): T = parseCsaString(toNonEmptyLines(lines))
+  final def parseCsaString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): T = parseCsaString(toLines(s, CsaFactory.normalizeString), isFreeMode)
 
-  def parseCsaString(lines: NonEmptyLines)(implicit stateCache: StateCache): T
+  final def parseCsaString(lines: Lines, isFreeMode: Boolean)(implicit stateCache: StateCache): T = parseCsaString(toNonEmptyLines(lines), isFreeMode)
+
+  def parseCsaString(lines: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): T
 
 }

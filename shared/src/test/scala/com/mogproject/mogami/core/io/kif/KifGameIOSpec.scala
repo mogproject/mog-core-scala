@@ -5,7 +5,7 @@ import com.mogproject.mogami.core.Ptype.{KING, PAWN}
 import com.mogproject.mogami.core.Square
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.game.Game.CommentType
-import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
+import com.mogproject.mogami.core.game.{Branch, Game, GameGen, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
@@ -35,7 +35,7 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     "手数----指手----消費時間--"
   )
 
-  "KifBranchWriter#toKifString" must "describe comments" in  StateCache.withCache { implicit cache =>
+  "KifBranchWriter#toKifString" must "describe comments" in StateCache.withCache { implicit cache =>
     val hirate = Branch()
     val hirate2 = hirate.makeMove(MoveBuilderSfenBoard(P27, P26, false)).get.makeMove(MoveBuilderSfenBoard(P51, P42, false)).get
     val hirate3 = Branch(hirate2.lastState.hash, 2).makeMove(MoveBuilderSfenBoard(P77, P76, false)).get
@@ -234,6 +234,43 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     ).mkString("\n")
     Game.parseKi2String(Game.parseCsaString(s1).toKi2String).trunk.moves.length mustBe 6
   }
+  it must "restore games" in StateCache.withCache { implicit cache =>
+    forAll(GameGen.games, minSuccessful(10)) { g =>
+      val ts = g.gameInfo.tags
+      val gg = g.copy(
+        newGameInfo = GameInfo(Map(
+          'blackName -> ts.getOrElse('blackName, ""),
+          'whiteName -> ts.getOrElse('whiteName, "")
+        ))
+      ).dropElapsedTime
+      Game.parseKi2String(gg.toKi2String) mustBe gg
+    }
+  }
+  it must "restore free games" in StateCache.withCache { implicit cache =>
+    forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+      val ts = g.gameInfo.tags
+      val gg = g.copy(
+        newGameInfo = GameInfo(Map(
+          'blackName -> ts.getOrElse('blackName, ""),
+          'whiteName -> ts.getOrElse('whiteName, "")
+        ))
+      ).dropElapsedTime
+      Game.parseKi2String(gg.toKi2String, isFreeMode = true) mustBe gg
+    }
+  }
+  it must "restore games with a special move" in StateCache.withCache { implicit cache =>
+    val g = Game(Branch().copy(finalAction = Some(TimeUp())))
+    val gg = g.copy(
+      newGameInfo = GameInfo(Map(
+        'blackName -> g.gameInfo.tags.getOrElse('blackName, ""),
+        'whiteName -> g.gameInfo.tags.getOrElse('whiteName, "")
+      ))
+    )
+    val s = g.toKi2String
+    Game.parseKi2String(s, isFreeMode = false) mustBe gg
+    Game.parseKi2String(s, isFreeMode = true) mustBe gg
+  }
+
   "KifGameReader#splitMovesKi2" must "create games" in {
     TestKifGameReader.splitMovesKi2(Seq(
       ("▲４六玉 △４二歩 ▲２三と △３一金 ▲４七角 △同飛不成", 1),

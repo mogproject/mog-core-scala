@@ -6,6 +6,9 @@ build:
 test:
 	${SBT} test
 
+testJVM:
+	${SBT} mogCoreJVM/test:test
+
 console:
 	${SBT} mogCoreJVM/test:console
 
@@ -21,5 +24,5 @@ benchJS:
 merge:
 	git checkout master && git pull && git checkout develop && git merge master && git push
 
-.PHONY: build test console clean bench benchJS merge
+.PHONY: build test testJVM console clean bench benchJS merge
 

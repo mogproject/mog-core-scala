@@ -20,9 +20,9 @@ trait SfenBranchReader {
     *
     * @param s "{board} {turn} {hand} {offset} [{move}...]"
     */
-  def parseSfenString(s: String)(implicit stateCache: StateCache): Branch = {
+  def parseSfenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = {
     val tokens = s.split(" ")
-    parseSfenStringHelper(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash)
+    parseSfenStringHelper(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash, isFreeMode)
   }
 
   /**
@@ -31,16 +31,16 @@ trait SfenBranchReader {
     * @param trunk trunk
     * @param s     "{offset} [{move}...]"
     */
-  def parseSfenString(trunk: Branch, s: String)(implicit stateCache: StateCache): Branch =
-    parseSfenStringHelper(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset))
+  def parseSfenString(trunk: Branch, s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch =
+    parseSfenStringHelper(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset), isFreeMode)
 
   // helper functions
-  private[this] def parseSfenStringHelper(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash)
+  private[this] def parseSfenStringHelper(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash, isFreeMode: Boolean)
                                          (implicit stateCache: StateCache): Branch = {
     val offset = tokens.headOption.map(parseOffset(_, range)).getOrElse(throw new RecordFormatException(1, s"cannot find offset"))
     val moves = tokens.drop(1).map(MoveBuilderSfen.parseSfenString)
 
-    moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset)) { (br, m) =>
+    moves.foldLeft[Branch](Branch(initialStateFunc(offset), offset, isFreeMode = isFreeMode)) { (br, m) =>
       br.makeMove(m).getOrElse(throw new RecordFormatException(1, s"invalid move: ${m.toSfenString}"))
     }
   }
@@ -55,19 +55,20 @@ trait SfenBranchReader {
   /**
     * Parse USEN string as a trunk
     */
-  def parseUsenStringAsTrunk(s: String, initialState: State)(implicit stateCache: StateCache): Branch =
-    parseUsenStringHelper(s, _ => stateCache.set(initialState), _ => None, _ => None, None)
+  def parseUsenStringAsTrunk(s: String, initialState: State, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch =
+    parseUsenStringHelper(s, _ => stateCache.set(initialState), _ => None, _ => None, None, isFreeMode)
 
   /**
     * Parse USEN string as a branch
     */
-  def parseUsenStringAsBranch(s: String, trunk: Branch)(implicit stateCache: StateCache): Branch =
+  def parseUsenStringAsBranch(s: String, trunk: Branch, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch =
     parseUsenStringHelper(
       s,
       pos => trunk.getStateHash(pos).get,
       pos => trunk.getHistoryHash(pos),
       pos => trunk.getMove(pos - 1).map(_.to),
-      Some(Range(trunk.offset, trunk.offset + trunk.history.length))
+      Some(Range(trunk.offset, trunk.offset + trunk.history.length)),
+      isFreeMode
     )
 
   // helper function
@@ -75,7 +76,8 @@ trait SfenBranchReader {
                                           initialStateFunc: Position => StateHash,
                                           initialHistoryHashFunc: Position => Option[HistoryHash],
                                           lastMoveFunc: Position => Option[Square],
-                                          offsetRange: Option[Range]
+                                          offsetRange: Option[Range],
+                                          isFreeMode: Boolean = false
                                          )(implicit stateCache: StateCache): Branch = {
     val tokens = s.split("[.]", 3)
     if (tokens.length != 3) throw new RecordFormatException(1, s"branch description must have three sections: ${s}")
@@ -88,7 +90,7 @@ trait SfenBranchReader {
     val moves = mvs.grouped(3).map(MoveBuilderSfen.parseUsenString)
 
     // make moves
-    val initBranch: Branch = Branch(initialStateFunc(offset), offset, initialHistoryHash = initialHistoryHashFunc(offset))
+    val initBranch: Branch = Branch(initialStateFunc(offset), offset, initialHistoryHash = initialHistoryHashFunc(offset), isFreeMode = isFreeMode)
     val initLastMoveTo = lastMoveFunc(offset)
 
     val b = moves.zipWithIndex.foldLeft[Branch](initBranch) { case (br, (m, i)) =>
@@ -103,15 +105,15 @@ trait SfenBranchReader {
 }
 
 trait SfenGameReader {
-  def parseSfenString(s: String)(implicit stateCache: StateCache): Game = Game(Branch.parseSfenString(s))
+  def parseSfenString(s: String, isFreeMode: Boolean = false)(implicit stateCache: StateCache): Game = Game(Branch.parseSfenString(s, isFreeMode))
 
-  def parseUsenString(s: String)(implicit stateCache: StateCache): Game = {
+  def parseUsenString(s: String, isFreeMode: Boolean = false)(implicit stateCache: StateCache): Game = {
     val tokens = s.split("~")
     if (tokens.length < 2) throw new RecordFormatException(1, s"game description must have at least two sections: ${s}")
 
     val initialState = tokens(0).isEmpty.fold(State.HIRATE, State.parseUsenString(tokens(0))) // the first token can be empty
-    val trunk = Branch.parseUsenStringAsTrunk(tokens(1), initialState)
-    val branches = tokens.drop(2).map(ss => Branch.parseUsenStringAsBranch(ss, trunk)).toVector
+    val trunk = Branch.parseUsenStringAsTrunk(tokens(1), initialState, isFreeMode)
+    val branches = tokens.drop(2).map(ss => Branch.parseUsenStringAsBranch(ss, trunk, isFreeMode)).toVector
     Game(trunk, branches)
   }
 }

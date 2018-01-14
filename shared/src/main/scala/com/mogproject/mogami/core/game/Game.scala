@@ -12,13 +12,11 @@ import scala.util.Try
 /**
   * Game
   */
-case class Game(trunkOption: Option[Branch] = None,
+case class Game(trunk: Branch,
                 branches: Vector[Branch] = Vector.empty,
                 gameInfo: GameInfo = GameInfo(),
                 comments: CommentType = Map.empty
                )(implicit val stateCache: StateCache) extends CsaGameWriter with SfenGameWriter with KifGameWriter {
-
-  val trunk: Branch = trunkOption.getOrElse(Branch())
 
   type ForkList = Map[HistoryHash, Map[Move, BranchNo]]
 
@@ -30,7 +28,7 @@ case class Game(trunkOption: Option[Branch] = None,
   def copy(newTrunk: Branch = this.trunk,
            newBranches: Vector[Branch] = this.branches,
            newGameInfo: GameInfo = this.gameInfo,
-           newComments: CommentType = this.comments) = Game(Some(newTrunk), newBranches, newGameInfo, newComments)
+           newComments: CommentType = this.comments) = Game(newTrunk, newBranches, newGameInfo, newComments)
 
   //
   // helper functions
@@ -133,7 +131,7 @@ case class Game(trunkOption: Option[Branch] = None,
     *   - the position is not the last
     *   - the position is on the trunk --or-- the move is new
     */
-  def createBranch(gamePosition: GamePosition, move: Move): Option[Game] = withBranch(gamePosition.branch) { br =>
+  def createBranch(gamePosition: GamePosition, move: Move, isFreeMode: Boolean = false): Option[Game] = withBranch(gamePosition.branch) { br =>
     val moveOnThisBranch = (gamePosition.position < br.offset).fold(trunk, br).getMove(gamePosition.position)
 
     val ok = moveOnThisBranch.exists(_ != move) && (gamePosition.isTrunk || getForks(gamePosition).forall(_._1 != move))
@@ -145,12 +143,17 @@ case class Game(trunkOption: Option[Branch] = None,
           gamePosition.position,
           Vector(move),
           None,
-          getHistoryHash(gamePosition)
+          getHistoryHash(gamePosition),
+          isFreeMode = isFreeMode
         )).toOption
       } else {
         val diff = gamePosition.position - br.offset
-        Branch(trunk.history(br.offset - trunk.offset), br.offset, br.moves.take(diff),
-          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1)))).makeMove(move)
+        Branch(
+          trunk.history(br.offset - trunk.offset),
+          br.offset, br.moves.take(diff),
+          hint = Some(BranchHint(br.history.take(diff + 1), br.historyHash.take(diff + 1))),
+          isFreeMode = isFreeMode
+        ).makeMove(move)
       }) map { newBranch =>
         copy(newBranches = branches :+ newBranch)
       }
@@ -206,34 +209,35 @@ case class Game(trunkOption: Option[Branch] = None,
       }.getOrElse(this)
     }
   }
+
+
+  /**
+    * Drop all elapsed-time information
+    *
+    * @return new Game without elapsed-time information
+    */
+  def dropElapsedTime: Game = copy(newTrunk = trunk.dropElapsedTime, newBranches = branches.map(_.dropElapsedTime))
 }
 
 object Game extends CsaGameReader with SfenGameReader with KifGameReader {
+  def apply()(implicit stateCache: StateCache): Game = new Game(Branch())
 
-  def apply(trunk: Branch)(implicit stateCache: StateCache): Game = new Game(Some(trunk))
-
-  def apply(trunk: Branch, branches: Vector[Branch])(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches)
-
-  def apply(trunk: Branch, branches: Vector[Branch], comments: CommentType)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches, comments = comments)
-
-  def apply(trunk: Branch, gameInfo: GameInfo)(implicit stateCache: StateCache): Game = new Game(Some(trunk), gameInfo = gameInfo)
-
-  def apply(trunk: Branch, branches: Vector[Branch], gameInfo: GameInfo)(implicit stateCache: StateCache): Game = new Game(Some(trunk), branches, gameInfo)
+  def apply(isFreeMode: Boolean)(implicit stateCache: StateCache): Game = new Game(Branch(isFreeMode))
 
   type BranchNo = Int // branch number: root = 0
 
   type Position = Int // regarding offset
 
   // workaround for IntelliJ IDEA
-  override def parseSfenString(s: String)(implicit stateCache: StateCache): Game = super.parseSfenString(s)
+  override def parseSfenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseSfenString(s, isFreeMode)
 
-  override def parseUsenString(s: String)(implicit stateCache: StateCache): Game = super.parseUsenString(s)
+  override def parseUsenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseUsenString(s, isFreeMode)
 
-  override def parseKifString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = super.parseKifString(nel)
+  override def parseKifString(nel: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseKifString(nel, isFreeMode)
 
-  override def parseKi2String(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = super.parseKi2String(nel)
+  override def parseKi2String(nel: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseKi2String(nel, isFreeMode)
 
-  override def parseCsaString(nel: NonEmptyLines)(implicit stateCache: StateCache): Game = super.parseCsaString(nel)
+  override def parseCsaString(nel: NonEmptyLines, isFreeMode: Boolean)(implicit stateCache: StateCache): Game = super.parseCsaString(nel, isFreeMode)
 
   case class GamePosition(branch: BranchNo, position: Position) {
     require(branch >= 0, "branch must not be negative")

@@ -224,6 +224,9 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     Game.parseCsaString(g.toCsaString) mustBe g
   }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    Game.parseCsaString(g.toCsaString, isFreeMode = true) mustBe g
+  }}
   it must "ignore comments" in StateCache.withCache { implicit cache =>
     Game.parseCsaString("PI,-\n'comment\n-5152OU,T2345\n'comment\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
@@ -246,7 +249,7 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     dataForTest.map(_.toSfenString) zip sfenForTest foreach { case (a, b) => a must be(b) }
   }
   "Game#parseSfenString" must "create games in normal cases" in StateCache.withCache { implicit cache =>
-    sfenForTest.map(Game.parseSfenString) zip dataForTest.map(g =>
+    sfenForTest.map(Game.parseSfenString(_, false)) zip dataForTest.map(g =>
       g.copy(newGameInfo = GameInfo(), newTrunk = g.trunk.copy(moves = g.trunk.moves.map(_.copy(elapsedTime = None))))
     ) foreach { case (a, b) =>
       a mustBe b
@@ -266,6 +269,12 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
     StateCache.withCache { implicit cache =>
       val s = g.toSfenString
       Game.parseSfenString(s).toSfenString mustBe s
+    }
+  }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    StateCache.withCache { implicit cache =>
+      val s = g.toSfenString
+      Game.parseSfenString(s, isFreeMode = true).toSfenString mustBe s
     }
   }}
 
@@ -448,6 +457,14 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       'whiteName -> ts.getOrElse('whiteName, "")
     )))
     Game.parseKifString(gg.toKifString) mustBe gg
+  }}
+  it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
+    val ts = g.gameInfo.tags
+    val gg = g.copy(newGameInfo = GameInfo(Map(
+      'blackName -> ts.getOrElse('blackName, ""),
+      'whiteName -> ts.getOrElse('whiteName, "")
+    )))
+    Game.parseKifString(gg.toKifString, isFreeMode = true) mustBe gg
   }}
   it must "restore games with branches and comments" in StateCache.withCache { implicit cache => forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
