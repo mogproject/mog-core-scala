@@ -57,4 +57,12 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     br2.truncated(6) mustBe br2
     br2.truncated(7) mustBe br2
   }
+
+  "Branch#makeMove" must "handle the changeTurn flag properly" in StateCache.withCache { implicit cache =>
+    val br1 = createBranch(HIRATE).copy(isFreeMode = true)
+    val mb = MoveBuilderCsa.parseCsaString("+7776FU")
+    val mv = mb.toMove(HIRATE, None).get
+    br1.makeMove(mb).get.lastState.turn mustBe BLACK
+    br1.makeMove(mv).get.lastState.turn mustBe BLACK
+  }
 }

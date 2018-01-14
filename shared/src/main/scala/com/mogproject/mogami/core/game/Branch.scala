@@ -22,13 +22,15 @@ import com.mogproject.mogami.util.Implicits._
   * @param initialHistoryHash not used when hint is given
   * @param hint               hint
   * @param stateCache         state cache
+  * @param isFreeMode         do not change turns if true
   */
 case class Branch(initialHash: StateHash,
                   offset: Int = 0,
                   moves: Vector[Move] = Vector.empty,
                   finalAction: Option[SpecialMove] = None,
                   initialHistoryHash: Option[HistoryHash] = None,
-                  hint: Option[BranchHint] = None)
+                  hint: Option[BranchHint] = None,
+                  isFreeMode: Boolean = false)
                  (implicit stateCache: StateCache) extends SfenBranchWriter with HtmlBranchWriter {
 
   require(history.length == moves.length + 1, s"all moves must be valid: history.length=${history.length}, moves.length=${moves.length}")
@@ -146,7 +148,7 @@ case class Branch(initialHash: StateHash,
   def makeMove(move: Move): Option[Branch] = {
     (StateHash.getNextStateHash(lastState, move) match {
       case h if stateCache.hasKey(h) => Some(h)
-      case _ if status == Playing => lastState.makeMove(move).map(stateCache.set)
+      case _ if status == Playing => lastState.makeMove(move, !isFreeMode).map(stateCache.set)
       case _ => None
     }).map { h =>
       this.copy(

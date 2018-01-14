@@ -290,10 +290,11 @@ case class State(turn: Player = BLACK,
   /**
     * Make one move.
     *
-    * @param move move to make
+    * @param move       move to make
+    * @param changeTurn change the turn to move if true
     * @return new state
     */
-  def makeMove(move: Move): Option[State] = isValidMove(move).option {
+  def makeMove(move: Move, changeTurn: Boolean = true): Option[State] = isValidMove(move).option {
     val (newBoard, newHand) = makeNextPosition(move)
     val newOccs = getUpdatedOccupancy(move)
 
@@ -305,7 +306,7 @@ case class State(turn: Player = BLACK,
       unusedPtypeCount,
       getUpdatedAttackBBOnBoard(move, newOccs._1)
     )
-    State(!turn, newBoard, newHand, Some(hint))
+    State(changeTurn.when[Player](!_)(turn), newBoard, newHand, Some(hint))
   }
 
   /**
