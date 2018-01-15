@@ -65,4 +65,11 @@ class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenProperty
     br1.makeMove(mb).get.lastState.turn mustBe BLACK
     br1.makeMove(mv).get.lastState.turn mustBe BLACK
   }
+
+  "Branch#updateFinalAction" must "keep isFreeMode flag" in StateCache.withCache { implicit cache =>
+    val a = createBranch(HIRATE).copy(isFreeMode = true)
+    val b = a.updateFinalAction(Some(Resign(Some(123))))
+    b.finalAction mustBe Some(Resign(Some(123)))
+    b.isFreeMode mustBe true
+  }
 }
