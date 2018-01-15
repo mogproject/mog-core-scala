@@ -46,7 +46,7 @@ case class Branch(initialHash: StateHash,
     case _ => false
   }
 
-  def updateFinalAction(fa: Option[SpecialMove]): Branch = Branch(initialHash, offset, moves, fa, initialHistoryHash, Some(BranchHint(history, historyHash)))
+  def updateFinalAction(fa: Option[SpecialMove]): Branch = copy(finalAction = fa, hint = Some(BranchHint(history, historyHash)))
 
   def getStateHash(pos: Position): Option[StateHash] = history.get(pos - offset)
 
