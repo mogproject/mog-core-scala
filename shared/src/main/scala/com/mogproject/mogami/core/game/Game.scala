@@ -111,16 +111,18 @@ case class Game(trunk: Branch,
     }.filter(_._2.size > 1)
   }
 
-  def getForks(gamePosition: GamePosition): Vector[(Move, BranchNo)] = withBranch(gamePosition.branch) { br =>
-    (for {
-      h <- getHistoryHash(gamePosition).toVector
-      mm <- forkList.get(h).toVector
-      (m, b) <- mm
-      mv <- getMove(gamePosition)
-      if (gamePosition.position < br.offset).fold(0, gamePosition.branch) != b
-      if m != mv
-    } yield (m, b)).sortBy(_._2)
-  }.getOrElse(Vector.empty)
+  def getForks(gamePosition: GamePosition): Vector[(Move, BranchNo)] = if (hasFork(gamePosition)) {
+    withBranch(gamePosition.branch) { br =>
+      (for {
+        h <- getHistoryHash(gamePosition).toVector
+        mm <- forkList.get(h).toVector
+        (m, b) <- mm
+        mv <- getMove(gamePosition)
+        if (gamePosition.position < br.offset).fold(0, gamePosition.branch) != b
+        if m != mv
+      } yield (m, b)).sortBy(_._2)
+    }.getOrElse(Vector.empty)
+  } else Vector.empty
 
   def hasFork(gamePosition: GamePosition): Boolean = getHistoryHash(gamePosition).exists(forkList.contains)
 
