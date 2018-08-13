@@ -37,7 +37,7 @@ trait HtmlBranchWriter {
   private[this] def finalActionToHtml(lastState: Option[State], isJapanese: Boolean): String =
     (finalAction, lastState) match {
       case (Some(IllegalMove(imv)), Some(st)) =>
-        val header = finalActionToString(isJapanese) + ": " + moveToString(imv, isJapanese)
+        val header = isJapanese.fold(IllegalMove.kifKeyword, "Illegal Move") + ": " + moveToString(imv, isJapanese)
         val (newBoard, newHand) = st.makeNextPosition(imv)
         new HtmlStateWriter {
           override val board: BoardType = newBoard
@@ -59,7 +59,7 @@ trait HtmlBranchWriter {
       case Some(n) =>
         Seq(
           s"""<table class="${shogiPage}"><tbody>""",
-          s"""<tr><td>${states.head}</td></tr>""",
+          s"""<tr><td colspan="${n}">${states.head}</td></tr>""",
           states.tail.grouped(n).map(_.mkString("<tr><td>", "</td><td>", "</td></tr>")).mkString("\n"),
           "</tbody></table>"
         ).mkString("\n")
