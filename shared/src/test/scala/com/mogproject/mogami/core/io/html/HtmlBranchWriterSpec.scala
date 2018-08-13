@@ -11,7 +11,7 @@ class HtmlBranchWriterSpec extends FlatSpec with MustMatchers with GeneratorDriv
     StateCache.withCache { implicit cache =>
       val br = Branch(State.HIRATE)
       br.toHtmlString(isJapanese = true, Map(br.historyHash.head -> "<comment&123>")) mustBe
-        "<div class=\"shogi-state\"><div class=\"shogi-header\">Start</div><div class=\"shogi-body\"><table><tbody><tr><td><div class=\"shogi-hand\">☖</div>" +
+        "<div class=\"shogi-state\"><div class=\"shogi-header\">初期局面</div><div class=\"shogi-body\"><table><tbody><tr><td><div class=\"shogi-hand\">☖</div>" +
           "<table class=\"shogi-board\"><tbody><tr><td class=\"sb-f\">9</td><td class=\"sb-f\">8</td><td class=\"sb-f\">7</td>" +
           "<td class=\"sb-f\">6</td><td class=\"sb-f\">5</td><td class=\"sb-f\">4</td><td class=\"sb-f\">3</td><td class=\"sb-f\">2</td>" +
           "<td class=\"sb-f\">1</td><td class=\"sb-f sb-r\"/></tr><tr><td class=\"sp-i\">香</td><td class=\"sp-i\">桂</td>" +
@@ -25,7 +25,29 @@ class HtmlBranchWriterSpec extends FlatSpec with MustMatchers with GeneratorDriv
           "<td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td class=\"sb-r\">7</td></tr><tr><td/>" +
           "<td>角</td><td/><td/><td/><td/><td/><td>飛</td><td/><td class=\"sb-r\">8</td></tr><tr><td>香</td><td>桂</td><td>銀</td><td>金</td>" +
           "<td>玉</td><td>金</td><td>銀</td><td>桂</td><td>香</td><td class=\"sb-r\">9</td></tr>" +
-          "</tbody></table><div class=\"shogi-hand\">☗</div></td><td class=\"shogi-comment\"><p>&lt;comment&amp;123&gt;</p></td></tr></tbody></table></div></div>\n"
+          "</tbody></table><div class=\"shogi-hand\">☗</div></td><td class=\"shogi-comment\"><p>&lt;comment&amp;123&gt;</p></td></tr></tbody></table></div></div>"
+    }
+  }
+  it must "insert a table" in {
+    StateCache.withCache { implicit cache =>
+      val br = Branch(State.HIRATE)
+      br.toHtmlString(isJapanese = true, Map(br.historyHash.head -> "<comment&123>"), Some(2)) mustBe
+        "<table class=\"shogi-page\"><tbody>\n<tr><td><div class=\"shogi-state\"><div class=\"shogi-header\">初期局面</div><div class=\"shogi-body\"><table><tbody><tr><td><div class=\"shogi-hand\">☖</div>" +
+          "<table class=\"shogi-board\"><tbody><tr><td class=\"sb-f\">9</td><td class=\"sb-f\">8</td><td class=\"sb-f\">7</td>" +
+          "<td class=\"sb-f\">6</td><td class=\"sb-f\">5</td><td class=\"sb-f\">4</td><td class=\"sb-f\">3</td><td class=\"sb-f\">2</td>" +
+          "<td class=\"sb-f\">1</td><td class=\"sb-f sb-r\"/></tr><tr><td class=\"sp-i\">香</td><td class=\"sp-i\">桂</td>" +
+          "<td class=\"sp-i\">銀</td><td class=\"sp-i\">金</td><td class=\"sp-i\">玉</td><td class=\"sp-i\">金</td><td class=\"sp-i\">銀</td>" +
+          "<td class=\"sp-i\">桂</td><td class=\"sp-i\">香</td><td class=\"sb-r\">1</td></tr><tr><td/><td class=\"sp-i\">飛</td><td/><td/>" +
+          "<td/><td/><td/><td class=\"sp-i\">角</td><td/><td class=\"sb-r\">2</td></tr><tr><td class=\"sp-i\">歩</td>" +
+          "<td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td>" +
+          "<td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td><td class=\"sp-i\">歩</td><td class=\"sb-r\">3</td></tr><tr><td/><td/><td/>" +
+          "<td/><td/><td/><td/><td/><td/><td class=\"sb-r\">4</td></tr><tr><td/><td/><td/><td/><td/><td/><td/><td/><td/>" +
+          "<td class=\"sb-r\">5</td></tr><tr><td/><td/><td/><td/><td/><td/><td/><td/><td/><td class=\"sb-r\">6</td></tr><tr><td>歩</td>" +
+          "<td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td>歩</td><td class=\"sb-r\">7</td></tr><tr><td/>" +
+          "<td>角</td><td/><td/><td/><td/><td/><td>飛</td><td/><td class=\"sb-r\">8</td></tr><tr><td>香</td><td>桂</td><td>銀</td><td>金</td>" +
+          "<td>玉</td><td>金</td><td>銀</td><td>桂</td><td>香</td><td class=\"sb-r\">9</td></tr>" +
+          "</tbody></table><div class=\"shogi-hand\">☗</div></td><td class=\"shogi-comment\"><p>&lt;comment&amp;123&gt;</p></td></tr></tbody></table></div></div>" +
+          "</td></tr>\n\n</tbody></table>"
     }
   }
 }
