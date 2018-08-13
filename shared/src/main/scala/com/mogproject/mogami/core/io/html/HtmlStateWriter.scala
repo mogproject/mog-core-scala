@@ -56,11 +56,11 @@ trait HtmlStateWriter {
     s"""<div class="${shogiState}">""",
     s"""<div class="${shogiHeader}">${header}</div>""",
     s"""<div class="${shogiBody}">""",
-    comment.isDefined.fold("""<table><tbody><tr><td>""", ""),
+    """<table><tbody><tr><td>""",
     s"""<div class="${shogiHand}">${createHandString(Player.WHITE)}</div>""",
     s"""<table class="${shogiBoard}"><tbody>${createBoardHtml(lastMove)}</tbody></table>""",
     s"""<div class="${shogiHand}">${createHandString(Player.BLACK)}</div>""",
-    comment.map(c => s"""</td><td class="${shogiComment}"><p>${escape(c)}</p></td></tr></tbody></table>""").getOrElse(""),
+    s"""</td><td class="${shogiComment}"><p>${escape(comment.getOrElse(""))}</p></td></tr></tbody></table>""",
     """</div></div>"""
   ).mkString
 
