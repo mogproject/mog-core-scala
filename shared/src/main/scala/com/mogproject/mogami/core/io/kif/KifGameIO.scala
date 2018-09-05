@@ -219,7 +219,7 @@ trait KifBranchReader extends KifGameIO {
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, None) => // ends without errors
         sofar
-      case ((n, Some((_, x)), _) :: ys, None) if !isNormalMoveKif(x) && ys.forall(_._3.isDefined) => // ends with a special move (+comments)
+      case ((n, Some((_, x)), _) :: _, None) if !isNormalMoveKif(x) => // ends with a special move (ignore "extra" special moves)
         val special = MoveBuilderKif.parseTime((x, n)) match {
           case ((Resign.kifKeyword, _), tm) => Some(Resign(tm))
           case ((TimeUp.kifKeyword, _), tm) => Some(TimeUp(tm))
@@ -244,7 +244,7 @@ trait KifBranchReader extends KifGameIO {
         }
       case (_, Some(((x, n), _))) =>
         throw new RecordFormatException(n, s"invalid move expression: ${x}")
-      case ((_ :: xs), _) => // ignore other lines
+      case (_ :: xs, _) => // ignore other lines
         f(xs, illegal, sofar)
     }
 
