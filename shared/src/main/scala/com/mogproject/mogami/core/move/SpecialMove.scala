@@ -13,6 +13,8 @@ sealed trait SpecialMove extends CsaLike with KifLike with UsenLike {
 
   protected def makeKi2String(numMoves: Int, description: String): String = s"まで${numMoves}手で${description}"
 
+  def getElapsedTime: Option[Int]
+
   def dropElapsedTime: SpecialMove
 }
 
@@ -49,6 +51,8 @@ case class IllegalMove(move: Move) extends SpecialMove {
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の${IllegalMove.ki2Keyword}勝ち")
 
+  override def getElapsedTime: Option[LineNo] = move.elapsedTime
+
   override def dropElapsedTime: SpecialMove = IllegalMove(move.copy(elapsedTime = None))
 }
 
@@ -78,6 +82,8 @@ case class Resign(elapsedTime: Option[Int] = None) extends SpecialMove {
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${(!currentPlayer).toJapaneseNotationString()}の勝ち")
 
+  override def getElapsedTime: Option[LineNo] = elapsedTime
+
   override def dropElapsedTime: SpecialMove = Resign(None)
 }
 
@@ -105,6 +111,8 @@ case class TimeUp(elapsedTime: Option[Int] = None) extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String =
     makeKi2String(numMoves, s"${TimeUp.ki2Keyword}により${(!currentPlayer).toJapaneseNotationString()}の勝ち")
+
+  override def getElapsedTime: Option[LineNo] = elapsedTime
 
   override def dropElapsedTime: SpecialMove = TimeUp(None)
 }
@@ -138,7 +146,9 @@ case object Pause extends SpecialMove {
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, ki2Keyword)
 
-  override def dropElapsedTime: SpecialMove = Pause
+  override def getElapsedTime: Option[LineNo] = None
+
+  override def dropElapsedTime: SpecialMove = this
 }
 
 
@@ -159,6 +169,8 @@ case class DeclareWin(elapsedTime: Option[Int] = None) extends SpecialMove {
   override def toWesternNotationString: String = "Declare Win"
 
   override def toKi2String(currentPlayer: Player, numMoves: Int): String = makeKi2String(numMoves, DeclareWin.kifKeyword)
+
+  override def getElapsedTime: Option[LineNo] = elapsedTime
 
   override def dropElapsedTime: SpecialMove = DeclareWin(None)
 }
