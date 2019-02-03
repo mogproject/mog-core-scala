@@ -1,3 +1,7 @@
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+
+
 lazy val root = (project in file("."))
   .aggregate(mogCoreJVM, mogCoreJS)
   .settings(

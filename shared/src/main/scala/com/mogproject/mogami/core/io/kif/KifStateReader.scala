@@ -40,7 +40,8 @@ trait KifStateReader extends KifFactory[state.State] {
     if (s == "なし") {
       Map.empty
     } else {
-      s.split('　').map(f).foldLeft[HandType](Map.empty)(_ + _)
+      // accept both normal and wide spaces
+      s.split("[　 ]").map(f).foldLeft[HandType](Map.empty)(_ + _)
     }
   }
 
