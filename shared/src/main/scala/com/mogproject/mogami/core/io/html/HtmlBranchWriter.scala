@@ -47,24 +47,49 @@ trait HtmlBranchWriter {
       case _ => ""
     }
 
-  def toHtmlString(isJapanese: Boolean = true, comments: CommentType, numColumns: Option[Int] = None)(implicit stateCache: StateCache): String = {
+  /**
+    * Converts the branch to an HTML representation.
+    *
+    * @param isJapanese output Japanese descriptions if true
+    * @param comments comments
+    * @param numColumns number of columns
+    * @param withCommentOnly display the positions with a comment only (plus, the final action if exists)
+    * @param stateCache state cache
+    * @return HTML representation
+    */
+  def toHtmlString(isJapanese: Boolean = true, comments: CommentType, numColumns: Option[Int] = None, withCommentOnly: Boolean = false)(implicit stateCache: StateCache): String = {
     val stateHistory = history.map(stateCache.get).zip(historyHash)
     val states = (stateHistory.zip(None +: moves.map(Some.apply)).zipWithIndex.map {
-      case (((Some(st), hh), Some(m)), i) => st.toHtmlString(s"#${offset + i}: ${moveToString(m, isJapanese)}", Some(m.to), comments.get(hh))
-      case (((Some(st), hh), None), _) => st.toHtmlString(isJapanese.fold("初期局面", "Start"), None, comments.get(hh))
-      case _ => ""
-    } :+ finalActionToHtml(stateHistory.last._1, isJapanese)).filter(_.nonEmpty)
+      case (((Some(_), hh), _), _) if withCommentOnly && !comments.contains(hh) =>
+        (false, "") // no comments
+      case (((Some(st), hh), Some(m)), i) =>
+        (false, st.toHtmlString(s"#${offset + i}: ${moveToString(m, isJapanese)}", Some(m.to), comments.get(hh)))
+      case (((Some(st), hh), None), _) =>
+        (true, st.toHtmlString(isJapanese.fold("初期局面", "Start"), None, comments.get(hh)))
+      case _ =>
+        (false, "")
+    } :+ (false, finalActionToHtml(stateHistory.last._1, isJapanese))).filter(_._2.nonEmpty)
 
-    numColumns match {
-      case Some(n) =>
-        Seq(
-          s"""<table class="${shogiPage}"><tbody>""",
-          s"""<tr><td colspan="${n}">${states.head}</td></tr>""",
-          states.tail.grouped(n).map(_.mkString("<tr><td>", "</td><td>", "</td></tr>")).mkString("\n"),
-          "</tbody></table>"
-        ).mkString("\n")
-      case None =>
-        states.mkString("\n")
+    if (states.isEmpty) {
+      ""
+    } else {
+      numColumns match {
+        case Some(n) =>
+          val (header, others) = if (states.head._1) {
+            (states.head._2, states.tail.map(_._2))
+          } else {
+            ("", states.map(_._2))
+          }
+
+          Seq(
+            s"""<table class="${shogiPage}"><tbody>""",
+            if (header.isEmpty) "" else s"""<tr><td colspan="${n}">${header}</td></tr>""",
+            others.grouped(n).map(_.mkString("<tr><td>", "</td><td>", "</td></tr>")).mkString("\n"),
+            "</tbody></table>"
+          ).filter(_.nonEmpty).mkString("\n")
+        case None =>
+          states.map(_._2).mkString("\n")
+      }
     }
   }
 }
