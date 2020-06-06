@@ -10,7 +10,7 @@ cache:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
 
-jdk: oraclejdk8
+jdk: openjdk8
 
 scala:
   - 2.12.0
