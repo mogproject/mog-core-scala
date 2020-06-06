@@ -10,7 +10,7 @@ testJVM:
 	${SBT} mogCoreJVM/test:test
 
 console:
-	${SBT} mogCoreJVM/test:console
+	TERM=xterm-color ${SBT} mogCoreJVM/test:console
 
 clean:
 	${SBT} clean
