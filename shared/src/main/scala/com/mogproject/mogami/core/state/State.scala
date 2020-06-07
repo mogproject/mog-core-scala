@@ -167,9 +167,9 @@ case class State(turn: Player = BLACK,
   lazy val attackBBOnBoard: Map[Player, Map[Square, BitBoard]] = hint.map(_.attackBBOnBoard).getOrElse {
     val m = (for ((sq, piece@Piece(owner, _)) <- board) yield {
       (owner, sq) -> Attack.get(piece, Some(sq), occupancy, occupancy(Piece(owner, PAWN)))
-    }).filter(_._2.nonEmpty).groupBy(_._1._1).mapValues(_.map { case ((_, s), b) => s -> b })
+    }).filter(_._2.nonEmpty).groupBy(_._1._1).view.mapValues(_.map { case ((_, s), b) => s -> b })
 
-    Map(BLACK -> Map.empty[Square, BitBoard], WHITE -> Map.empty[Square, BitBoard]) ++ m
+    (Map(BLACK -> Map.empty[Square, BitBoard], WHITE -> Map.empty[Square, BitBoard]) ++ m).toMap
   }
 
   /**
@@ -242,7 +242,7 @@ case class State(turn: Player = BLACK,
     // drop a piece between king and the attacker
     val dropBetween = for ((sq, bb) <- attackBBInHand; bt <- between) yield sq -> (bb & bt)
 
-    (kingEscape ++ moveBetween).map { case (k, v) => Left(k) -> v } ++ dropBetween.map { case (k, v) => Right(k) -> v }
+    ((kingEscape ++ moveBetween).map { case (k, v) => Left(k) -> v } ++ dropBetween.map { case (k, v) => Right(k) -> v }).toMap
   }
 
   /**
@@ -254,8 +254,8 @@ case class State(turn: Player = BLACK,
     val m: Map[MoveFrom, BitBoard] = if (isChecked)
       getEscapeMoves
     else
-      getNonSuicidalMovesOnBoard.map { case (k, v) => Left(k) -> v } ++ attackBBInHand.map { case (k, v) => Right(k) -> v }
-    m.mapValues(_ & ~occupancy(turn)).filter(_._2.nonEmpty)
+      (getNonSuicidalMovesOnBoard.map { case (k, v) => Left(k) -> v } ++ attackBBInHand.map { case (k, v) => Right(k) -> v }).toMap
+    m.view.mapValues(_ & ~occupancy(turn)).filter(_._2.nonEmpty).toMap
   }
 
   /**

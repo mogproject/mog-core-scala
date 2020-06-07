@@ -7,10 +7,11 @@ import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class CsaGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class CsaGameIOSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestCsaGameReader extends CsaGameReader
 

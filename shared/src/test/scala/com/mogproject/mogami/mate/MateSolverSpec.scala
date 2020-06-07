@@ -1,13 +1,14 @@
 package com.mogproject.mogami.mate
 
 import com.mogproject.mogami._
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 /**
   *
   */
-class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class MateSolverSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   "MateSolver#solve" must "return answers" in {
 
     val s = Seq(
@@ -21,7 +22,11 @@ class MateSolverSpec extends FlatSpec with MustMatchers with GeneratorDrivenProp
 
     MateSolver.solve(s(0)).map(_.map(_.toCsaString)) mustBe Some(List("+0052KI"))
     MateSolver.solve(s(1)).map(_.map(_.toCsaString)) mustBe Some(List("+3436HI"))
-    MateSolver.solve(s(2)).map(_.map(_.toCsaString)) mustBe Some(List("+0012KI", "-2212HI", "+0023KE"))
+
+    Seq(
+      Some(List("+0012KI", "-2212HI", "+0023KE")),
+      Some(List("+0023KE", "-2223HI", "+0012KI"))
+    ).contains(MateSolver.solve(s(2)).map(_.map(_.toCsaString))) mustBe true
     Seq(
       Some(List("+4123KA", "-1211OU", "+0012FU", "-1122OU", "+3332RY")),
       Some(List("+4123KA", "-1222OU", "+3332RY", "-2211OU", "+2312UM")),

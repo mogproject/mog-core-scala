@@ -1,7 +1,3 @@
-import org.scalajs.sbtplugin.ScalaJSPlugin
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
-
-
 lazy val root = (project in file("."))
   .aggregate(mogCoreJVM, mogCoreJS)
   .settings(
@@ -9,22 +5,25 @@ lazy val root = (project in file("."))
     publishLocal := {}
   )
 
-lazy val mogCore = crossProject.in(file("."))
+lazy val mogCore = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Full)
+  .in(file("."))
   .settings(
     inThisBuild(List(
       organization := "com.mogproject",
-      scalaVersion := "2.12.0",
-      crossScalaVersions := Seq("2.11.11", "2.12.0")
+      scalaVersion := "2.13.2",
     )),
     name := "mog-core-scala",
-    version := "0.1-SNAPSHOT",
+    version := "0.2-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
-      "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test
+      "org.scalatest" %%% "scalatest" % "3.1.2" % Test,
+      "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test,
+      "org.scalatestplus" %%% "scalacheck-1-14" % "3.1.2.0" % Test
     ),
     scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
     parallelExecution in Test := false,
-    crossPaths := false
+    crossPaths := false,
+    scalaJSUseMainModuleInitializer := true
   )
   .jvmSettings(
     initialCommands in console in Test :=
@@ -46,4 +45,3 @@ lazy val mogCore = crossProject.in(file("."))
 
 lazy val mogCoreJVM = mogCore.jvm
 lazy val mogCoreJS = mogCore.js
-

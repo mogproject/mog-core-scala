@@ -10,11 +10,10 @@ cache:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
 
-jdk: oraclejdk8
+jdk: openjdk8
 
 scala:
-  - 2.12.0
-  - 2.11.11
+  - 2.13.2
 
 script: "travis_wait 30 sbt clean coverage mogCoreJVM/test"
 

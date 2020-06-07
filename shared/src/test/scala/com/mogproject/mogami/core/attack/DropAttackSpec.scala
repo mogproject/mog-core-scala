@@ -1,12 +1,13 @@
 package com.mogproject.mogami.core.attack
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 import com.mogproject.mogami.core._
 import com.mogproject.mogami.core.PieceConstant._
 
-class DropAttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks  {
+class DropAttackSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks  {
   object TestDropAttack extends DropAttack
   
   "DropAttack#getDropAttack" must "work for black pawn" in {

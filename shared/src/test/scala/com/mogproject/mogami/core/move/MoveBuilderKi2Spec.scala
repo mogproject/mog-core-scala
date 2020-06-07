@@ -6,10 +6,11 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.move.Movement._
 import com.mogproject.mogami.core.state.State
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class MoveBuilderKi2Spec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class MoveBuilderKi2Spec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   "MoveBuilderKi2#parseKi2String" must "succeed in normal cases" in {
     MoveBuilderKi2.parseKi2String("▲７六歩") mustBe MoveBuilderKi2(BLACK, Some(P76), PAWN, None, None)
     MoveBuilderKi2.parseKi2String("△同歩") mustBe MoveBuilderKi2(WHITE, None, PAWN, None, None)

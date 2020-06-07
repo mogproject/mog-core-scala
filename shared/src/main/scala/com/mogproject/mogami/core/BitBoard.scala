@@ -326,7 +326,7 @@ object BitBoard {
     * @return
     */
   def seq(s: String): Seq[BitBoard] = {
-    s.split('\n').withFilter(!_.isEmpty).map(_.split("[ ]+")).transpose map (a => BitBoard(a.mkString))
+    s.split('\n').withFilter(!_.isEmpty).map(_.split("[ ]+")).transpose.toIndexedSeq map (a => BitBoard(a.mkString))
   }
 
   /**

@@ -1,13 +1,14 @@
 package com.mogproject.mogami.core.attack
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 
-class AttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class AttackSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   "Attack#get" must "work with drop attacks" in {
     val allOcc = BitBoard.seq(
       """

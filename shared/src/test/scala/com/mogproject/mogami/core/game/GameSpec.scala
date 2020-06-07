@@ -7,10 +7,11 @@ import com.mogproject.mogami.core.game.GameStatus._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant._
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class GameSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   val stateHirateInv = State(WHITE, HIRATE.board, HIRATE.hand)
   val stateEmpty = State(BLACK, Map(), State.EMPTY_HANDS)
@@ -30,15 +31,15 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false)
     ), GameInfo(
       Map(
-        'formatVersion -> "2.2",
-        'blackName -> "NAKAHARA",
-        'whiteName -> "YONENAGA",
-        'event -> "13th World Computer Shogi Championship",
-        'site -> "KAZUSA ARC",
-        'startTime -> "2003/05/03 10:30:00",
-        'endTime -> "2003/05/03 11:11:05",
-        'timeLimit -> "00:25+00",
-        'opening -> "YAGURA"
+        Symbol("formatVersion") -> "2.2",
+        Symbol("blackName") -> "NAKAHARA",
+        Symbol("whiteName") -> "YONENAGA",
+        Symbol("event") -> "13th World Computer Shogi Championship",
+        Symbol("site") -> "KAZUSA ARC",
+        Symbol("startTime") -> "2003/05/03 10:30:00",
+        Symbol("endTime") -> "2003/05/03 11:11:05",
+        Symbol("timeLimit") -> "00:25+00",
+        Symbol("opening") -> "YAGURA"
       ))),
     createGame(HIRATE, Vector(
       Move(BLACK, Some(P77), P76, PAWN, false, false, None, None, false, Some(50)),
@@ -49,8 +50,8 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       Move(WHITE, Some(P51), P62, KING, false, false, None, None, false, Some(2)),
       Move(BLACK, Some(P33), P55, PBISHOP, true, false, None, None, false, Some(3))
     ), GameInfo(
-      Map('formatVersion -> "", 'blackName -> "B", 'whiteName -> "W", 'event -> "", 'site -> "",
-        'startTime -> "", 'endTime -> "", 'timeLimit -> "", 'opening -> "")
+      Map(Symbol("formatVersion") -> "", Symbol("blackName") -> "B", Symbol("whiteName") -> "W", Symbol("event") -> "", Symbol("site") -> "",
+        Symbol("startTime") -> "", Symbol("endTime") -> "", Symbol("timeLimit") -> "", Symbol("opening") -> "")
     ))
   )
 
@@ -178,20 +179,20 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
       "-\n-5152OU\nT2345\n+5958OU") mustBe createGame(stateHirateInv, Vector(
       Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
       Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
-    ), GameInfo(Map('whiteName -> "yyy")))
+    ), GameInfo(Map(Symbol("whiteName") -> "yyy")))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n+") mustBe createGame(stateEmpty, Vector(), GameInfo(
-      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
+      Map(Symbol("formatVersion") -> "2.2", Symbol("blackName") -> "x", Symbol("whiteName") -> "y", Symbol("opening") -> "AIGAKARI")))
     Game.parseCsaString("V2.2\nN+x\nN-y\n$OPENING:AIGAKARI\n-") mustBe createGame(State(
       WHITE, stateEmpty.board, stateEmpty.hand), Vector(), GameInfo(
-      Map('formatVersion -> "2.2", 'blackName -> "x", 'whiteName -> "y", 'opening -> "AIGAKARI")))
-    Game.parseCsaString("V2.2\n-") mustBe createGame(stateEmptyInv, Vector(), GameInfo(Map('formatVersion -> "2.2")))
+      Map(Symbol("formatVersion") -> "2.2", Symbol("blackName") -> "x", Symbol("whiteName") -> "y", Symbol("opening") -> "AIGAKARI")))
+    Game.parseCsaString("V2.2\n-") mustBe createGame(stateEmptyInv, Vector(), GameInfo(Map(Symbol("formatVersion") -> "2.2")))
     Game.parseCsaString("V2.2\n$EVENT:event name\nN-white name\nPI\n-\n-5152OU,T2345\n+5958OU") mustBe createGame(
       stateHirateInv,
       Vector(
         Move(WHITE, Some(P51), P52, KING, false, false, None, None, false, Some(2345)),
         Move(BLACK, Some(P59), P58, KING, false, false, None, None, false)
       ),
-      GameInfo(Map('formatVersion -> "2.2", 'event -> "event name", 'whiteName -> "white name")))
+      GameInfo(Map(Symbol("formatVersion") -> "2.2", Symbol("event") -> "event name", Symbol("whiteName") -> "white name")))
   }
   it must "throw an exception when in error cases" in StateCache.withCache { implicit cache =>
     assertThrows[RecordFormatException](Game.parseCsaString(""))
@@ -453,24 +454,24 @@ class GameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyCh
   it must "restore games" in StateCache.withCache { implicit cache => forAll(GameGen.games, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val gg = g.copy(newGameInfo = GameInfo(Map(
-      'blackName -> ts.getOrElse('blackName, ""),
-      'whiteName -> ts.getOrElse('whiteName, "")
+      Symbol("blackName") -> ts.getOrElse(Symbol("blackName"), ""),
+      Symbol("whiteName") -> ts.getOrElse(Symbol("whiteName"), "")
     )))
     Game.parseKifString(gg.toKifString) mustBe gg
   }}
   it must "restore free games" in StateCache.withCache { implicit cache => forAll(GameGen.freeGames, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val gg = g.copy(newGameInfo = GameInfo(Map(
-      'blackName -> ts.getOrElse('blackName, ""),
-      'whiteName -> ts.getOrElse('whiteName, "")
+      Symbol("blackName") -> ts.getOrElse(Symbol("blackName"), ""),
+      Symbol("whiteName") -> ts.getOrElse(Symbol("whiteName"), "")
     )))
     Game.parseKifString(gg.toKifString, isFreeMode = true) mustBe gg
   }}
   it must "restore games with branches and comments" in StateCache.withCache { implicit cache => forAll(GameGen.gamesWithBranchAndComment, minSuccessful(10)) { g =>
     val ts = g.gameInfo.tags
     val g1 = g.copy(newGameInfo = GameInfo(Map(
-      'blackName -> ts.getOrElse('blackName, ""),
-      'whiteName -> ts.getOrElse('whiteName, "")
+      Symbol("blackName") -> ts.getOrElse(Symbol("blackName"), ""),
+      Symbol("whiteName") -> ts.getOrElse(Symbol("whiteName"), "")
     )))
     val g2 = Game.parseKifString(g1.toKifString)
 

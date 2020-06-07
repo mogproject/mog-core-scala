@@ -4,10 +4,11 @@ import com.mogproject.mogami._
 import com.mogproject.mogami.core.game.Game.HistoryHash
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.state.{State, StateCache}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class BranchSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class BranchSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   def createBranch(initialState: State,
                    offset: Int = 0,

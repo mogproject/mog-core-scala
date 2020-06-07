@@ -42,7 +42,7 @@ case class IllegalMove(move: Move) extends SpecialMove {
 
   override def toKifString: String = IllegalMove.kifKeyword
 
-  override def toUsenString: String = IllegalMove.usenKeyword + move.toUsenString
+  override def toUsenString: String = s"${IllegalMove.usenKeyword}${move.toUsenString}"
 
   override def toJapaneseNotationString: String = move.toJapaneseNotationString
 

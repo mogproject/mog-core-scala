@@ -1,12 +1,13 @@
 package com.mogproject.mogami.core
 
 import org.scalacheck.Gen
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import com.mogproject.mogami.core.SquareConstant._
 
 
-class BitBoardSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class BitBoardSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   trait context {
     val bitboards = Seq(BitBoard.empty, BitBoard.full,

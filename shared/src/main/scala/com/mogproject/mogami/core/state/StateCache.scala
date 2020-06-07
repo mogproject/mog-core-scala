@@ -2,7 +2,7 @@ package com.mogproject.mogami.core.state
 
 import com.mogproject.mogami.core.state.StateHash.StateHash
 
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 
 /**
   * Key-value storage of states
@@ -51,7 +51,7 @@ class ThreadUnsafeStateCache() extends StateCache {
   override def get(hash: StateHash): Option[State] = storage(hash.toInt & (partitionSize - 1)).get(hash)
 
   override def refresh(keep: Set[StateHash]): Unit = storage.foreach { st =>
-    (st.keySet -- keep).foreach(st.remove)
+    (st.keySet.to(immutable.Set) -- keep).foreach(st.remove)
   }
 
   override def clear(): Unit = storage.foreach(_.clear())

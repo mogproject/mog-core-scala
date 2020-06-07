@@ -1,11 +1,12 @@
 package com.mogproject.mogami.core.move
 
 import com.mogproject.mogami.core.state.State
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 
-class SpecialMoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class SpecialMoveSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   "IllegalMove#toJapaneseNotationString" must "return move expression" in {
     IllegalMove(MoveBuilderCsa.parseCsaString("+7776FU").toMove(State.HIRATE).get).toJapaneseNotationString mustBe "７六歩"

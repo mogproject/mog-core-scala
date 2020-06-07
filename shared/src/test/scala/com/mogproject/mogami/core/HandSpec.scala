@@ -1,10 +1,11 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 
-class HandSpec extends FlatSpec with MustMatchers {
+class HandSpec extends AnyFlatSpec with Matchers {
 
   "Hand#apply" must "create Hand instances" in {
     val h = Hand(BLACK, PAWN)

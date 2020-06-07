@@ -21,7 +21,7 @@ trait SfenBranchReader {
     * @param s "{board} {turn} {hand} {offset} [{move}...]"
     */
   def parseSfenString(s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch = {
-    val tokens = s.split(" ")
+    val tokens = s.split(" ").toIndexedSeq
     parseSfenStringHelper(tokens.drop(3), None, _ => Branch(State.parseSfenString(tokens.take(3).mkString(" "))).initialHash, isFreeMode)
   }
 
@@ -32,7 +32,7 @@ trait SfenBranchReader {
     * @param s     "{offset} [{move}...]"
     */
   def parseSfenString(trunk: Branch, s: String, isFreeMode: Boolean)(implicit stateCache: StateCache): Branch =
-    parseSfenStringHelper(tokens = s.split(" "), Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset), isFreeMode)
+    parseSfenStringHelper(tokens = s.split(" ").toIndexedSeq, Some(Range(trunk.offset, trunk.offset + trunk.history.length)), i => trunk.history(i - trunk.offset), isFreeMode)
 
   // helper functions
   private[this] def parseSfenStringHelper(tokens: Seq[String], range: Option[Range], initialStateFunc: Int => StateHash, isFreeMode: Boolean)

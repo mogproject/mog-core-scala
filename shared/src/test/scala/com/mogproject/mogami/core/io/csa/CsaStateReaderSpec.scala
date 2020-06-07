@@ -6,10 +6,11 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.io.{NonEmptyLines, RecordFormatException}
 import com.mogproject.mogami.core.state.State.HIRATE
 import com.mogproject.mogami.util.Implicits._
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class CsaStateReaderSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestCsaStateReader extends CsaStateReader
 
@@ -18,7 +19,7 @@ class CsaStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDriven
   def makeNEL(xs: List[String]): NonEmptyLines = NonEmptyLines(CsaFactory.normalizeString(xs))
 
   val initResult: (BoardType, HandType, Map[Ptype, Int]) = (Map.empty, State.EMPTY_HANDS, State.capacity)
-  val zeroCap: Map[Ptype, Int] = State.capacity.mapValues(_ => 0)
+  val zeroCap: Map[Ptype, Int] = State.capacity.view.mapValues(_ => 0).toMap
   val hirateResult: (BoardType, HandType, Map[Ptype, Int]) = (HIRATE.board, HIRATE.hand, zeroCap)
 
   val dataForTest = Seq(
