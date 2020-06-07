@@ -6,10 +6,11 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.state.State.PromotionFlag._
 import com.mogproject.mogami.util.Implicits._
 import com.mogproject.mogami.util.MapUtil
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class StateSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class StateSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   val dataForTest = Seq(
     State.HIRATE,

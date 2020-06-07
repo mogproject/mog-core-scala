@@ -196,7 +196,7 @@ case class Game(trunk: Branch,
   def truncated(gamePosition: GamePosition): Game = {
     def f(t: Branch, bs: Seq[Branch]): CommentType = {
       val validKeys = (t +: bs).foldLeft(Set.empty[HistoryHash])(_ ++ _.historyHash)
-      comments.filterKeys(validKeys)
+      comments.view.filterKeys(validKeys).toMap // @note .toMap is required with Scala 2.13
     }
 
     if (gamePosition.isTrunk) {

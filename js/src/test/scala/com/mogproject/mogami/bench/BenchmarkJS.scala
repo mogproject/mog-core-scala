@@ -11,7 +11,7 @@ import com.mogproject.mogami.core.state.StateCache
 /**
   * Benchmarks for Scala.js
   */
-object BenchmarkJS extends scalajs.js.JSApp with Benchmark with TestData {
+object BenchmarkJS extends Benchmark with TestData {
   def main(): Unit = {
     misc()
     benchGameLoad()

@@ -1,12 +1,13 @@
 package com.mogproject.mogami.core.attack
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 
-class DirectAttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class DirectAttackSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestDirectAttack extends DirectAttack
 

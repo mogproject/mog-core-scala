@@ -7,10 +7,11 @@ import com.mogproject.mogami.core.game.Branch
 import com.mogproject.mogami.core.move.{IllegalMove, Move, MoveBuilderSfenBoard, MoveBuilderSfenHand}
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
 import com.mogproject.mogami.core.state.{State, StateCache}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class HtmlBranchWriterSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class HtmlBranchWriterSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   "HtmlBranchWriter#toHtmlString" must "make html with comments" in {
     StateCache.withCache { implicit cache =>

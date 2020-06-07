@@ -5,10 +5,11 @@ import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.state.StateConstant._
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.state.StateGen
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class HtmlStateWriterSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class HtmlStateWriterSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   case class TestHtmlStateWriter(board: BoardType, hand: HandType) extends HtmlStateWriter
 

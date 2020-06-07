@@ -2,10 +2,11 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.state.StateCache
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class JVMGameSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class JVMGameSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   def loadFile(path: String, encoding: String = "utf-8"): String = {
     scala.io.Source.fromFile(s"jvm/src/test/resources/${path}", encoding).mkString.replace("\r", "")
   }

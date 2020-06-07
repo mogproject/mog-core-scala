@@ -1,9 +1,10 @@
 package com.mogproject.mogami.core.io.kif
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class KifStateReaderSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class KifStateReaderSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestKifStateReader extends KifStateReader
 

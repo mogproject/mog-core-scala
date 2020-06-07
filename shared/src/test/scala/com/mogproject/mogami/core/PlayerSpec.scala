@@ -1,11 +1,12 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io.RecordFormatException
 
-class PlayerSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class PlayerSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   "Player#equals" must "distinguish between black and white" in {
     BLACK.equals(BLACK) must be(true)
     BLACK.equals(WHITE) must be(false)

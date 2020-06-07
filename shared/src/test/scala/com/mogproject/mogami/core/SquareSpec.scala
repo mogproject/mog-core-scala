@@ -2,13 +2,14 @@ package com.mogproject.mogami.core
 
 import com.mogproject.mogami.core.Player.{BLACK, WHITE}
 import com.mogproject.mogami.core.Ptype.{KNIGHT, LANCE, PAWN, SILVER}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.Direction._
 import com.mogproject.mogami.core.io.RecordFormatException
 
-class SquareSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class SquareSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   private val csaSquare = for (r <- '1' to '9'; f <- '1' to '9') yield s"$f$r"
   private val sfenSquare = for (r <- 'a' to 'i'; f <- '1' to '9') yield s"$f$r"
   private val kifSquare = for (r <- "一二三四五六七八九"; f <- "１２３４５６７８９") yield s"$f$r"

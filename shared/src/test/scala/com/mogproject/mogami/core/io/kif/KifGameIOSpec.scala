@@ -9,10 +9,11 @@ import com.mogproject.mogami.core.game.{Branch, Game, GameGen, GameInfo}
 import com.mogproject.mogami.core.move._
 import com.mogproject.mogami.core.state.{State, StateCache}
 import com.mogproject.mogami.core.state.StateConstant.HIRATE
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class KifGameIOSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestKifGameReader extends KifGameReader
 
@@ -239,8 +240,8 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       val ts = g.gameInfo.tags
       val gg = g.copy(
         newGameInfo = GameInfo(Map(
-          'blackName -> ts.getOrElse('blackName, ""),
-          'whiteName -> ts.getOrElse('whiteName, "")
+          Symbol("blackName") -> ts.getOrElse(Symbol("blackName"), ""),
+          Symbol("whiteName") -> ts.getOrElse(Symbol("whiteName"), "")
         ))
       ).dropElapsedTime
       Game.parseKi2String(gg.toKi2String) mustBe gg
@@ -251,8 +252,8 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
       val ts = g.gameInfo.tags
       val gg = g.copy(
         newGameInfo = GameInfo(Map(
-          'blackName -> ts.getOrElse('blackName, ""),
-          'whiteName -> ts.getOrElse('whiteName, "")
+          Symbol("blackName") -> ts.getOrElse(Symbol("blackName"), ""),
+          Symbol("whiteName") -> ts.getOrElse(Symbol("whiteName"), "")
         ))
       ).dropElapsedTime
       Game.parseKi2String(gg.toKi2String, isFreeMode = true) mustBe gg
@@ -262,8 +263,8 @@ class KifGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPrope
     val g = Game(Branch().copy(finalAction = Some(TimeUp())))
     val gg = g.copy(
       newGameInfo = GameInfo(Map(
-        'blackName -> g.gameInfo.tags.getOrElse('blackName, ""),
-        'whiteName -> g.gameInfo.tags.getOrElse('whiteName, "")
+        Symbol("blackName") -> g.gameInfo.tags.getOrElse(Symbol("blackName"), ""),
+        Symbol("whiteName") -> g.gameInfo.tags.getOrElse(Symbol("whiteName"), "")
       ))
     )
     val s = g.toKi2String

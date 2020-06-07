@@ -7,10 +7,11 @@ import com.mogproject.mogami.core.SquareConstant._
 import com.mogproject.mogami.core.io.RecordFormatException
 import com.mogproject.mogami.core.state.State
 import com.mogproject.mogami.core.{Hand, Ptype, Square}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class MoveSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class MoveSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   val movesForTestCsa = Seq(
     MoveBuilderCsaBoard(BLACK, P77, P76, PAWN, None),
     MoveBuilderCsaBoard(WHITE, P99, P11, PBISHOP, None),

@@ -1,11 +1,12 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io.RecordFormatException
 
-class PtypeSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class PtypeSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   val allPtypes = Seq(
     KING, GOLD, PAWN, KNIGHT, SILVER, LANCE, BISHOP, ROOK, PPAWN, PKNIGHT, PSILVER, PLANCE, PBISHOP, PROOK)

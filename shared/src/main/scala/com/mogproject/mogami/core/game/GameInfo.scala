@@ -38,15 +38,15 @@ case class GameInfo(tags: Map[Symbol, String] = Map()) extends CsaLike {
 object GameInfo {
   /** pairs of a symbol name and its csa-formatted string */
   val keys: Seq[(Symbol, String)] = Seq(
-    ('formatVersion, "V"),
-    ('blackName, "N+"),
-    ('whiteName, "N-"),
-    ('event, "$EVENT:"),
-    ('site, "$SITE:"),
-    ('start, "$START:"),
-    ('startTime, "$START_TIME:"),
-    ('endTime, "$END_TIME:"),
-    ('timeLimit, "$TIME_LIMIT:"),
-    ('opening, "$OPENING:")
+    (Symbol("formatVersion"), "V"),
+    (Symbol("blackName"), "N+"),
+    (Symbol("whiteName"), "N-"),
+    (Symbol("event"), "$EVENT:"),
+    (Symbol("site"), "$SITE:"),
+    (Symbol("start"), "$START:"),
+    (Symbol("startTime"), "$START_TIME:"),
+    (Symbol("endTime"), "$END_TIME:"),
+    (Symbol("timeLimit"), "$TIME_LIMIT:"),
+    (Symbol("opening"), "$OPENING:")
   )
 }

@@ -1,14 +1,15 @@
 package com.mogproject.mogami.core.attack
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.PieceConstant._
 import com.mogproject.mogami.core.SquareConstant._
 
 
-class RangedAttackSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks  {
+class RangedAttackSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks  {
   object TestRangedAttack extends RangedAttack
   
   "RangedAttack#getRangedAttack" must "work for black lance with empty occupancy" in {

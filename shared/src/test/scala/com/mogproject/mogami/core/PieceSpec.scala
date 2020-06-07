@@ -1,11 +1,12 @@
 package com.mogproject.mogami.core
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import com.mogproject.mogami._
 import com.mogproject.mogami.core.io.RecordFormatException
 
-class PieceSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class PieceSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
   val allPieces: Seq[Piece] = for {p <- Player.constructor; pt <- Ptype.constructor} yield Piece(p, pt)
 
   val csaPieceTypes = Seq("TO", "NY", "NK", "NG", "UM", "RY", "OU", "KI", "FU", "KY", "KE", "GI", "KA", "HI")

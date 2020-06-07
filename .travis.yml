@@ -13,8 +13,7 @@ cache:
 jdk: openjdk8
 
 scala:
-  - 2.12.0
-  - 2.11.11
+  - 2.13.2
 
 script: "travis_wait 30 sbt clean coverage mogCoreJVM/test"
 

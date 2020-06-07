@@ -39,7 +39,7 @@ trait CsaStateReader extends CsaFactory[state.State] {
     }
 
     if (s.startsWith("PI")) {
-      f((State.HIRATE.board, State.HIRATE.hand, State.capacity.mapValues(_ => 0)), s.substring(2).grouped(4).toList)
+      f((State.HIRATE.board, State.HIRATE.hand, State.capacity.view.mapValues(_ => 0).toMap), s.substring(2).grouped(4).toList)
     } else {
       throw new RecordFormatException(lineNo, s"invalid init expression: ${s}")
     }
@@ -87,7 +87,7 @@ trait CsaStateReader extends CsaFactory[state.State] {
     def f(sofar: (Result, Boolean), ls: List[String], t: Player): (Result, Boolean) = (sofar, ls) match {
       case (((b, h, rest), false), "00AL" :: Nil) =>
         val newHand = MapUtil.mergeMaps(h, rest.collect { case (k, v) if k != KING => Hand(t, k) -> v })(_ + _, 0)
-        f(((b, newHand, State.capacity.mapValues(_ => 0)), true), Nil, t)
+        f(((b, newHand, State.capacity.view.mapValues(_ => 0).toMap), true), Nil, t)
       case (((b, h, rest), false), x :: xs) if x.length == 4 =>
         val isHand = x.startsWith("00")
         val pt = Ptype.parseCsaString(NonEmptyLines(lineNo, x.substring(2, 4)))

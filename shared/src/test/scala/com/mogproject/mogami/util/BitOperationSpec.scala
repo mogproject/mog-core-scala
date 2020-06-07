@@ -1,8 +1,9 @@
 package com.mogproject.mogami.util
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class BitOperationSpec extends FlatSpec with MustMatchers {
+class BitOperationSpec extends AnyFlatSpec with Matchers {
   "BitOperation#ntz" must "return the number of trailing zeros" in {
     BitOperation.ntz(0x0L) mustBe 64
     BitOperation.ntz(0x1L) mustBe 0

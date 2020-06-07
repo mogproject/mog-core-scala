@@ -5,10 +5,11 @@ import com.mogproject.mogami.core.game.{Game, GameGen}
 import com.mogproject.mogami.core.move.Movement.Upward
 import com.mogproject.mogami.core.move.{IllegalMove, Move, Resign}
 import com.mogproject.mogami.core.state.StateCache
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SfenGameIOSpec extends FlatSpec with MustMatchers with GeneratorDrivenPropertyChecks {
+class SfenGameIOSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
   object TestSfenGameReader extends SfenGameReader
 

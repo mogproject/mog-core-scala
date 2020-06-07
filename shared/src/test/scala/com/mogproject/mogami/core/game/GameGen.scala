@@ -6,6 +6,8 @@ import com.mogproject.mogami.core.move.{Move, Resign, TimeUp}
 import com.mogproject.mogami.core.state.{State, StateCache, StateGen}
 import org.scalacheck.Gen
 
+import scala.collection.immutable.LazyList
+
 /**
   * Game generator for scalacheck
   */
@@ -27,18 +29,18 @@ object GameGen {
     Game(t, gameInfo = gameInfo)
   }
 
-  private[this] def movesStream(initState: State, isFreeMode: Boolean): Stream[Move] = {
+  private[this] def movesStream(initState: State, isFreeMode: Boolean): LazyList[Move] = {
     type Item = (Option[Move], Option[State], Option[Square])
     val initItem: Item = (None, Some(initState), None)
-    lazy val xs: Stream[Item] = initItem #:: xs.flatMap {
+    lazy val xs: LazyList[Item] = initItem #:: xs.flatMap {
       case (_, Some(s), lastMoveTo) =>
         (for {
           m <- randomMove(s, lastMoveTo)
           ss <- s.makeMove(m, !isFreeMode)
         } yield {
-          Stream((Some(m.copy(elapsedTime = randomTime)), Some(ss), Some(m.to)))
-        }).getOrElse(Stream((None, None, None)))
-      case (_, None, _) => Stream.empty
+          LazyList((Some(m.copy(elapsedTime = randomTime)), Some(ss), Some(m.to)))
+        }).getOrElse(LazyList((None, None, None)))
+      case (_, None, _) => LazyList.empty
     }
     xs.tail.takeWhile(_._2.isDefined).map(_._1.get)
   }
@@ -106,15 +108,15 @@ object GameInfoGen {
     opening <- Gen.option(Gen.oneOf("YAGURA", "AIGAKARI"))
   } yield {
     val m = Map.newBuilder[Symbol, String]
-    formatVersion.foreach(m += 'formatVersion -> _)
-    blackName.foreach(m += 'blackName -> _)
-    whiteName.foreach(m += 'whiteName -> _)
-    event.foreach(m += 'event -> _)
-    site.foreach(m += 'site -> _)
-    startTime.foreach(m += 'startTime -> _)
-    endTime.foreach(m += 'endTime -> _)
-    timeLimit.foreach(m += 'timeLimit -> _)
-    opening.foreach(m += 'opening -> _)
+    formatVersion.foreach(m += Symbol("formatVersion") -> _)
+    blackName.foreach(m += Symbol("blackName") -> _)
+    whiteName.foreach(m += Symbol("whiteName") -> _)
+    event.foreach(m += Symbol("event") -> _)
+    site.foreach(m += Symbol("site") -> _)
+    startTime.foreach(m += Symbol("startTime") -> _)
+    endTime.foreach(m += Symbol("endTime") -> _)
+    timeLimit.foreach(m += Symbol("timeLimit") -> _)
+    opening.foreach(m += Symbol("opening") -> _)
     GameInfo(m.result())
   }
 

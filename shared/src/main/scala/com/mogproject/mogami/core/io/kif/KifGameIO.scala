@@ -76,8 +76,8 @@ trait KifGameWriter extends KifGameIO with KifLike with Ki2Like with KifBranchWr
 
   private[this] def getHeader: String = {
     // todo: add 上手/下手
-    val blackName = s"先手：${gameInfo.tags.getOrElse('blackName, "")}"
-    val whiteName = s"後手：${gameInfo.tags.getOrElse('whiteName, "")}"
+    val blackName = s"先手：${gameInfo.tags.getOrElse(Symbol("blackName"), "")}"
+    val whiteName = s"後手：${gameInfo.tags.getOrElse(Symbol("whiteName"), "")}"
 
     getPresetLabel(trunk.initialState).map { label =>
       Seq(s"手合割：${label}", blackName, whiteName)
@@ -297,9 +297,9 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
     def f(ls: List[Line], sofar: GameInfo): GameInfo = ls match {
       case (x, n) :: xs =>
         if (x.startsWith("先手：") || x.startsWith("下手："))
-          f(xs, sofar.updated('blackName, x.drop(3)))
+          f(xs, sofar.updated(Symbol("blackName"), x.drop(3)))
         else if (x.startsWith("後手：") || x.startsWith("上手："))
-          f(xs, sofar.updated('whiteName, x.drop(3)))
+          f(xs, sofar.updated(Symbol("whiteName"), x.drop(3)))
         else // ignore other flags
           f(xs, sofar)
       case _ => sofar
