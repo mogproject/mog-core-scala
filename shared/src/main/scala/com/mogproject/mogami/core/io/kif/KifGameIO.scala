@@ -2,6 +2,7 @@ package com.mogproject.mogami.core.io.kif
 
 import com.mogproject.mogami.core._
 import com.mogproject.mogami.core.game.Game.{CommentType, HistoryHash, Position}
+import com.mogproject.mogami.core.game.GameStatus.Playing
 import com.mogproject.mogami.core.game.{Branch, Game, GameInfo}
 import com.mogproject.mogami.core.io._
 import com.mogproject.mogami.core.move._
@@ -242,7 +243,7 @@ trait KifBranchReader extends KifGameIO {
           }
           case None => throw new RecordFormatException(n, s"invalid move: ${x}")
         }
-      case (_, Some(((x, n), _))) =>
+      case (_, Some(((x, n), _))) if sofar.status == Playing =>
         throw new RecordFormatException(n, s"invalid move expression: ${x}")
       case (_ :: xs, _) => // ignore other lines
         f(xs, illegal, sofar)
