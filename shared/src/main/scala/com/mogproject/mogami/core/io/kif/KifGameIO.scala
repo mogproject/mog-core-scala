@@ -243,6 +243,8 @@ trait KifBranchReader extends KifGameIO {
           }
           case None => throw new RecordFormatException(n, s"invalid move: ${x}")
         }
+      case ((_, None, _) :: xs, _) =>  // ignore comment lines
+        f(xs, illegal, sofar)
       case (_, Some(((x, n), _))) if sofar.status == Playing =>
         throw new RecordFormatException(n, s"invalid move expression: ${x}")
       case (_ :: xs, _) => // ignore other lines
