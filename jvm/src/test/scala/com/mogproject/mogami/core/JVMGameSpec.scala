@@ -167,6 +167,9 @@ class JVMGameSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropert
     val s15 = loadFile("kif/game/015.kif")
     val g015 = Game.parseKifString(s15)
     g015.trunk.moves.length mustBe 82
+
+    // Including 全, 圭, and 杏
+    Game.parseKifString(loadFile("kif/game/016.kif")).trunk.moves.length mustBe 37
   }
 
   "Game#parseKi2String" must "create games from files" in StateCache.withCache { implicit cache =>
