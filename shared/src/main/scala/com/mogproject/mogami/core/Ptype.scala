@@ -75,7 +75,7 @@ object Ptype extends CsaTableFactory[Ptype] with KifTableFactory[Ptype] {
   )
 
   override def parseKifString(nel: NonEmptyLines): Ptype = {
-    super.parseKifString(NonEmptyLines(nel.lines.map { case (s, n) => (s.replace("竜", "龍").replace("王", "玉"), n) }))
+    super.parseKifString(NonEmptyLines(nel.lines.map { case (s, n) => (s.replace("竜", "龍").replace("王", "玉").replace("杏", "成香").replace("圭", "成桂").replace("全", "成銀"), n) }))
   }
 
   // 龍 -> 竜
