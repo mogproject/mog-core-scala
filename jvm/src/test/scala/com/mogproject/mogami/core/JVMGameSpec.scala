@@ -170,6 +170,9 @@ class JVMGameSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropert
 
     // Including 全, 圭, and 杏
     Game.parseKifString(loadFile("kif/game/016.kif")).trunk.moves.length mustBe 37
+
+    // Invalid move on Shogi Club 24
+    Game.parseKifString(loadFile("kif/game/017.kif")).trunk.moves.length mustBe 26
   }
 
   "Game#parseKi2String" must "create games from files" in StateCache.withCache { implicit cache =>

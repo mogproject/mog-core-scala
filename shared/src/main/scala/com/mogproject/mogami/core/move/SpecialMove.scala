@@ -59,6 +59,7 @@ case class IllegalMove(move: Move) extends SpecialMove {
 object IllegalMove {
   val csaKeyword = "%ILLEGAL_MOVE"
   val kifKeyword = "反則手"
+  val kifKeywordRelaxed = "反則"  // accepts some variants such as "反則勝ち"
   val ki2Keyword = "反則"
   val usenKeyword = 'i'
 }

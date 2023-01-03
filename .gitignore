@@ -27,3 +27,5 @@ project/plugins/project/
 # for debug
 src/debug/
 
+.sbtopts
+

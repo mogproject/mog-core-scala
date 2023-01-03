@@ -232,7 +232,7 @@ trait KifBranchReader extends KifGameIO {
           case _ => throw new RecordFormatException(n, s"unknown special move: ${x}")
         }
         special.map(sp => sofar.copy(finalAction = Some(sp))).getOrElse(sofar)
-      case ((_, Some((_, x)), _) :: Nil, Some((_, mv))) if x.startsWith(IllegalMove.kifKeyword) => // ends with explicit illegal move
+      case ((_, Some((_, x)), _) :: _, Some((_, mv))) if x.startsWith(IllegalMove.kifKeywordRelaxed) => // ends with explicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case ((n, Some((_, x)), _) :: xs, None) =>
         val bldr = MoveBuilderKif.parseKifString(NonEmptyLines(n, x))
