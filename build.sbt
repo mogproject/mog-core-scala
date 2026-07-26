@@ -11,7 +11,7 @@ lazy val mogCore = crossProject(JSPlatform, JVMPlatform)
   .settings(
     inThisBuild(List(
       organization := "com.mogproject",
-      scalaVersion := "2.13.2",
+      scalaVersion := "2.13.14",
     )),
     name := "mog-core-scala",
     version := "0.2-SNAPSHOT",
@@ -20,13 +20,12 @@ lazy val mogCore = crossProject(JSPlatform, JVMPlatform)
       "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test,
       "org.scalatestplus" %%% "scalacheck-1-14" % "3.1.2.0" % Test
     ),
-    scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation"),
-    parallelExecution in Test := false,
+    ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation"),
+    Test / parallelExecution := false,
     crossPaths := false,
-    scalaJSUseMainModuleInitializer := true
   )
   .jvmSettings(
-    initialCommands in console in Test :=
+    Test / console/ initialCommands :=
       """
       import com.mogproject.mogami._
       import com.mogproject.mogami.core.Player.{BLACK, WHITE}
@@ -40,7 +39,7 @@ lazy val mogCore = crossProject(JSPlatform, JVMPlatform)
       """
   )
   .jsSettings(
-    //
+    scalaJSUseMainModuleInitializer := true
   )
 
 lazy val mogCoreJVM = mogCore.jvm
