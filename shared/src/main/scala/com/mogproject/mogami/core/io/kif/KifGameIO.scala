@@ -343,11 +343,11 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
   }
 
   @tailrec
-  final protected[kif] def splitBranchesKif(ls: Lines, sofar: List[Lines], remainder: List[Line]): List[Lines] = (ls, remainder.nonEmpty) match {
-    case (Nil, true) => splitBranchesKif(Nil, remainder.reverse :: sofar, Nil)
-    case (Nil, false) => sofar.reverse
-    case ((x, _) :: xs, _) if x.startsWith("変化：") => splitBranchesKif(xs, remainder.reverse :: sofar, Nil)
-    case (ln :: xs, _) => splitBranchesKif(xs, sofar, ln :: remainder)
+  final protected[kif] def splitBranchesKif(ls: Lines, sofar: List[Lines], remainder: List[Line]): List[Lines] = ls match {
+    case Nil if remainder.nonEmpty => splitBranchesKif(Nil, remainder.reverse :: sofar, Nil)
+    case Nil => sofar.reverse
+    case ((x, _) :: xs) if x.startsWith("変化：") => splitBranchesKif(xs, remainder.reverse :: sofar, Nil)
+    case ln :: xs => splitBranchesKif(xs, sofar, ln :: remainder)
   }
 
   protected[kif] def parseMovesKi2(initialState: State, lines: Lines, footer: Option[Line], isFreeMode: Boolean): StateCache => Game = { implicit cache =>
@@ -357,6 +357,8 @@ trait KifGameReader extends KifBranchReader with KifGameIO with KifGameFactory[G
         sofar.copy(finalAction = Some(IllegalMove(mv)))
       case (Nil, Some((_, mv)), None) => // ends with implicit illegal move
         sofar.copy(finalAction = Some(IllegalMove(mv)))
+      case (Nil, Some(((x, n), _)), Some(_)) =>
+        throw new RecordFormatException(n, s"invalid move expression: ${x}")
       case (Nil, None, Some((x, n))) => // ends with a special move except illegal move
         val special = if (x.contains(TimeUp.ki2Keyword)) {
           Some(TimeUp())

@@ -8,7 +8,7 @@ import com.mogproject.mogami.core.state.ThreadUnsafeStateCache
   * Solve a mate problem.
   */
 object MateSolver {
-  implicit lazy val mateSolverStateCache = new ThreadUnsafeStateCache()
+  implicit lazy val mateSolverStateCache: ThreadUnsafeStateCache = new ThreadUnsafeStateCache()
 
   // flags and statistics
   private[this] var timeout: Boolean = false
@@ -39,16 +39,18 @@ object MateSolver {
   private[this] def solveImpl(state: State, lastMoveTo: Option[Square], minDepth: Int, maxDepth: Int, timeLimitMillis: Long): Option[Seq[Move]] = {
     minDepth to maxDepth by 2 map { depth =>
       searchAttack(state, depth - 1) match {
-        case Some(xs) if xs.nonEmpty =>
-          // Found a solution
-          val moves = (lastMoveTo :: xs.init.map(mv => Some(mv.to))).zip(xs).map {
-            case (Some(to), mv) if mv.to == to => mv.copy(isSameSquare = true)
-            case (_, mv) => mv
+        case Some(xs) =>
+          if (xs.nonEmpty) {
+            // Found a solution
+            val moves = (lastMoveTo :: xs.init.map(mv => Some(mv.to))).zip(xs).map {
+              case (Some(to), mv) if mv.to == to => mv.copy(isSameSquare = true)
+              case (_, mv) => mv
+            }
+            return Some(moves)
+          } else {
+            // No solutions
+            return Some(Nil)
           }
-          return Some(moves)
-        case Some(Nil) =>
-          // No solutions
-          return Some(Nil)
         case None => // No conclusion
       }
     }
@@ -109,8 +111,8 @@ object MateSolver {
             var sofar: Option[List[Move]] = Some(Nil)
             for (mv <- sortMoves(candidates)) {
               searchDefence(mateSolverStateCache.get(makeMove(state, mv)).get, depth - 1) match {
-                case Some(Nil) => // No valid moves
-                case Some(xs) if xs.nonEmpty => return Some(mv :: xs) // Found a solution
+                case Some(xs) =>
+                  if (xs.nonEmpty) return Some(mv :: xs) // Found a solution
                 case None => sofar = None // No conclusion
               }
             }
@@ -134,17 +136,19 @@ object MateSolver {
       for (d <- 0 until depth by 2 if !found) {
         searchAttack(mateSolverStateCache.get(makeMove(state, mv)).get, d) match {
           case None => // Reached the max depth
-          case Some(xs) if xs.nonEmpty =>
-            // Found a solution
-            val len = xs.length
-            if (len > candidateLength) {
-              candidateLength = len
-              candidate = mv :: xs
+          case Some(xs) =>
+            if (xs.nonEmpty) {
+              // Found a solution
+              val len = xs.length
+              if (len > candidateLength) {
+                candidateLength = len
+                candidate = mv :: xs
+              }
+              found = true
+            } else {
+              // No solution
+              return Some(Nil)
             }
-            found = true
-          case Some(Nil) =>
-            // No solution
-            return Some(Nil)
         }
       }
       if (!found) return None // Reached the max depth
