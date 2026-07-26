@@ -1,4 +1,4 @@
-lazy val root = (project in file("."))
+lazy val root = Project("root", file("."))
   .aggregate(mogCoreJVM, mogCoreJS)
   .settings(
     publish := {},
@@ -11,13 +11,13 @@ lazy val mogCore = crossProject(JSPlatform, JVMPlatform)
   .settings(
     inThisBuild(List(
       organization := "com.mogproject",
-      scalaVersion := "2.13.14",
+      scalaVersion := "2.13.18",
     )),
     name := "mog-core-scala",
-    version := "0.2-SNAPSHOT",
+    version := "0.3-SNAPSHOT",
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest" % "3.1.2" % Test,
-      "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test,
+      "org.scalatest" %%% "scalatest" % "3.1.4" % Test,
+      "org.scalacheck" %%% "scalacheck" % "1.19.0" % Test,
       "org.scalatestplus" %%% "scalacheck-1-14" % "3.1.2.0" % Test
     ),
     ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation"),
